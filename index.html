@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mark It Off – Dashboard</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="512x512" href="favicon-512.png">
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+<link rel="apple-touch-icon" href="favicon-512.png">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f3; color: #1a1a18; display: flex; flex-direction: column; }
+
+  .top-bar { background: #1e2a4a; padding: 14px 32px; display: flex; align-items: center; justify-content: center; border-bottom: 2px solid #2d3d6b; flex-shrink: 0; position: relative; }
+  .top-bar-title { font-family: 'Cinzel', serif; font-size: 24px; font-weight: 700; color: #fff; letter-spacing: 0.12em; text-transform: uppercase; }
+
+  .grid-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 24px 50px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 14px;
+    width: 100%;
+    max-width: 860px;
+    height: 100%;
+    max-height: 600px;
+  }
+
+  .tile {
+    background: #fff;
+    border: 1px solid #e5e5e0;
+    border-radius: 14px;
+    padding: 16px 14px;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: box-shadow 0.18s, transform 0.18s;
+    cursor: pointer;
+    text-align: center;
+  }
+  .tile:hover { box-shadow: 0 4px 18px rgba(0,0,0,0.09); transform: translateY(-2px); }
+  .tile.dim { opacity: 0.55; cursor: default; pointer-events: none; }
+  .tile.dim:hover { box-shadow: none; transform: none; }
+
+  .tile-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .tile-title { font-size: 13px; font-weight: 600; color: #1e2a4a; line-height: 1.3; }
+  .tile-desc  { font-size: 11px; color: #888; line-height: 1.4; }
+  .tile-coming { font-size: 10px; font-weight: 500; color: #aaa; background: #f5f5f3; padding: 2px 8px; border-radius: 20px; }
+
+  .tile-aml      .tile-icon { background: #FDF4E3; }
+  .tile-accounts .tile-icon { background: #E1F5EE; }
+  .tile-tax      .tile-icon { background: #EAF3DE; }
+  .tile-vat      .tile-icon { background: #E6F1FB; }
+  .tile-payroll  .tile-icon { background: #FAEEDA; }
+  .tile-cis      .tile-icon { background: #FAECE7; }
+  .tile-pension  .tile-icon { background: #EEEDFE; }
+  .tile-tables   .tile-icon { background: #E1F5EE; }
+
+  .pos-aml      { grid-column: 2; grid-row: 1; }
+  .pos-accounts { grid-column: 1; grid-row: 2; }
+  .pos-tax      { grid-column: 2; grid-row: 2; }
+  .pos-vat      { grid-column: 3; grid-row: 2; }
+  .pos-payroll  { grid-column: 1; grid-row: 3; }
+  .pos-cis      { grid-column: 2; grid-row: 3; }
+  .pos-pension  { grid-column: 3; grid-row: 3; }
+  .pos-tables   { grid-column: 2; grid-row: 4; }
+
+  .corner-logo { position: fixed; bottom: 14px; left: 18px; z-index: 50; }
+  .corner-logo img { height: 46px; width: auto; max-height: 46px; display: block; mix-blend-mode: multiply; opacity: 0.88; filter: contrast(1.05); }
+</style>
+  
+</head>
+<body>
+
+<div class="top-bar">
+  <span class="top-bar-title">Mark It Off</span>
+  <span style="position:absolute;right:24px;background:rgba(255,255,255,0.1);color:#8fa3cc;font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;letter-spacing:0.05em;border:1px solid rgba(255,255,255,0.15);">Beta V1.8</span>
+</div>
+
+<div class="grid-wrap">
+  <div class="grid">
+
+    <a href="aml.html" class="tile tile-aml pos-aml" style="position:relative;">
+      <span id="aml-badge-expired"  class="aml-badge" style="position:absolute;top:7px;left:7px;background:#DC2626;color:#fff;font-size:11px;font-weight:700;min-width:20px;height:20px;border-radius:10px;display:none;align-items:center;justify-content:center;padding:0 6px;line-height:1;box-shadow:0 1px 3px rgba(0,0,0,.25);"></span>
+      <span id="aml-badge-expiring" class="aml-badge" style="position:absolute;top:7px;right:7px;background:#D97706;color:#fff;font-size:11px;font-weight:700;min-width:20px;height:20px;border-radius:10px;display:none;align-items:center;justify-content:center;padding:0 6px;line-height:1;box-shadow:0 1px 3px rgba(0,0,0,.25);"></span>
+      <div class="tile-icon">🪪</div>
+      <div class="tile-title">AML</div>
+      <div class="tile-desc">Track client ID documents and verification status</div>
+    </a>
+
+    <a href="https://secure.informdirect.co.uk/Account/LogOn/" target="_blank" rel="noopener noreferrer" class="tile tile-accounts pos-accounts">
+      <div class="tile-icon">🏢</div>
+      <div class="tile-title">Company Accounts</div>
+      <div class="tile-desc">Manage company accounts via Inform Direct</div>
+    </a>
+
+    <a href="tax.html" class="tile tile-tax pos-tax">
+      <div class="tile-icon">🧾</div>
+      <div class="tile-title">Tax Returns</div>
+      <div class="tile-desc">Self assessment tracking, MTD registration and submission progress</div>
+    </a>
+
+    <a href="vat.html" class="tile tile-vat pos-vat">
+      <div class="tile-icon">📋</div>
+      <div class="tile-title">VAT Returns</div>
+      <div class="tile-desc">Manage VAT return periods, track client progress and file deadlines</div>
+    </a>
+
+    <a href="payroll.html" class="tile tile-payroll pos-payroll">
+      <div class="tile-icon">💷</div>
+      <div class="tile-title">Payroll</div>
+      <div class="tile-desc">Weekly and monthly payroll tracking</div>
+    </a>
+
+    <a href="cis.html" class="tile tile-cis pos-cis">
+      <div class="tile-icon">🏗️</div>
+      <div class="tile-title">CIS Returns</div>
+      <div class="tile-desc">Monthly CIS return submissions</div>
+    </a>
+
+    <a href="pension.html" class="tile tile-pension pos-pension">
+      <div class="tile-icon">🏦</div>
+      <div class="tile-title">Pension Submissions</div>
+      <div class="tile-desc">Monthly pension submission tracking</div>
+    </a>
+
+    <a href="taxtables.html" class="tile tile-tables pos-tables">
+      <div class="tile-icon">📊</div>
+      <div class="tile-title">Tax Tables 2026/27</div>
+      <div class="tile-desc">Quick reference — income tax, NIC, CGT, IHT and more</div>
+    </a>
+
+  </div>
+</div>
+
+<div class="corner-logo"><img src="favicon-512.png" alt="Mark It Off"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+<script>
+(function() {
+  var CLIENT_ID = 'b9d8863a-6f1c-4518-8024-8073d37f79e6';
+  var REDIRECT  = 'https://maxmc2.github.io/mio/index.html';
+  var SCOPES    = ['Files.ReadWrite', 'User.Read'];
+  var AML_FILE  = 'aml_data.json';
+
+  function computeStatus(c) {
+    if (!c.docOption) return c.status || 'Pending';
+    var incomplete = false;
+    if      (c.docOption==='A') { if (!c.passportExpiry || !c.dlExpiryA) incomplete = true; }
+    else if (c.docOption==='B') { if (!c.passportExpiryB || (!c.addrDateB && !c.addrTypeB)) incomplete = true; }
+    else if (c.docOption==='C') { if (!c.dlExpiryC || (!c.addrDateC && !c.addrTypeC && !c.utilDateC)) incomplete = true; }
+    if (incomplete) return 'Incomplete';
+
+    // Use date-only comparison so documents expiring today are "Expiring soon", not "Expired"
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    var soon = new Date();
+    soon.setHours(0, 0, 0, 0);
+    soon.setDate(soon.getDate() + 30);
+
+    var expired = false, expiringSoon = false;
+    function chk(ds) {
+      if (!ds) return;
+      var d = new Date(ds);
+      d.setHours(0, 0, 0, 0);
+      if (d < today) expired = true;
+      else if (d <= soon) expiringSoon = true;
+    }
+    if      (c.docOption==='A') { chk(c.passportExpiry); chk(c.dlExpiryA); }
+    else if (c.docOption==='B') { chk(c.passportExpiryB); chk(c.dlExpiryB); chk(c.addrDateB); }
+    else if (c.docOption==='C') { chk(c.dlExpiryC); chk(c.addrDateC); chk(c.utilDateC); }
+    if (expired) return 'Expired';
+    if (expiringSoon) return 'Expiring soon';
+    return 'Verified';
+  }
+
+  function showBadges(clients) {
+    var nExpired = 0, nExpiring = 0;
+    clients.forEach(function(c) {
+      var s = computeStatus(c);
+      if (s === 'Expired')       nExpired++;
+      else if (s === 'Expiring soon') nExpiring++;
+    });
+    var be = document.getElementById('aml-badge-expired');
+    var bx = document.getElementById('aml-badge-expiring');
+    if (be && nExpired  > 0) { be.textContent = nExpired;  be.style.cssText += ';display:flex!important;'; }
+    if (bx && nExpiring > 0) { bx.textContent = nExpiring; bx.style.cssText += ';display:flex!important;'; }
+  }
+
+  async function run() {
+    try {
+      var app = new msal.PublicClientApplication({
+        auth: {
+          clientId:    CLIENT_ID,
+          authority:   'https://login.microsoftonline.com/common',
+          redirectUri: REDIRECT
+        },
+        cache: { cacheLocation: 'localStorage', storeAuthStateInCookie: true }
+      });
+
+      // Handle any redirect response first
+      try { await app.handleRedirectPromise(); } catch(e) {}
+
+      var accounts = app.getAllAccounts();
+      if (!accounts.length) return; // not signed in — nothing to show
+
+      var token = null;
+      try {
+        var res = await app.acquireTokenSilent({ scopes: SCOPES, account: accounts[0] });
+        token = res.accessToken;
+      } catch(e) { return; }
+      if (!token) return;
+
+      // Get the download URL via metadata (avoids CORB from redirect)
+      var metaResp = await fetch(
+        'https://graph.microsoft.com/v1.0/me/drive/root:/' + AML_FILE,
+        {
+          mode: 'cors',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Accept': 'application/json'
+          }
+        }
+      );
+      if (!metaResp.ok) return;
+      var meta = await metaResp.json();
+      var downloadUrl = meta['@microsoft.graph.downloadUrl'];
+      if (!downloadUrl) return;
+      var resp = await fetch(downloadUrl, { mode: 'cors' });
+      if (!resp.ok) return;
+
+      var data = await resp.json();
+      if (data && Array.isArray(data.clients)) showBadges(data.clients);
+    } catch(e) { /* silent fail */ }
+  }
+
+  var msalScript = document.querySelector('script[src*="msal-browser"]');
+  if (typeof msal !== 'undefined') {
+    run();
+  } else if (msalScript) {
+    msalScript.addEventListener('load', run);
+  }
+})();
+</script>
+</body>
+</html>
