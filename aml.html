@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AML – Mark It Off</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="512x512" href="favicon-512.png">
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+<link rel="apple-touch-icon" href="favicon-512.png">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f3; color: #1a1a18; font-size: 14px; display: flex; flex-direction: column; }
+
+  /* TOP BAR */
+  .top-bar { background: #1e2a4a; border-bottom: 2px solid #2d3d6b; padding: 10px 24px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .top-bar-left { display: flex; align-items: center; gap: 16px; }
+  .top-bar-title { font-size: 16px; font-weight: 600; color: #fff; letter-spacing: 0.03em; }
+  .back-btn { font-size: 12px; color: #8fa3cc; text-decoration: none; padding: 4px 10px; border: 1px solid #3a4f7a; border-radius: 6px; transition: all 0.15s; }
+  .back-btn:hover { color: #fff; border-color: #6fa3f5; }
+  .top-bar-right { display: flex; align-items: center; gap: 10px; }
+  .top-bar-saved { font-size: 11px; color: #7a8fb5; }
+  .topbar-btn { font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 20px; cursor: pointer; border: none; font-family: inherit; background: rgba(255,255,255,0.12); color: #fff; transition: opacity 0.15s; }
+  .topbar-btn:hover { opacity: 0.85; }
+  .topbar-btn.synced  { background: #1a3a1a; color: #6fcf6f; }
+  .topbar-btn.syncing { background: #1a2a3a; color: #7ab8f5; }
+  .topbar-btn.error   { background: #3a1a1a; color: #f07070; }
+
+  /* TOOLBAR BAR */
+  .toolbar-bar { background: #fff; border-bottom: 1px solid #e5e5e0; padding: 10px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;   flex-shrink: 0; }
+  .sticky-subheader { position: sticky; top: 92px; z-index: 88; background: #f5f5f3; padding-top: 20px; }
+
+  /* STATS */
+  .container { max-width: 1500px; width: 100%; margin: 0 auto; padding: 20px 24px 0; flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-bottom: 20px;  flex-shrink: 0; }
+  .stat-card { border-radius: 8px; padding: 12px 14px; cursor: pointer; transition: box-shadow 0.15s, opacity 0.15s; user-select: none; border: 1px solid transparent; }
+  .stat-card:hover { opacity: 0.88; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+  .stat-card.active-filter { box-shadow: 0 0 0 2px rgba(30,42,74,0.35); }
+  .stat-label { font-size: 11px; color: #444; margin-bottom: 4px; text-align: center; font-weight: 500; }
+  .stat-val { font-size: 22px; font-weight: 500; text-align: center; color: #1a1a18; }
+
+  /* TOOLBAR */
+  .toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  input[type="text"], input[type="email"], input[type="number"], input[type="date"], select, textarea {
+    font-family: inherit; font-size: 13px; border: 1px solid #ddd; border-radius: 6px;
+    padding: 6px 10px; background: #fff; color: #1a1a18; outline: none; transition: border 0.15s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: #888; }
+  .btn { font-family: inherit; font-size: 13px; padding: 7px 14px; border-radius: 6px; cursor: pointer; transition: opacity 0.15s; }
+  .btn-primary { background: #1e2a4a; color: #fff; border: none; font-weight: 500; }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-secondary { background: #fff; color: #1a1a18; border: 1px solid #ccc; }
+  .btn-secondary:hover { background: #f5f5f3; }
+  .btn-success { background: #fff; color: #27500A; border: 1px solid #97C459; font-weight: 500; }
+  .btn-success:hover { background: #EAF3DE; }
+  .btn-danger { background: #fff; color: #a32d2d; border: 1px solid #f09595; }
+  .btn-danger:hover { background: #fcebeb; }
+  .btn-sm { font-size: 11px; padding: 3px 8px; }
+
+  /* TABLE */
+  .table-wrap { background: #fff; border: 1px solid #e5e5e0; border-radius: 10px; overflow-x: auto; overflow-y: auto; flex: 1; min-height: 0; margin-bottom: 20px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 900px; }
+  thead th { text-align: left; padding: 9px 12px; font-size: 11px; font-weight: 500; color: #888; background: #fafaf8; border-bottom: 1px solid #e5e5e0; white-space: nowrap; position: sticky; top: 0; z-index: 10; }
+  tbody tr { border-bottom: 1px solid #f0f0ec; cursor: pointer; transition: background 0.1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #fafaf8; }
+  tbody tr.row-expired { background: #fff5f5; }
+  tbody tr.row-expiring { background: #fffbf0; }
+  tbody td { padding: 9px 12px; vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .client-name { font-weight: 500; }
+  .sub-text { font-size: 11px; color: #888; margin-top: 1px; }
+  .empty-row td { text-align: center; color: #888; padding: 2.5rem; }
+
+  /* BADGES */
+  .badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+  .s-verified   { background: #E1F5EE; color: #085041; }
+  .s-expiring   { background: #FEF9C3; color: #854D0E; }
+  .s-expired    { background: #FAECE7; color: #993C1D; }
+  .s-incomplete { background: #F1EFE8; color: #444441; }
+  .s-pending    { background: #E6F1FB; color: #0C447C; }
+
+  /* MODAL */
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: flex-start; justify-content: center; padding-top: 48px; overflow-y: auto; }
+  .overlay.open { display: flex; }
+  .modal { background: #fff; border-radius: 12px; border: 1px solid #e5e5e0; padding: 1.5rem; width: 660px; max-width: 95vw; margin-bottom: 48px; }
+  .modal h3 { font-size: 15px; font-weight: 500; margin-bottom: 1.1rem; }
+  .section-divider { font-size: 11px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin: 1rem 0 0.6rem; padding-top: 0.75rem; border-top: 1px solid #e5e5e0; }
+  .form-row { display: grid; gap: 10px; margin-bottom: 10px; }
+  .form-row.two { grid-template-columns: 1fr 1fr; }
+  .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+  .form-row.one { grid-template-columns: 1fr; }
+  .form-row label { font-size: 12px; color: #666; display: block; margin-bottom: 3px; }
+  .form-row input, .form-row select { width: 100%; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.1rem; align-items: center; }
+
+  /* DOC OPTION SELECTOR */
+  .doc-options { display: flex; gap: 8px; margin-bottom: 12px; }
+  .doc-opt-btn { flex: 1; padding: 8px 6px; border: 2px solid #e5e5e0; border-radius: 8px; background: #fff; cursor: pointer; font-family: inherit; font-size: 11px; font-weight: 500; color: #666; text-align: center; transition: all 0.15s; line-height: 1.4; }
+  .doc-opt-btn:hover { border-color: #1e2a4a; color: #1e2a4a; }
+  .doc-opt-btn.active { border-color: #1e2a4a; background: #1e2a4a; color: #fff; }
+  .doc-fields { display: none; }
+  .doc-fields.show { display: block; }
+
+  /* CONFIRM */
+  .confirm-box { background: #fff; border-radius: 12px; border: 1px solid #e5e5e0; padding: 1.5rem; width: 440px; max-width: 95vw; }
+  .confirm-box h3 { font-size: 15px; font-weight: 500; margin-bottom: 0.6rem; }
+  .confirm-box p { font-size: 13px; color: #555; margin-bottom: 1.2rem; line-height: 1.5; }
+  .confirm-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+  .toast { position: fixed; bottom: 20px; right: 20px; background: #1e2a4a; color: #fff; font-size: 12px; padding: 8px 16px; border-radius: 6px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200; }
+  .toast.show { opacity: 1; }
+  .expiry-warn { color: #993C1D; font-weight: 500; }
+  .expiry-soon { color: #854D0E; font-weight: 500; }
+
+  @media(max-width:600px){
+    .container{padding:12px 12px 80px;}
+    .form-row.three,.form-row.two{grid-template-columns:1fr;}
+    .doc-options{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="top-bar-left">
+    <a href="index.html" class="back-btn">← Dashboard</a>
+    <div class="top-bar-title">AML Register</div>
+  </div>
+  <div class="top-bar-right">
+    <button class="topbar-btn" id="syncStatusBtn" onclick="manualSync()">⟳ Not connected</button>
+    <div class="top-bar-saved" id="lastSaved"></div>
+  </div>
+</div>
+
+<div class="toolbar-bar">
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    <input type="text" id="searchBox" placeholder="Search name or company..." style="width:220px" oninput="render()">
+    <select id="filterStatus" onchange="onFilterChange()">
+      <option value="">All statuses</option>
+      <option>Verified</option>
+      <option>Expiring soon</option>
+      <option>Expired</option>
+      <option>Incomplete</option>
+      <option>Pending</option>
+    </select>
+    <select id="filterType" onchange="render()">
+      <option value="">All client types</option>
+      <option value="individual">Individual / Sole trader</option>
+      <option value="limited">Limited company</option>
+    </select>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button class="btn btn-success" onclick="exportToExcel()" style="font-size:12px;padding:5px 14px;">&#8659; Export to Excel</button>
+    <label class="btn btn-secondary" style="font-size:12px;padding:5px 14px;cursor:pointer;" title="Import clients from CSV">&#8679; Import CSV<input type="file" id="csvInput" accept=".csv" style="display:none" onchange="importCSV(this)"></label>
+    <button class="btn btn-primary" onclick="openModal(null)">+ Add client</button>
+  </div>
+</div>
+
+<div class="container">
+  <div class="sticky-subheader">
+    <div class="stats-bar" id="statsBar"></div>
+  </div><!-- end sticky-subheader -->
+  <div class="table-wrap">
+    <table>
+      <colgroup>
+        <col style="width:15%"><col style="width:12%"><col style="width:9%">
+        <col style="width:10%"><col style="width:13%"><col style="width:13%"><col style="width:9%"><col style="width:7%"><col style="width:7%"><col style="width:5%">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Company</th>
+          <th>Client type</th>
+          <th>Status</th>
+          <th>ID document</th>
+          <th>Address document</th>
+          <th>Next expiry</th>
+          <th>CH code</th>
+          <th>Date requested</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="clientTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Corner logo -->
+
+<!-- Client modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3 id="modalTitle">Add client</h3>
+
+    <div class="form-row two">
+      <div><label>Surname</label><input id="f-surname" type="text" placeholder="Smith"></div>
+      <div><label>First name</label><input id="f-firstname" type="text" placeholder="John"></div>
+    </div>
+    <div class="form-row two">
+      <div><label>Email address</label><input id="f-email" type="email" placeholder="client@example.com"></div>
+      <div></div>
+    </div>
+    <div class="form-row two">
+      <div>
+        <label>Client type</label>
+        <select id="f-type" onchange="toggleCompanyFields()">
+          <option value="individual">Individual / Sole trader</option>
+          <option value="limited">Limited company</option>
+        </select>
+      </div>
+      <div><label>Status</label>
+        <select id="f-status">
+          <option>Pending</option>
+          <option>Incomplete</option>
+          <option>Verified</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Limited company fields -->
+    <div id="companyFields" style="display:none;">
+      <div class="section-divider">Limited company details</div>
+      <div class="form-row two">
+        <div><label>Company name</label><input id="f-company" type="text" placeholder="Smith Ltd"></div>
+        <div><label>Companies House personal code</label><input id="f-chcode" type="text" placeholder="e.g. abc123"></div>
+      </div>
+    </div>
+
+    <div class="section-divider">ID verification — select option used</div>
+
+    <div class="doc-options">
+      <button type="button" class="doc-opt-btn" id="opt-a" onclick="selectDocOption('A')">
+        Option A<br><span style="font-weight:400;font-size:10px;">Passport + Driving licence</span>
+      </button>
+      <button type="button" class="doc-opt-btn" id="opt-b" onclick="selectDocOption('B')">
+        Option B<br><span style="font-weight:400;font-size:10px;">Passport + Bank stmt / Utility bill</span>
+      </button>
+      <button type="button" class="doc-opt-btn" id="opt-c" onclick="selectDocOption('C')">
+        Option C<br><span style="font-weight:400;font-size:10px;">Driving licence + Bank stmt + Utility bill</span>
+      </button>
+    </div>
+
+    <!-- Option A fields -->
+    <div class="doc-fields" id="fields-A">
+      <div class="form-row two">
+        <div><label>Passport expiry date</label><input id="f-passport-expiry" type="date"></div>
+        <div><label>Driving licence expiry date</label><input id="f-dl-expiry-a" type="date"></div>
+      </div>
+    </div>
+
+    <!-- Option B fields -->
+    <div class="doc-fields" id="fields-B">
+      <div class="form-row two">
+        <div><label>Passport expiry date</label><input id="f-passport-expiry-b" type="date"></div>
+        <div>
+          <label>Bank stmt / Utility bill type</label>
+          <select id="f-addr-type-b">
+            <option value="">Select...</option>
+            <option>Bank statement</option>
+            <option>Utility bill</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row two">
+        <div><label>Bank stmt / Utility bill date</label><input id="f-addr-date-b" type="date"></div>
+        <div></div>
+      </div>
+    </div>
+
+    <!-- Option C fields -->
+    <div class="doc-fields" id="fields-C">
+      <div class="form-row two">
+        <div><label>Driving licence expiry date</label><input id="f-dl-expiry-c" type="date"></div>
+        <div>
+          <label>Bank stmt type</label>
+          <select id="f-addr-type-c">
+            <option value="">Select...</option>
+            <option>Bank statement</option>
+            <option>Utility bill</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row two">
+        <div><label>Bank stmt date</label><input id="f-addr-date-c" type="date"></div>
+        <div><label>Utility bill date</label><input id="f-util-date-c" type="date"></div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="deleteBtn" onclick="deleteClient()" style="display:none;margin-right:auto">Delete</button>
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveClient()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Email modal -->
+<div class="overlay" id="emailOverlay">
+  <div class="modal" style="width:560px;">
+    <h3>Document renewal request</h3>
+    <div style="font-size:12px;color:#888;margin-bottom:12px;">Review and send via your email client</div>
+    <div class="form-row one" style="margin-bottom:8px;">
+      <div><label>To</label><input id="em-to" type="email" placeholder="client@example.com"></div>
+    </div>
+    <div class="form-row one" style="margin-bottom:8px;">
+      <div><label>Subject</label><input id="em-subject" type="text"></div>
+    </div>
+    <div class="form-row one">
+      <div><label>Message</label><textarea id="em-body" style="min-height:180px;font-size:13px;width:100%;border:1px solid #ddd;border-radius:6px;padding:8px 10px;font-family:inherit;resize:vertical;"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeEmailModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="sendEmail()">&#9993; Open in email client</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="status-dropdown" id="statusDropdown" style="display:none;position:fixed;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.13);z-index:500;min-width:160px;padding:4px 0;"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+const AZURE_CLIENT_ID = 'b9d8863a-6f1c-4518-8024-8073d37f79e6';
+const REDIRECT_URI    = 'https://maxmc2.github.io/mio/aml.html';
+const SCOPES          = ['Files.ReadWrite', 'User.Read'];
+const DATA_FILE       = 'aml_data.json';
+
+let clients    = [];
+let nextId     = 1;
+let editingId  = null;
+let activeFilter = null;
+let docOption  = null;
+let statusDropdownId = null;
+let msalInstance = null;
+let accessToken  = null;
+let saveQueued   = false;
+
+// ── STATUSES ───────────────────────────────────────────────────────────────
+const STATUS_CLASS = {
+  'Verified':'s-verified','Expiring soon':'s-expiring',
+  'Expired':'s-expired','Incomplete':'s-incomplete','Pending':'s-pending'
+};
+const STATUS_COLORS = {
+  'Verified':'#085041','Expiring soon':'#854D0E',
+  'Expired':'#993C1D','Incomplete':'#444441','Pending':'#0C447C'
+};
+const STAT_BG = {
+  'Verified':'#E1F5EE','Expiring soon':'#FEF9C3',
+  'Expired':'#FAECE7','Incomplete':'#F1EFE8','Pending':'#E6F1FB'
+};
+const STAT_BORDER = {
+  'Verified':'#5DCAA5','Expiring soon':'#FDE047',
+  'Expired':'#F0997B','Incomplete':'#B4B2A9','Pending':'#B5D4F4'
+};
+const ALL_STATUSES = ['Verified','Expiring soon','Expired','Incomplete','Pending'];
+
+// ── HELPERS ────────────────────────────────────────────────────────────────
+function today() { return new Date().toISOString().slice(0,10); }
+function todayLabel() { return new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short'}); }
+
+function fmtDate(s) {
+  if (!s) return '—';
+  var d = new Date(s);
+  var dd = String(d.getDate()).padStart(2,'0');
+  var mmm = d.toLocaleDateString('en-GB',{month:'short'});
+  var yy = String(d.getFullYear()).slice(-2);
+  return dd+'-'+mmm+'-'+yy;
+}
+
+function surname(name) {
+  if (!name) return '';
+  var parts = name.trim().split(' ').filter(function(p){return p.length>0;});
+  return parts.length>1 ? parts[parts.length-1] : (parts[0]||'');
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');}, 2400);
+}
+
+// ── COMPUTE STATUS ─────────────────────────────────────────────────────────
+function computeStatus(c) {
+  // If no documents added yet, use manual status
+  if (!c.docOption) return c.status || 'Pending';
+
+  var today_d = new Date();
+  var soon = new Date(); soon.setDate(soon.getDate()+30);
+
+  var expired = false, expiringSoon = false;
+
+  function checkExpiry(dateStr) {
+    if (!dateStr) return;
+    var d = new Date(dateStr);
+    if (d < today_d) expired = true;
+    else if (d <= soon) expiringSoon = true;
+  }
+
+  if (c.docOption === 'A') {
+    checkExpiry(c.passportExpiry);
+    checkExpiry(c.dlExpiryA);
+  } else if (c.docOption === 'B') {
+    checkExpiry(c.passportExpiryB);
+  } else if (c.docOption === 'C') {
+    checkExpiry(c.dlExpiryC);
+  }
+
+  if (expired) return 'Expired';
+  if (expiringSoon) return 'Expiring soon';
+  return 'Verified';
+}
+
+// Get the earliest upcoming expiry date for sorting
+function nextExpiry(c) {
+  var dates = [];
+  if (c.docOption === 'A') {
+    if (c.passportExpiry) dates.push(c.passportExpiry);
+    if (c.dlExpiryA) dates.push(c.dlExpiryA);
+  } else if (c.docOption === 'B') {
+    if (c.passportExpiryB) dates.push(c.passportExpiryB);
+  } else if (c.docOption === 'C') {
+    if (c.dlExpiryC) dates.push(c.dlExpiryC);
+  }
+  return dates.sort()[0] || '';
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────────────
+function render() {
+  var search = document.getElementById('searchBox').value.toLowerCase();
+  var fStatus = document.getElementById('filterStatus').value;
+  var fType   = document.getElementById('filterType').value;
+
+  // Compute live status for each client
+  clients.forEach(function(c){ c._status = computeStatus(c); });
+
+  var filtered = clients.filter(function(c){
+    var fullName = c.surname + ' ' + c.firstname;
+    if (search && !fullName.toLowerCase().includes(search) && !(c.company||'').toLowerCase().includes(search)) return false;
+    if (fStatus && c._status !== fStatus) return false;
+    if (fType && c.type !== fType) return false;
+    return true;
+  });
+
+  // Sort: expired first, expiring soon second, then all others alphabetically by surname
+  var order = {'Expired':0,'Expiring soon':1};
+  filtered.sort(function(a,b){
+    var ao = order[a._status] !== undefined ? order[a._status] : 2;
+    var bo = order[b._status] !== undefined ? order[b._status] : 2;
+    if (ao !== bo) return ao - bo;
+    var s = a.surname.localeCompare(b.surname);
+    if (s !== 0) return s;
+    return a.firstname.localeCompare(b.firstname);
+  });
+
+  var tb = document.getElementById('clientTable');
+  if (!filtered.length) {
+    tb.innerHTML = '<tr class="empty-row"><td colspan="8">No clients — click "+ Add client" to get started</td></tr>';
+  } else {
+    tb.innerHTML = filtered.map(function(c){
+      var rowClass = c._status==='Expired' ? 'row-expired' : (c._status==='Expiring soon' ? 'row-expiring' : '');
+      var exp = nextExpiry(c);
+      var expDisplay = '—';
+      if (exp) {
+        var d = new Date(exp);
+        var today_d = new Date();
+        var soon = new Date(); soon.setDate(soon.getDate()+30);
+        var cls = d < today_d ? 'expiry-warn' : (d <= soon ? 'expiry-soon' : '');
+        expDisplay = '<span class="'+cls+'">'+fmtDate(exp)+'</span>';
+      }
+      var idDoc = '—', addrDoc = '—';
+      if (c.docOption === 'A') {
+        idDoc = 'Passport '+(c.passportExpiry?'('+fmtDate(c.passportExpiry)+')':'');
+        addrDoc = 'Driving licence '+(c.dlExpiryA?'('+fmtDate(c.dlExpiryA)+')':'');
+      } else if (c.docOption === 'B') {
+        idDoc = 'Passport '+(c.passportExpiryB?'('+fmtDate(c.passportExpiryB)+')':'');
+        addrDoc = (c.addrTypeB||'Document')+' '+(c.addrDateB?'('+fmtDate(c.addrDateB)+')':'');
+      } else if (c.docOption === 'C') {
+        idDoc = 'Driving licence '+(c.dlExpiryC?'('+fmtDate(c.dlExpiryC)+')':'');
+        addrDoc = (c.addrTypeC||'Bank stmt')+(c.addrDateC?' ('+fmtDate(c.addrDateC)+')':'') + (c.utilDateC?' + Util ('+fmtDate(c.utilDateC)+')':'');
+      }
+      return '<tr class="'+rowClass+'" onclick="openModal('+c.id+')">'
+        +'<td><div class="client-name">'+c.surname+', '+c.firstname+'</div></td>'
+        +'<td style="font-size:12px">'+(c.company||'—')+'</td>'
+        +'<td style="font-size:12px">'+(c.type==='limited'?'Limited':'Individual')+'</td>'
+        +'<td><span class="badge '+(STATUS_CLASS[c._status]||'s-pending')+'">'+c._status+'</span></td>'
+        +'<td style="font-size:12px">'+idDoc+'</td>'
+        +'<td style="font-size:12px">'+addrDoc+'</td>'
+        +'<td style="font-size:12px">'+expDisplay+'</td>'
+        +'<td style="font-size:12px">'+(c.chcode || '—')+'</td>'
+        +'<td style="font-size:12px">'+(c.dateRequested ? fmtDate(c.dateRequested) : '—')+'</td>'
+        +'<td><button class="btn btn-sm" onclick="event.stopPropagation();openEmailModal('+c.id+')" style="background:#FEF9C3;color:#854D0E;border:1px solid #FDE047;padding:2px 7px;font-size:11px;" title="Send renewal request">✉</button></td>'
+        +'</tr>';
+    }).join('');
+  }
+
+  // Stats
+  var counts = {};
+  ALL_STATUSES.forEach(function(s){counts[s]=0;});
+  clients.forEach(function(c){ var s = computeStatus(c); if(counts[s]!==undefined) counts[s]++; });
+  var af = activeFilter;
+  document.getElementById('statsBar').innerHTML =
+    '<div class="stat-card" onclick="clickStat(null)" style="background:#fff;border-color:#e5e5e0">'
+    +'<div class="stat-label">Total</div><div class="stat-val">'+clients.length+'</div></div>'
+    + ALL_STATUSES.map(function(s){
+      return '<div class="stat-card'+(af===s?' active-filter':'')+'" onclick="clickStat(\''+s+'\')" style="background:'+STAT_BG[s]+';border-color:'+STAT_BORDER[s]+'">'
+        +'<div class="stat-label">'+s+'</div><div class="stat-val">'+counts[s]+'</div></div>';
+    }).join('');
+}
+
+function onFilterChange() {
+  activeFilter = document.getElementById('filterStatus').value || null;
+  render();
+}
+
+function clickStat(s) {
+  if (s===null || activeFilter===s) { activeFilter=null; document.getElementById('filterStatus').value=''; }
+  else { activeFilter=s; document.getElementById('filterStatus').value=s; }
+  render();
+}
+
+// ── DOC OPTION SELECTOR ────────────────────────────────────────────────────
+function selectDocOption(opt) {
+  docOption = opt;
+  ['A','B','C'].forEach(function(o){
+    document.getElementById('opt-'+o.toLowerCase()).classList.toggle('active', o===opt);
+    document.getElementById('fields-'+o).classList.toggle('show', o===opt);
+  });
+}
+
+function toggleCompanyFields() {
+  var isLtd = document.getElementById('f-type').value === 'limited';
+  document.getElementById('companyFields').style.display = isLtd ? 'block' : 'none';
+}
+
+// ── MODAL ──────────────────────────────────────────────────────────────────
+function openModal(id) {
+  editingId = id;
+  var deleteBtn = document.getElementById('deleteBtn');
+
+  // Reset
+  docOption = null;
+  ['A','B','C'].forEach(function(o){
+    document.getElementById('opt-'+o.toLowerCase()).classList.remove('active');
+    document.getElementById('fields-'+o).classList.remove('show');
+  });
+
+  if (id === null) {
+    document.getElementById('modalTitle').textContent = 'Add client';
+    document.getElementById('f-surname').value = '';
+    document.getElementById('f-firstname').value = '';
+    document.getElementById('f-email').value = '';
+    document.getElementById('f-type').value = 'individual';
+    document.getElementById('f-status').value = 'Pending';
+    document.getElementById('f-company').value = '';
+    document.getElementById('f-chcode').value = '';
+    document.getElementById('companyFields').style.display = 'none';
+    clearDocFields();
+    deleteBtn.style.display = 'none';
+  } else {
+    var c = clients.find(function(x){return x.id===id;});
+    document.getElementById('modalTitle').textContent = c.surname+', '+c.firstname;
+    document.getElementById('f-surname').value = c.surname||'';
+    document.getElementById('f-firstname').value = c.firstname||'';
+    document.getElementById('f-email').value = c.email||'';
+    document.getElementById('f-type').value = c.type||'individual';
+    document.getElementById('f-status').value = c.status||'Pending';
+    document.getElementById('f-company').value = c.company||'';
+    document.getElementById('f-chcode').value = c.chcode||'';
+    document.getElementById('companyFields').style.display = c.type==='limited' ? 'block' : 'none';
+    clearDocFields();
+    if (c.docOption) {
+      selectDocOption(c.docOption);
+      if (c.docOption==='A') {
+        document.getElementById('f-passport-expiry').value = c.passportExpiry||'';
+        document.getElementById('f-dl-expiry-a').value = c.dlExpiryA||'';
+      } else if (c.docOption==='B') {
+        document.getElementById('f-passport-expiry-b').value = c.passportExpiryB||'';
+        document.getElementById('f-addr-type-b').value = c.addrTypeB||'';
+        document.getElementById('f-addr-date-b').value = c.addrDateB||'';
+      } else if (c.docOption==='C') {
+        document.getElementById('f-dl-expiry-c').value = c.dlExpiryC||'';
+        document.getElementById('f-addr-type-c').value = c.addrTypeC||'';
+        document.getElementById('f-addr-date-c').value = c.addrDateC||'';
+        document.getElementById('f-util-date-c').value = c.utilDateC||'';
+      }
+    }
+    deleteBtn.style.display = 'block';
+  }
+  document.getElementById('overlay').classList.add('open');
+}
+
+function clearDocFields() {
+  ['f-passport-expiry','f-dl-expiry-a','f-passport-expiry-b','f-addr-date-b',
+   'f-dl-expiry-c','f-addr-date-c','f-util-date-c'].forEach(function(id){
+    document.getElementById(id).value='';
+  });
+  document.getElementById('f-addr-type-b').value='';
+  document.getElementById('f-addr-type-c').value='';
+}
+
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+
+function saveClient() {
+  var surname   = document.getElementById('f-surname').value.trim();
+  var firstname = document.getElementById('f-firstname').value.trim();
+  if (!surname || !firstname) { alert('Surname and first name are required'); return; }
+
+  var data = {
+    surname: surname,
+    firstname: firstname,
+    email: document.getElementById('f-email').value.trim(),
+    type: document.getElementById('f-type').value,
+    status: document.getElementById('f-status').value,
+    company: document.getElementById('f-company').value.trim(),
+    chcode: document.getElementById('f-chcode').value.trim(),
+    docOption: docOption,
+    passportExpiry:   docOption==='A' ? document.getElementById('f-passport-expiry').value : '',
+    dlExpiryA:        docOption==='A' ? document.getElementById('f-dl-expiry-a').value : '',
+    passportExpiryB:  docOption==='B' ? document.getElementById('f-passport-expiry-b').value : '',
+    addrTypeB:        docOption==='B' ? document.getElementById('f-addr-type-b').value : '',
+    addrDateB:        docOption==='B' ? document.getElementById('f-addr-date-b').value : '',
+    dlExpiryC:        docOption==='C' ? document.getElementById('f-dl-expiry-c').value : '',
+    addrTypeC:        docOption==='C' ? document.getElementById('f-addr-type-c').value : '',
+    addrDateC:        docOption==='C' ? document.getElementById('f-addr-date-c').value : '',
+    utilDateC:        docOption==='C' ? document.getElementById('f-util-date-c').value : ''
+  };
+
+  if (editingId === null) {
+    clients.push(Object.assign({id: nextId++}, data));
+  } else {
+    var c = clients.find(function(x){return x.id===editingId;});
+    Object.assign(c, data);
+  }
+  closeModal(); triggerSave(); render(); showToast('Saved');
+}
+
+function deleteClient() {
+  if (!confirm('Delete this client? This cannot be undone.')) return;
+  clients = clients.filter(function(x){return x.id!==editingId;});
+  closeModal(); triggerSave(); render(); showToast('Client deleted');
+}
+
+// ── EXCEL EXPORT ───────────────────────────────────────────────────────────
+function exportToExcel() {
+  var wb = XLSX.utils.book_new();
+  var rows = clients.slice().sort(function(a,b){return a.surname.localeCompare(b.surname);}).map(function(c){
+    var s = computeStatus(c);
+    var row = {
+      'Surname': c.surname||'',
+      'First name': c.firstname||'',      'Client type': c.type==='limited'?'Limited company':'Individual',
+      'Company': c.company||'',
+      'Email': c.email||'',
+      'CH Personal code': c.chcode||'',
+      'Status': s,
+      'Date requested': c.dateRequested ? fmtDate(c.dateRequested) : '',
+      'Doc option': c.docOption ? 'Option '+c.docOption : ''
+    };
+    if (c.docOption==='A') {
+      row['Passport expiry'] = c.passportExpiry ? fmtDate(c.passportExpiry) : '';
+      row['DL expiry'] = c.dlExpiryA ? fmtDate(c.dlExpiryA) : '';
+    } else if (c.docOption==='B') {
+      row['Passport expiry'] = c.passportExpiryB ? fmtDate(c.passportExpiryB) : '';
+      row['Address doc type'] = c.addrTypeB||'';
+      row['Address doc date'] = c.addrDateB ? fmtDate(c.addrDateB) : '';
+    } else if (c.docOption==='C') {
+      row['DL expiry'] = c.dlExpiryC ? fmtDate(c.dlExpiryC) : '';
+      row['Bank stmt type'] = c.addrTypeC||'';
+      row['Bank stmt date'] = c.addrDateC ? fmtDate(c.addrDateC) : '';
+      row['Utility bill date'] = c.utilDateC ? fmtDate(c.utilDateC) : '';
+    }
+    return row;
+  });
+  var ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols'] = [{wch:14},{wch:14},{wch:16},{wch:20},{wch:18},{wch:14},{wch:10},{wch:14},{wch:14},{wch:18},{wch:18},{wch:18}];
+  XLSX.utils.book_append_sheet(wb, ws, 'AML Register');
+  XLSX.writeFile(wb, 'AML_Register.xlsx');
+  showToast('Exported to Excel');
+}
+
+// ── EMAIL MODAL ────────────────────────────────────────────────────────────
+
+function openEmailModal(id) {
+  var c = clients.find(function(x){ return x.id === id; });
+  if (!c) return;
+
+  // Work out which document is expiring
+  var expiringDocs = [];
+  var today_d = new Date();
+  var soon = new Date(); soon.setDate(soon.getDate()+30);
+
+  function checkDoc(label, dateStr) {
+    if (!dateStr) return;
+    var d = new Date(dateStr);
+    if (d < today_d || d <= soon) {
+      expiringDocs.push({ label: label, date: fmtDate(dateStr), expired: d < today_d });
+    }
+  }
+
+  if (c.docOption === 'A') {
+    checkDoc('Passport', c.passportExpiry);
+    checkDoc('Driving licence', c.dlExpiryA);
+  } else if (c.docOption === 'B') {
+    checkDoc('Passport', c.passportExpiryB);
+  } else if (c.docOption === 'C') {
+    checkDoc('Driving licence', c.dlExpiryC);
+  }
+
+  var docLines = expiringDocs.map(function(d){
+    return '  - ' + d.label + ': ' + (d.expired ? 'expired on ' : 'expires on ') + d.date;
+  }).join('\n');
+
+  if (!docLines) docLines = '  - Document expiry date approaching';
+
+  var firstName = c.firstname || c.surname;
+  var subject = 'AML Identity Documents – Renewal Required';
+  var body = 'Dear ' + firstName + ',\n\n'
+    + 'As part of our ongoing compliance obligations, we are required to hold up-to-date identification documents for all clients.\n\n'
+    + 'Our records show that the following document(s) held for you are due for renewal:\n\n'
+    + docLines + '\n\n'
+    + 'Could you please provide updated copies of the above at your earliest convenience. '
+    + 'You can send these to us by email or drop them into the office.\n\n'
+    + 'If you have any questions, please don\'t hesitate to get in touch.';
+
+  document.getElementById('em-to').value = c.email || '';
+  document.getElementById('em-subject').value = subject;
+  document.getElementById('em-body').value = body;
+  document.getElementById('emailOverlay').dataset.clientId = id;
+  document.getElementById('emailOverlay').classList.add('open');
+}
+
+function sendEmail() {
+  var to      = document.getElementById('em-to').value.trim();
+  var subject = document.getElementById('em-subject').value.trim();
+  var body    = document.getElementById('em-body').value;
+  var mailto  = 'mailto:' + encodeURIComponent(to)
+    + '?subject=' + encodeURIComponent(subject)
+    + '&body=' + encodeURIComponent(body);
+  window.location.href = mailto;
+
+  // Record date requested on the client
+  if (document.getElementById('emailOverlay').dataset.clientId) {
+    var id = parseInt(document.getElementById('emailOverlay').dataset.clientId);
+    var c = clients.find(function(x){ return x.id === id; });
+    if (c) { c.dateRequested = today(); triggerSave(); render(); }
+  }
+  closeEmailModal();
+  showToast('Opening email client…');
+}
+
+function closeEmailModal() {
+  document.getElementById('emailOverlay').classList.remove('open');
+}
+
+
+// Expected columns (flexible headers, order doesn't matter):
+//   surname / last name, first name / firstname,
+//   company, type (individual/limited), ch code / companies house code,
+//   doc option (A/B/C),
+//   passport expiry, driving licence expiry,
+//   bank statement date, bank statement type, utility bill date
+
+function importCSV(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var raw = e.target.result;
+    var lines = raw.split('\n').map(function(l){ return l.replace(/\r$/, ''); }).filter(function(l){ return l.trim(); });
+    if (lines.length < 2) { showToast('CSV has no data rows'); input.value=''; return; }
+
+    var headers = lines[0].split(',').map(function(h){ return h.trim().toLowerCase().replace(/[^a-z0-9]/g,''); });
+
+    function findCol() {
+      var aliases = Array.prototype.slice.call(arguments);
+      for (var i = 0; i < aliases.length; i++) {
+        var idx = headers.indexOf(aliases[i]);
+        if (idx >= 0) return idx;
+      }
+      return -1;
+    }
+
+    var surnameIdx    = findCol('surname','lastname','last','familyname');
+    var firstnameIdx  = findCol('firstname','firstnames','first','givenname','forename');
+    var fullnameIdx   = findCol('name','fullname','clientname','client');
+    var companyIdx    = findCol('company','companyname','firm','business');
+    var typeIdx       = findCol('type','clienttype');
+    var chcodeIdx     = findCol('chcode','chpersonalcode','companieshouse','companieshouscode','personalcode','chpersonalcodecode','code');
+    var emailIdx      = findCol('email','emailaddress','email address');
+    var docOptIdx     = findCol('docoption','option','idoption');
+    var passportIdx   = findCol('passportexpiry','passport','passportdate');
+    var dlIdx         = findCol('drivinglicence','drivinglicense','dlexpiry','dldate','drivinglicenceexpiry');
+    var bankTypeIdx   = findCol('bankstmttype','bankstatementtype','addressdoctype','addrtype');
+    var bankDateIdx   = findCol('bankstmtdate','bankstatementdate','bankdate','addressdocdate','addrdate');
+    var utilDateIdx   = findCol('utilitybilldate','utilitydate','utildate');
+
+    if (surnameIdx === -1 && firstnameIdx === -1 && fullnameIdx === -1) {
+      showToast('CSV must have a Name, Surname or First name column'); input.value=''; return;
+    }
+
+    var added = 0, skipped = 0;
+    for (var i = 1; i < lines.length; i++) {
+      var cols = parseCSVLine(lines[i]);
+      var surname   = surnameIdx >= 0   ? (cols[surnameIdx]||'').trim() : '';
+      var firstname = firstnameIdx >= 0 ? (cols[firstnameIdx]||'').trim() : '';
+
+      // If no separate surname/firstname columns, try full name column
+      // Handles "Smith, John" or "Smith John" formats
+      if (!surname && !firstname && fullnameIdx >= 0) {
+        var fullname = (cols[fullnameIdx]||'').trim();
+        if (fullname.indexOf(',') >= 0) {
+          // "Smith, John" format
+          var parts = fullname.split(',');
+          surname   = parts[0].trim();
+          firstname = parts.slice(1).join(',').trim();
+        } else {
+          // "John Smith" format — last word is surname
+          var words = fullname.split(/\s+/).filter(function(w){ return w; });
+          if (words.length > 1) {
+            surname   = words[words.length - 1];
+            firstname = words.slice(0, words.length - 1).join(' ');
+          } else {
+            surname   = fullname;
+            firstname = '';
+          }
+        }
+      }
+
+      // Also handle if surname column itself contains "Surname, Firstname"
+      if (surname && surname.indexOf(',') >= 0 && !firstname) {
+        var parts2 = surname.split(',');
+        firstname = parts2.slice(1).join(',').trim();
+        surname   = parts2[0].trim();
+      }
+      if (!surname && !firstname) { skipped++; continue; }
+
+      var rawType = typeIdx >= 0 ? (cols[typeIdx]||'').trim().toLowerCase() : '';
+      var companyVal = companyIdx >= 0 ? (cols[companyIdx]||'').trim() : '';
+      var chcodeVal  = chcodeIdx >= 0  ? (cols[chcodeIdx]||'').trim() : '';
+
+      var type;
+      if (rawType.indexOf('limited') >= 0 || rawType === 'ltd' || rawType === 'ltd.' || rawType === 'company') {
+        type = 'limited';
+      } else if (companyVal || chcodeVal) {
+        type = 'limited'; // auto-detect from presence of company name or CH code
+      } else {
+        type = 'individual';
+      }
+
+      var rawOpt = docOptIdx >= 0 ? (cols[docOptIdx]||'').trim().toUpperCase() : '';
+      var docOption = null;
+      var importStatus = 'Pending';
+
+      var passportVal = passportIdx >= 0 ? parseImportDate(cols[passportIdx]||'') : '';
+      var dlVal       = dlIdx >= 0       ? parseImportDate(cols[dlIdx]||'') : '';
+      var bankDateVal = bankDateIdx >= 0  ? parseImportDate(cols[bankDateIdx]||'') : '';
+      var utilDateVal = utilDateIdx >= 0  ? parseImportDate(cols[utilDateIdx]||'') : '';
+      var bankTypeVal = bankTypeIdx >= 0  ? (cols[bankTypeIdx]||'').trim() : '';
+
+      if (['A','B','C'].indexOf(rawOpt) >= 0) {
+        docOption = rawOpt;
+        if (rawOpt === 'A' && (!passportVal || !dlVal)) importStatus = 'Incomplete';
+        else if (rawOpt === 'B' && (!passportVal || (!bankDateVal && !bankTypeVal))) importStatus = 'Incomplete';
+        else if (rawOpt === 'C' && (!dlVal || (!bankDateVal && !bankTypeVal))) importStatus = 'Incomplete';
+      } else {
+        var hasPassport = !!passportVal;
+        var hasDL       = !!dlVal;
+        var hasAddr     = !!(bankDateVal || bankTypeVal);
+
+        if (hasPassport && hasDL) {
+          docOption = 'A';
+        } else if (hasPassport && hasAddr) {
+          docOption = 'B';
+        } else if (hasDL && hasAddr) {
+          docOption = 'C';
+        } else if (hasPassport || hasDL || hasAddr) {
+          importStatus = 'Incomplete';
+          if (hasPassport) docOption = 'B';
+          else if (hasDL)  docOption = 'C';
+        }
+      }
+
+      clients.push({
+        id: nextId++,
+        surname: surname,
+        firstname: firstname,
+        type: type,
+        status: importStatus,
+        company:   companyVal,
+        chcode:    chcodeVal,
+        email:     emailIdx >= 0 ? (cols[emailIdx]||'').trim() : '',
+        docOption: docOption,
+        passportExpiry:  docOption === 'A' ? passportVal : '',
+        dlExpiryA:       docOption === 'A' ? dlVal : '',
+        passportExpiryB: docOption === 'B' ? passportVal : '',
+        addrTypeB:       docOption === 'B' ? bankTypeVal : '',
+        addrDateB:       docOption === 'B' ? bankDateVal : '',
+        dlExpiryC:       docOption === 'C' ? dlVal : '',
+        addrTypeC:       docOption === 'C' ? bankTypeVal : '',
+        addrDateC:       docOption === 'C' ? bankDateVal : '',
+        utilDateC:       docOption === 'C' ? utilDateVal : ''
+      });
+      added++;
+    }
+    input.value = '';
+    triggerSave(); render();
+    showToast('Imported ' + added + ' client' + (added !== 1 ? 's' : '') + (skipped ? ' (' + skipped + ' skipped)' : ''));
+  };
+  reader.readAsText(file);
+}
+
+function parseCSVLine(line) {
+  var result = [], cur = '', inQuote = false;
+  for (var i = 0; i < line.length; i++) {
+    var ch = line[i];
+    if (ch === '"') { inQuote = !inQuote; }
+    else if (ch === ',' && !inQuote) { result.push(cur); cur = ''; }
+    else { cur += ch; }
+  }
+  result.push(cur);
+  return result;
+}
+
+function parseImportDate(s) {
+  s = (s || '').trim();
+  var m1 = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (m1) return m1[3] + '-' + ('0' + m1[2]).slice(-2) + '-' + ('0' + m1[1]).slice(-2);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  return '';
+}
+
+
+function setSyncStatus(state, text) {
+  var btn = document.getElementById('syncStatusBtn');
+  btn.className = 'topbar-btn '+(state||'');
+  btn.textContent = text;
+}
+
+function initMsal() {
+  msalInstance = new msal.PublicClientApplication({
+    auth: { clientId: AZURE_CLIENT_ID, authority: 'https://login.microsoftonline.com/common', redirectUri: REDIRECT_URI },
+    cache: { cacheLocation: 'localStorage', storeAuthStateInCookie: true }
+  });
+}
+
+async function getToken() {
+  var accounts = msalInstance.getAllAccounts();
+  if (!accounts.length) return null;
+  try {
+    var r = await msalInstance.acquireTokenSilent({ scopes: SCOPES, account: accounts[0] });
+    return r.accessToken;
+  } catch(e) { return null; }
+}
+
+async function signIn() {
+  try { await msalInstance.loginRedirect({ scopes: SCOPES, prompt: 'select_account' }); }
+  catch(e) { setSyncStatus('error','⚠ Sign in failed'); }
+}
+
+async function manualSync() {
+  accessToken = await getToken();
+  if (!accessToken) await signIn();
+  else await loadFromOneDrive();
+}
+
+async function ensureToken() {
+  accessToken = await getToken();
+  return !!accessToken;
+}
+
+async function saveToOneDrive() {
+  if (!await ensureToken()) return;
+  setSyncStatus('syncing','⟳ Saving…');
+  try {
+    var payload = JSON.stringify({ clients: clients, nextId: nextId });
+    var r = await fetch('https://graph.microsoft.com/v1.0/me/drive/root:/'+DATA_FILE+':/content', {
+      method: 'PUT',
+      headers: { 'Authorization': 'Bearer '+accessToken, 'Content-Type': 'application/json' },
+      body: payload
+    });
+    if (!r.ok) throw new Error(r.status);
+    document.getElementById('lastSaved').textContent = 'Synced '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    setSyncStatus('synced','✓ OneDrive synced');
+  } catch(e) { setSyncStatus('error','⚠ Sync failed'); }
+}
+
+async function loadFromOneDrive() {
+  if (!await ensureToken()) { setSyncStatus('','⟳ Click to connect OneDrive'); return; }
+  setSyncStatus('syncing','⟳ Loading…');
+  try {
+    var r = await fetch('https://graph.microsoft.com/v1.0/me/drive/root:/'+DATA_FILE+':/content', {
+      headers: { 'Authorization': 'Bearer '+accessToken }
+    });
+    if (r.status===404) { setSyncStatus('synced','✓ OneDrive connected'); showToast('Connected — no data yet'); return; }
+    if (!r.ok) throw new Error(r.status);
+    var loaded = await r.json();
+    if (loaded.clients) {
+      clients = loaded.clients;
+      nextId = loaded.nextId || (clients.length ? Math.max.apply(null,clients.map(function(c){return c.id;}))+1 : 1);
+      saveToLocalStorage(); render();
+      showToast('OneDrive data loaded — '+clients.length+' clients');
+    }
+    setSyncStatus('synced','✓ OneDrive synced');
+  } catch(e) { setSyncStatus('error','⚠ Sync failed — click to retry'); }
+}
+
+function saveToLocalStorage() {
+  try { localStorage.setItem('mio-aml-v1', JSON.stringify({clients:clients,nextId:nextId})); } catch(e){}
+}
+
+function triggerSave() {
+  saveToLocalStorage();
+  document.getElementById('lastSaved').textContent = 'Saved '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  if (saveQueued) return;
+  saveQueued = true;
+  setTimeout(async function(){ saveQueued=false; await saveToOneDrive(); }, 1500);
+}
+
+async function loadData() {
+  initMsal();
+  try {
+    var result = await msalInstance.handleRedirectPromise();
+    if (result && result.accessToken) accessToken = result.accessToken;
+  } catch(e){}
+
+  var loaded = null;
+  try { var d = localStorage.getItem('mio-aml-v1'); if(d) loaded=JSON.parse(d); } catch(e){}
+  if (loaded) {
+    clients = loaded.clients||[];
+    nextId  = loaded.nextId||(clients.length ? Math.max.apply(null,clients.map(function(c){return c.id;}))+1 : 1);
+  }
+  render();
+
+  accessToken = await getToken();
+  if (accessToken) { setSyncStatus('syncing','⟳ Syncing…'); await loadFromOneDrive(); }
+  else setSyncStatus('','⟳ Click to connect OneDrive');
+}
+
+document.getElementById('overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+document.getElementById('emailOverlay').addEventListener('click',function(e){if(e.target===this)closeEmailModal();});
+
+loadData();
+</script>
+</body>
+</html>
