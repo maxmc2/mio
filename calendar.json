@@ -1,0 +1,26 @@
+{
+  "updated": "2026-04-13T11:14:48.559465+00:00",
+  "events": [
+    {
+      "summary": "Lee Nockels",
+      "dtstart": "20260415T110000",
+      "dtend": "20260415T120000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Peter Jordan",
+      "dtstart": "20260415T150000",
+      "dtend": "20260415T153000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Mands",
+      "dtstart": "20260414T090000",
+      "dtend": "20260414T100000",
+      "location": "Europe/London",
+      "description": ""
+    }
+  ]
+}
