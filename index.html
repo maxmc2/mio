@@ -75,9 +75,12 @@
 
 
   /* CALENDAR STRIP */
-  .cal-strip { background: #fff; border-bottom: 1px solid #e5e5e0; padding: 0 32px; flex-shrink: 0; display: flex; align-items: stretch; min-height: 48px; overflow: hidden; }
-  .cal-strip-label { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.06em; padding: 0 16px 0 0; display: flex; align-items: center; white-space: nowrap; border-right: 1px solid #e5e5e0; margin-right: 14px; flex-shrink: 0; }
-  .cal-days { display: flex; align-items: stretch; gap: 0; flex: 1; overflow: hidden; }
+  .cal-strip { background: #fff; border-bottom: 1px solid #e5e5e0; padding: 0 16px; flex-shrink: 0; display: flex; align-items: center; min-height: 48px; overflow: hidden; justify-content: center; gap: 8px; }
+  .cal-nav-btn { background: none; border: 1px solid #ddd; border-radius: 6px; width: 26px; height: 26px; cursor: pointer; font-size: 13px; color: #555; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.12s; }
+  .cal-nav-btn:hover { background: #f0f0ec; }
+  .cal-week-label { font-size: 11px; font-weight: 600; color: #888; white-space: nowrap; min-width: 70px; text-align: center; flex-shrink: 0; }
+  .cal-week-label.current { color: #1e8c3a; }
+  .cal-days { display: flex; align-items: stretch; gap: 0; flex: 1; overflow: hidden; justify-content: center; }
   .cal-day { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-right: 1px solid #f0f0ec; min-width: 0; flex-shrink: 0; }
   .cal-day:last-child { border-right: none; }
   .cal-day-label { font-size: 11px; font-weight: 600; color: #1e2a4a; white-space: nowrap; min-width: 36px; flex-shrink: 0; }
@@ -102,7 +105,9 @@
 
 <!-- Calendar strip -->
 <div class="cal-strip" id="calStrip">
-  <div class="cal-strip-label">📅 This week</div>
+  <button class="cal-nav-btn" onclick="changeWeek(-1)" title="Previous week">&#8593;</button>
+  <div class="cal-week-label current" id="calWeekLabel">This week</div>
+  <button class="cal-nav-btn" onclick="changeWeek(1)" title="Next week">&#8595;</button>
   <div class="cal-days" id="calDays"><span class="cal-loading">Loading calendar…</span></div>
 </div>
 
@@ -246,18 +251,45 @@
   // Calendar JSON — updated every 30 mins by GitHub Action
   var CAL_JSON = 'https://raw.githubusercontent.com/maxmc2/mio/main/calendar.json';
 
+  var weekOffset = 0;
+
   function getWeekDays() {
     var days = [];
     var now = new Date();
-    var dow = now.getDay(); // 0=Sun
+    var dow = now.getDay();
     var monday = new Date(now);
-    monday.setDate(now.getDate() - ((dow + 6) % 7)); // Monday
+    monday.setDate(now.getDate() - ((dow + 6) % 7) + (weekOffset * 7));
     for (var i = 0; i < 7; i++) {
       var d = new Date(monday);
       d.setDate(monday.getDate() + i);
       days.push(d);
     }
     return days;
+  }
+
+  function changeWeek(dir) {
+    weekOffset += dir;
+    loadCalendar();
+  }
+
+  function updateWeekLabel(days) {
+    var label = document.getElementById('calWeekLabel');
+    if (!label) return;
+    if (weekOffset === 0) {
+      label.textContent = 'This week';
+      label.className = 'cal-week-label current';
+    } else if (weekOffset === 1) {
+      label.textContent = 'Next week';
+      label.className = 'cal-week-label';
+    } else if (weekOffset === -1) {
+      label.textContent = 'Last week';
+      label.className = 'cal-week-label';
+    } else {
+      var start = days[0].toLocaleDateString('en-GB', {day:'numeric', month:'short'});
+      var end   = days[6].toLocaleDateString('en-GB', {day:'numeric', month:'short'});
+      label.textContent = start + ' – ' + end;
+      label.className = 'cal-week-label';
+    }
   }
 
   function pad(n) { return String(n).padStart(2, '0'); }
@@ -366,6 +398,7 @@
       });
 
       calDays.innerHTML = html;
+      updateWeekLabel(days);
 
     } catch(e) {
       console.warn('Calendar error:', e);
