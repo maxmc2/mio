@@ -256,7 +256,11 @@
       </div>
     </div>
     <div class="form-row two">
-      <div><label>Deadline</label><input id="f-deadline" type="date"></div>
+      <div>
+        <label>Deadline <span id="f-deadline-auto" style="font-size:10px;color:#888;font-weight:400;"></span></label>
+        <input id="f-deadline" type="date" oninput="document.getElementById('f-deadline-auto').textContent='(overridden)'">
+        <button type="button" onclick="resetDeadline()" style="font-size:11px;color:#1e2a4a;background:none;border:none;cursor:pointer;padding:0;margin-left:4px;text-decoration:underline;">Reset to auto</button>
+      </div>
       <div><label>Last contact</label><input id="f-lastcontact" type="date"></div>
     </div>
     <div class="form-row one">
@@ -702,7 +706,10 @@ function render() {
       <td><div class="client-name">${c.name}</div><div class="sub-text">${c.vat||''}</div></td>
       <td style="font-size:12px">${STAGGERS[c.stagger].periods[periodGroupState[c.stagger]].label}</td>
       <td><span class="status-wrap"><span class="badge ${STATUS_CLASS[c.status]||'s-new'}" onclick="event.stopPropagation();openStatusDropdown(event,${c.id})">${c.status} ▾</span></span></td>
-      <td class="${deadlineClass(c.deadline)}" style="font-size:12px">${fmtDate(c.deadline)}</td>
+      <td class="${deadlineClass(c.deadline)}" style="font-size:12px">
+        ${fmtDate(c.deadline)}
+        ${(()=>{const auto=calcDeadline(c.stagger||0,periodGroupState[c.stagger||0]);return c.deadline&&c.deadline!==auto?'<span title="Manually overridden" style="font-size:10px;color:#e07070;margin-left:3px;">✎</span>':''})()}
+      </td>
       <td style="font-size:12px">${fmtDate(c.lastContact)}</td>
       <td><span class="badge ${SCHEME_CLASS[c.scheme]||'scheme-std'}">${c.scheme||'Standard'}</span></td>
       <td><span class="badge ${c.payment==='Direct debit'?'pay-dd':'pay-manual'}">${c.payment==='Direct debit'?'DD':'Manual'}</span></td>
@@ -749,7 +756,9 @@ function openModal(id) {
     document.getElementById('modalTitle').textContent='Add client';
     ['f-name','f-vat','f-contact','f-email','f-notes','f-hmrc-user','f-hmrc-pass'].forEach(i=>document.getElementById(i).value='');
     document.getElementById('f-stagger').value=String(activePeriodGroup);
-    document.getElementById('f-deadline').value='';
+    const autoD = calcDeadline(activePeriodGroup, periodGroupState[activePeriodGroup]);
+    document.getElementById('f-deadline').value = autoD;
+    document.getElementById('f-deadline-auto').textContent = '(auto)';
     document.getElementById('f-status').value='New';
     document.getElementById('f-scheme').value='Standard';
     document.getElementById('f-payment').value='Direct debit';
@@ -764,7 +773,9 @@ function openModal(id) {
     document.getElementById('f-vat').value=c.vat||'';
     document.getElementById('f-contact').value=c.contact||'';
     document.getElementById('f-stagger').value=String(c.stagger||0);
-    document.getElementById('f-deadline').value=c.deadline||'';
+    const autoExisting = calcDeadline(c.stagger||0, periodGroupState[c.stagger||0]);
+    document.getElementById('f-deadline').value = c.deadline || '';
+    document.getElementById('f-deadline-auto').textContent = (c.deadline && c.deadline !== autoExisting) ? '(overridden)' : '(auto)';
     document.getElementById('f-status').value=c.status;
     document.getElementById('f-scheme').value=c.scheme||'Standard';
     document.getElementById('f-payment').value=c.payment||'Direct debit';
@@ -782,6 +793,13 @@ function openModal(id) {
 }
 
 function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+
+function resetDeadline() {
+  const stagger = parseInt(document.getElementById('f-stagger').value);
+  const auto = calcDeadline(stagger, periodGroupState[stagger]);
+  document.getElementById('f-deadline').value = auto;
+  document.getElementById('f-deadline-auto').textContent = '(auto)';
+}
 
 function togglePw() {
   const inp=document.getElementById('f-hmrc-pass'), btn=document.querySelector('.pw-toggle');
