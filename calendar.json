@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-13T11:14:48.559465+00:00",
+  "updated": "2026-04-13T11:22:13.118883+00:00",
   "events": [
     {
       "summary": "Lee Nockels",
@@ -19,6 +19,13 @@
       "summary": "Mands",
       "dtstart": "20260414T090000",
       "dtend": "20260414T100000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Chiropractor",
+      "dtstart": "20260416T104000",
+      "dtend": "20260416T114000",
       "location": "Europe/London",
       "description": ""
     }
