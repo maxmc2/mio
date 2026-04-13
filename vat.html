@@ -539,6 +539,12 @@ async function loadFromOneDrive() {
       nextId = loaded.nextId || (clients.length ? Math.max(...clients.map(c=>c.id))+1 : 1);
       if (loaded.periodGroupState) periodGroupState = loaded.periodGroupState;
       if (loaded.activePeriodGroup !== undefined) activePeriodGroup = loaded.activePeriodGroup;
+      // Migration: tag any clients missing _periodIdx
+      clients.forEach(cl => {
+        if (cl._periodIdx === undefined) {
+          cl._periodIdx = periodGroupState[cl.stagger || 0];
+        }
+      });
       saveToLocalStorage();
       renderAll();
       document.querySelectorAll('.period-tab').forEach((t,i) => t.classList.toggle('active', i===activePeriodGroup));
@@ -601,6 +607,14 @@ async function loadData() {
       if (p.months.includes(m) && !loaded) periodGroupState[s] = i;
     });
   }
+
+  // Migration: tag any clients missing _periodIdx
+  clients.forEach(cl => {
+    if (cl._periodIdx === undefined) {
+      cl._periodIdx = periodGroupState[cl.stagger || 0];
+    }
+  });
+
   renderAll();
   // Highlight the correct period tab
   document.querySelectorAll('.period-tab').forEach((t,i) => t.classList.toggle('active', i===activePeriodGroup));
