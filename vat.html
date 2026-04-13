@@ -763,7 +763,7 @@ function render() {
 
   // Clients for current stagger (all periods, but we track status per period via rollover)
   const curPeriodIdx = periodGroupState[activePeriodGroup];
-  const periodClients = clients.filter(c => c.stagger===activePeriodGroup && (c._periodIdx===curPeriodIdx || c._periodIdx===undefined));
+  const periodClients = clients.filter(c => c.stagger===activePeriodGroup && c._periodIdx===curPeriodIdx);
   const filtered = periodClients.filter(c => {
     if (search && !c.name.toLowerCase().includes(search) && !(c.vat||'').toLowerCase().includes(search)) return false;
     if (fStatus && c.status!==fStatus) return false;
