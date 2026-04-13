@@ -73,6 +73,21 @@
   .pos-pension  { grid-column: 3; grid-row: 3; }
   .pos-tables   { grid-column: 2; grid-row: 4; }
 
+
+  /* CALENDAR STRIP */
+  .cal-strip { background: #fff; border-bottom: 1px solid #e5e5e0; padding: 0 32px; flex-shrink: 0; display: flex; align-items: stretch; min-height: 48px; overflow: hidden; }
+  .cal-strip-label { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.06em; padding: 0 16px 0 0; display: flex; align-items: center; white-space: nowrap; border-right: 1px solid #e5e5e0; margin-right: 14px; flex-shrink: 0; }
+  .cal-days { display: flex; align-items: stretch; gap: 0; flex: 1; overflow: hidden; }
+  .cal-day { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-right: 1px solid #f0f0ec; min-width: 0; flex-shrink: 0; }
+  .cal-day:last-child { border-right: none; }
+  .cal-day-label { font-size: 11px; font-weight: 600; color: #1e2a4a; white-space: nowrap; min-width: 36px; flex-shrink: 0; }
+  .cal-day-label.today { color: #1e8c3a; }
+  .cal-events { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+  .cal-event { font-size: 11px; color: #444; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 1px 6px; border-radius: 3px; background: #EAF3DE; border-left: 3px solid #5a9e2f; }
+  .cal-event.timed::before { content: attr(data-time); font-weight: 600; color: #5a9e2f; margin-right: 4px; }
+  .cal-none { font-size: 11px; color: #ccc; font-style: italic; }
+  .cal-loading { font-size: 11px; color: #aaa; font-style: italic; display: flex; align-items: center; }
+  .cal-error { font-size: 11px; color: #e07070; font-style: italic; display: flex; align-items: center; }
   .corner-logo { position: fixed; bottom: 14px; left: 18px; z-index: 50; }
   .corner-logo img { height: 46px; width: auto; max-height: 46px; display: block; mix-blend-mode: multiply; opacity: 0.88; filter: contrast(1.05); }
 </style>
@@ -82,7 +97,13 @@
 
 <div class="top-bar">
   <span class="top-bar-title">Mark It Off</span>
-  <span style="position:absolute;right:24px;background:rgba(255,255,255,0.1);color:#8fa3cc;font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;letter-spacing:0.05em;border:1px solid rgba(255,255,255,0.15);">Beta v2.0</span>
+  <span style="position:absolute;right:24px;background:rgba(255,255,255,0.1);color:#8fa3cc;font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;letter-spacing:0.05em;border:1px solid rgba(255,255,255,0.15);">Beta V1.8</span>
+</div>
+
+<!-- Calendar strip -->
+<div class="cal-strip" id="calStrip">
+  <div class="cal-strip-label">📅 This week</div>
+  <div class="cal-days" id="calDays"><span class="cal-loading">Loading calendar…</span></div>
 </div>
 
 <div class="grid-wrap">
@@ -218,6 +239,218 @@
     msalScript.addEventListener('load', run);
   }
 })();
+
+
+// ── iCLOUD CALENDAR ────────────────────────────────────────────────────────
+(function() {
+  var APPLE_ID  = 'maxmc2@me.com';
+  var APP_PASS  = 'vfnm-vltp-axzq-xtmv';
+  // CalDAV endpoint for iCloud
+  var CALDAV_URL = 'https://caldav.icloud.com/';
+
+  var PROXY = 'https://corsproxy.io/?';
+
+  function getWeekDays() {
+    var days = [];
+    var now = new Date();
+    var dow = now.getDay(); // 0=Sun
+    var monday = new Date(now);
+    monday.setDate(now.getDate() - ((dow + 6) % 7)); // Monday
+    for (var i = 0; i < 7; i++) {
+      var d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      days.push(d);
+    }
+    return days;
+  }
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function formatDateUTC(d) {
+    return d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate()) + 'T000000Z';
+  }
+
+  function parseICS(text) {
+    var events = [];
+    var blocks = text.split('BEGIN:VEVENT');
+    for (var i = 1; i < blocks.length; i++) {
+      var block = blocks[i];
+      var get = function(key) {
+        var m = block.match(new RegExp(key + '[^:]*:([^\r\n]+)'));
+        return m ? m[1].trim() : '';
+      };
+      var summary = get('SUMMARY');
+      var dtstart = get('DTSTART');
+      var dtend   = get('DTEND');
+      if (!summary) continue;
+      events.push({ summary: summary, dtstart: dtstart, dtend: dtend });
+    }
+    return events;
+  }
+
+  function parseDate(str) {
+    if (!str) return null;
+    // All day: YYYYMMDD
+    if (str.length === 8) {
+      return new Date(
+        parseInt(str.substr(0,4)),
+        parseInt(str.substr(4,2))-1,
+        parseInt(str.substr(6,2))
+      );
+    }
+    // With time: YYYYMMDDTHHmmssZ or YYYYMMDDTHHmmss
+    var y=str.substr(0,4), mo=str.substr(4,2), d=str.substr(6,2);
+    var h=str.substr(9,2), mi=str.substr(11,2);
+    if (str.endsWith('Z')) {
+      return new Date(Date.UTC(+y,+mo-1,+d,+h,+mi));
+    }
+    return new Date(+y,+mo-1,+d,+h,+mi);
+  }
+
+  function sameDay(a, b) {
+    return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+  }
+
+  function formatTime(dt) {
+    if (!dt) return '';
+    return dt.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+  }
+
+  function isAllDay(str) { return str && str.length === 8; }
+
+  async function loadCalendar() {
+    var calDays = document.getElementById('calDays');
+    var days = getWeekDays();
+    var today = new Date();
+
+    // Build date range for CalDAV report
+    var start = days[0];
+    var end   = new Date(days[6]);
+    end.setDate(end.getDate() + 1);
+
+    var startStr = formatDateUTC(start);
+    var endStr   = formatDateUTC(end);
+
+    var reportBody = '<?xml version="1.0" encoding="utf-8"?>' +
+      '<c:calendar-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">' +
+        '<d:prop><d:getetag/><c:calendar-data/></d:prop>' +
+        '<c:filter><c:comp-filter name="VCALENDAR">' +
+          '<c:comp-filter name="VEVENT">' +
+            '<c:time-range start="' + startStr + '" end="' + endStr + '"/>' +
+          '</c:comp-filter>' +
+        '</c:comp-filter></c:filter>' +
+      '</c:calendar-query>';
+
+    var credentials = btoa(APPLE_ID + ':' + APP_PASS);
+
+    // First discover the calendar home
+    try {
+      var discoverResp = await fetch(PROXY + encodeURIComponent(CALDAV_URL), {
+        method: 'PROPFIND',
+        headers: {
+          'Authorization': 'Basic ' + credentials,
+          'Depth': '0',
+          'Content-Type': 'application/xml',
+        },
+        body: '<?xml version="1.0" encoding="utf-8"?><d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav"><d:prop><c:calendar-home-set/></d:prop></d:propfind>'
+      });
+
+      var discoverText = await discoverResp.text();
+      // Extract calendar-home-set href
+      var homeMatch = discoverText.match(/<[^>]*calendar-home-set[^>]*>\s*<[^>]*href[^>]*>([^<]+)/i);
+      var calHome = homeMatch ? homeMatch[1].trim() : '/';
+
+      // List calendars
+      var listResp = await fetch(PROXY + encodeURIComponent('https://caldav.icloud.com' + calHome), {
+        method: 'PROPFIND',
+        headers: {
+          'Authorization': 'Basic ' + credentials,
+          'Depth': '1',
+          'Content-Type': 'application/xml',
+        },
+        body: '<?xml version="1.0" encoding="utf-8"?><d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav"><d:prop><d:resourcetype/><d:displayname/><d:calendar-color xmlns:a="http://apple.com/ns/ical/"/></d:prop></d:propfind>'
+      });
+
+      var listText = await listResp.text();
+      // Find "Work" calendar href
+      var parser = new DOMParser();
+      var xmlDoc = parser.parseFromString(listText, 'text/xml');
+      var responses = xmlDoc.querySelectorAll('response');
+      var workHref = null;
+      responses.forEach(function(r) {
+        var name = r.querySelector('displayname');
+        if (name && name.textContent.trim().toLowerCase() === 'work') {
+          var href = r.querySelector('href');
+          if (href) workHref = href.textContent.trim();
+        }
+      });
+
+      if (!workHref) {
+        calDays.innerHTML = '<span class="cal-error">Work calendar not found</span>';
+        return;
+      }
+
+      // Fetch events from Work calendar
+      var eventsResp = await fetch(PROXY + encodeURIComponent('https://caldav.icloud.com' + workHref), {
+        method: 'REPORT',
+        headers: {
+          'Authorization': 'Basic ' + credentials,
+          'Depth': '1',
+          'Content-Type': 'application/xml',
+        },
+        body: reportBody
+      });
+
+      var eventsText = await eventsResp.text();
+      var allEvents = [];
+      var calDataMatches = eventsText.match(/BEGIN:VCALENDAR[\s\S]*?END:VCALENDAR/g) || [];
+      calDataMatches.forEach(function(cal) {
+        allEvents = allEvents.concat(parseICS(cal));
+      });
+
+      // Render days
+      var html = '';
+      days.forEach(function(day) {
+        var isToday = sameDay(day, today);
+        var dayLabel = day.toLocaleDateString('en-GB', {weekday:'short', day:'numeric'});
+        var dayEvents = allEvents.filter(function(ev) {
+          var dt = parseDate(ev.dtstart);
+          return dt && sameDay(dt, day);
+        }).sort(function(a, b) {
+          var ta = parseDate(a.dtstart);
+          var tb = parseDate(b.dtstart);
+          return (ta||0) - (tb||0);
+        });
+
+        html += '<div class="cal-day">';
+        html += '<div class="cal-day-label' + (isToday ? ' today' : '') + '">' + dayLabel + '</div>';
+        html += '<div class="cal-events">';
+        if (dayEvents.length === 0) {
+          html += '<span class="cal-none">—</span>';
+        } else {
+          dayEvents.forEach(function(ev) {
+            var dt = parseDate(ev.dtstart);
+            var allDay = isAllDay(ev.dtstart);
+            var timeStr = (!allDay && dt) ? formatTime(dt) : '';
+            html += '<div class="cal-event' + (timeStr ? ' timed' : '') + '"' +
+              (timeStr ? ' data-time="' + timeStr + '"' : '') + '>' +
+              ev.summary + '</div>';
+          });
+        }
+        html += '</div></div>';
+      });
+
+      calDays.innerHTML = html;
+
+    } catch(e) {
+      console.warn('Calendar error:', e);
+      calDays.innerHTML = '<span class="cal-error">Calendar unavailable</span>';
+    }
+  }
+
+  loadCalendar();
+})();
+
 </script>
 </body>
 </html>
