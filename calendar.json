@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-13T23:50:15.165354+00:00",
+  "updated": "2026-04-13T23:55:13.087533+00:00",
   "events": [
     {
       "summary": "Delphine\u2019s birthday",
@@ -54,13 +54,6 @@
       "summary": "Peter Jordan",
       "dtstart": "20260415T150000",
       "dtend": "20260415T153000",
-      "location": "",
-      "description": ""
-    },
-    {
-      "summary": "Mands",
-      "dtstart": "20260414T090000",
-      "dtend": "20260414T100000",
       "location": "",
       "description": ""
     },
