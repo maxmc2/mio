@@ -243,12 +243,9 @@
 
 // ── iCLOUD CALENDAR ────────────────────────────────────────────────────────
 (function() {
-  var APPLE_ID  = 'maxmc2@me.com';
-  var APP_PASS  = 'vfnm-vltp-axzq-xtmv';
-  // CalDAV endpoint for iCloud
-  var CALDAV_URL = 'https://caldav.icloud.com/';
-
-  var PROXY = 'https://api.allorigins.win/raw?url=';
+  // Public iCloud calendar ICS feed (Work calendar)
+  var ICS_URL = 'https://p132-caldav.icloud.com/published/2/MTEwNTY0NTM4NzExMDU2NOB0OiSOY0cdRP3mnZhkEbnxkIKi8xKlLcSeVqVry9qiGlnHhBwNr2Jbppb6zSk-gsAxmyEsgy-muCeDT3N5XDg';
+  var PROXY = 'https://corsproxy.io/?url=';
 
   function getWeekDays() {
     var days = [];
@@ -331,82 +328,11 @@
     var startStr = formatDateUTC(start);
     var endStr   = formatDateUTC(end);
 
-    var reportBody = '<?xml version="1.0" encoding="utf-8"?>' +
-      '<c:calendar-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">' +
-        '<d:prop><d:getetag/><c:calendar-data/></d:prop>' +
-        '<c:filter><c:comp-filter name="VCALENDAR">' +
-          '<c:comp-filter name="VEVENT">' +
-            '<c:time-range start="' + startStr + '" end="' + endStr + '"/>' +
-          '</c:comp-filter>' +
-        '</c:comp-filter></c:filter>' +
-      '</c:calendar-query>';
-
-    var credentials = btoa(APPLE_ID + ':' + APP_PASS);
-
-    // First discover the calendar home
     try {
-      var discoverResp = await fetch(PROXY + encodeURIComponent(CALDAV_URL), {
-        method: 'PROPFIND',
-        headers: {
-          'Authorization': 'Basic ' + credentials,
-          'Depth': '0',
-          'Content-Type': 'application/xml',
-        },
-        body: '<?xml version="1.0" encoding="utf-8"?><d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav"><d:prop><c:calendar-home-set/></d:prop></d:propfind>'
-      });
-
-      var discoverText = await discoverResp.text();
-      // Extract calendar-home-set href
-      var homeMatch = discoverText.match(/<[^>]*calendar-home-set[^>]*>\s*<[^>]*href[^>]*>([^<]+)/i);
-      var calHome = homeMatch ? homeMatch[1].trim() : '/';
-
-      // List calendars
-      var listResp = await fetch(PROXY + encodeURIComponent('https://caldav.icloud.com' + calHome), {
-        method: 'PROPFIND',
-        headers: {
-          'Authorization': 'Basic ' + credentials,
-          'Depth': '1',
-          'Content-Type': 'application/xml',
-        },
-        body: '<?xml version="1.0" encoding="utf-8"?><d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav"><d:prop><d:resourcetype/><d:displayname/><d:calendar-color xmlns:a="http://apple.com/ns/ical/"/></d:prop></d:propfind>'
-      });
-
-      var listText = await listResp.text();
-      // Find "Work" calendar href
-      var parser = new DOMParser();
-      var xmlDoc = parser.parseFromString(listText, 'text/xml');
-      var responses = xmlDoc.querySelectorAll('response');
-      var workHref = null;
-      responses.forEach(function(r) {
-        var name = r.querySelector('displayname');
-        if (name && name.textContent.trim().toLowerCase() === 'work') {
-          var href = r.querySelector('href');
-          if (href) workHref = href.textContent.trim();
-        }
-      });
-
-      if (!workHref) {
-        calDays.innerHTML = '<span class="cal-error">Work calendar not found</span>';
-        return;
-      }
-
-      // Fetch events from Work calendar
-      var eventsResp = await fetch(PROXY + encodeURIComponent('https://caldav.icloud.com' + workHref), {
-        method: 'REPORT',
-        headers: {
-          'Authorization': 'Basic ' + credentials,
-          'Depth': '1',
-          'Content-Type': 'application/xml',
-        },
-        body: reportBody
-      });
-
-      var eventsText = await eventsResp.text();
-      var allEvents = [];
-      var calDataMatches = eventsText.match(/BEGIN:VCALENDAR[\s\S]*?END:VCALENDAR/g) || [];
-      calDataMatches.forEach(function(cal) {
-        allEvents = allEvents.concat(parseICS(cal));
-      });
+      var resp = await fetch(PROXY + encodeURIComponent(ICS_URL));
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      var icsText = await resp.text();
+      var allEvents = parseICS(icsText);
 
       // Render days
       var html = '';
