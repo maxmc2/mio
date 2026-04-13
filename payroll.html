@@ -131,7 +131,9 @@
 
 
   /* RECONCILIATION BANNER */
-  .recon-banner { background: #fff; border-bottom: 2px solid #f0b429; padding: 0; flex-shrink: 0; display: none; }
+  .stale-banner { background: #FFF3CD; border: 1px solid #F0B429; border-radius: 8px; margin: 8px 24px 0; padding: 8px 14px; font-size: 12px; color: #854F0B; display: none; align-items: center; gap: 8px; }
+.stale-banner.visible { display: flex; }
+.recon-banner { background: #fff; border-bottom: 2px solid #f0b429; padding: 0; flex-shrink: 0; display: none; }
   .recon-banner.visible { display: block; }
   .recon-banner-header { display: flex; align-items: center; gap: 12px; padding: 9px 24px; cursor: pointer; user-select: none; }
   .recon-banner-icon { font-size: 15px; }
@@ -219,6 +221,9 @@
 </div>
 
 <!-- Reconciliation banner -->
+<div class="stale-banner" id="staleBanner">
+  ⚠ Payroll file list hasn't been updated in over 24 hours. Run <strong>python "C:\Payroll scanner tool\payroll_scanner.py" --login</strong> to re-authenticate.
+</div>
 <div class="recon-banner" id="reconBanner">
   <div class="recon-banner-header" onclick="toggleReconBody()">
     <span class="recon-banner-icon">⚠</span>
@@ -794,6 +799,14 @@ async function scanPayrollFiles() {
       var d = new Date(data.scanned_at);
       var label = d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) + ' ' + d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
       document.getElementById('reconSummary').title = 'Last scanned: ' + label + ' (' + (data.machine||'unknown') + ')';
+      // Show stale warning if over 24 hours old
+      var ageHours = (Date.now() - d.getTime()) / (1000 * 60 * 60);
+      var staleBanner = document.getElementById('staleBanner');
+      if (ageHours > 24) {
+        staleBanner.classList.add('visible');
+      } else {
+        staleBanner.classList.remove('visible');
+      }
     }
   } catch(e) {
     console.warn('Payroll scan error:', e);
