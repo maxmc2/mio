@@ -1,78 +1,63 @@
 name: Fetch iCloud Calendar
-
 on:
   schedule:
     - cron: '*/15 * * * *'
   workflow_dispatch:
-
 jobs:
   fetch:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
+      - name: Checkout repo
+        uses: actions/checkout@v4
       - name: Fetch iCloud calendar
         run: |
-          curl -s -L "https://p132-caldav.icloud.com/published/2/MTEwNTY0NTM4NzExMDU2NOB0OiSOY0cdRP3mnZhkEbnxkIKi8xKlLcSeVqVry9qiGlnHhBwNr2Jbppb6zSk-gsAxmyEsgy-muCeDT3N5XDg" -o calendar.ics
-
+          curl -s -L \
+            "https://p132-caldav.icloud.com/published/2/MTEwNTY0NTM4NzExMDU2NOB0OiSOY0cdRP3mnZhkEbnxkIKi8xKlLcSeVqVry9qiGlnHhBwNr2Jbppb6zSk-gsAxmyEsgy-muCeDT3N5XDg" \
+            -o calendar.ics
       - name: Convert ICS to JSON
         run: |
-          python3 << 'EOF'
-          import re
-          import json
-          import sys
+          python3 << 'PYEOF'
+          import re, json, sys
           from datetime import datetime, timezone
-
           with open('calendar.ics', 'r', encoding='utf-8', errors='ignore') as f:
               text = f.read()
-
           def unfold(s):
               return re.sub(r'\r?\n[ \t]', '', s)
-
           text = unfold(text)
           events = []
           blocks = text.split('BEGIN:VEVENT')
-
           for block in blocks[1:]:
               def get(key):
                   m = re.search(key + r'[^:;]*[;:][^\r\n]+', block)
-                  if not m:
-                      return ''
+                  if not m: return ''
                   line = m.group(0)
                   val = re.sub(r'^[^:]+:', '', line).strip()
                   return val
-
-              summary = get('SUMMARY')
-              dtstart = get('DTSTART')
-              dtend = get('DTEND')
+              summary  = get('SUMMARY')
+              dtstart  = get('DTSTART')
+              dtend    = get('DTEND')
               location = get('LOCATION')
-              desc = get('DESCRIPTION')
-
+              desc     = get('DESCRIPTION')
               if not summary:
                   continue
-
               events.append({
-                  'summary': summary,
-                  'dtstart': dtstart,
-                  'dtend': dtend,
+                  'summary':  summary,
+                  'dtstart':  dtstart,
+                  'dtend':    dtend,
                   'location': location,
                   'description': desc
               })
-
           output = {
               'updated': datetime.now(timezone.utc).isoformat(),
-              'events': events
+              'events':  events
           }
-
           with open('calendar.json', 'w') as f:
               json.dump(output, f, indent=2)
-
           print(f"Written {len(events)} events to calendar.json")
-          EOF
-
+          PYEOF
       - name: Commit and push
         run: |
-          git config user.name "github-actions[bot]"
+          git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add calendar.json
           git diff --staged --quiet || git commit -m "Update calendar [skip ci]"
