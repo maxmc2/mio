@@ -243,9 +243,8 @@
 
 // ── iCLOUD CALENDAR ────────────────────────────────────────────────────────
 (function() {
-  // Public iCloud calendar ICS feed (Work calendar)
-  var ICS_URL = 'https://p132-caldav.icloud.com/published/2/MTEwNTY0NTM4NzExMDU2NOB0OiSOY0cdRP3mnZhkEbnxkIKi8xKlLcSeVqVry9qiGlnHhBwNr2Jbppb6zSk-gsAxmyEsgy-muCeDT3N5XDg';
-  var PROXY = 'https://thingproxy.freeboard.io/fetch/';
+  // Calendar JSON — updated every 30 mins by GitHub Action
+  var CAL_JSON = 'https://raw.githubusercontent.com/maxmc2/mio/main/calendar.json';
 
   function getWeekDays() {
     var days = [];
@@ -329,10 +328,10 @@
     var endStr   = formatDateUTC(end);
 
     try {
-      var resp = await fetch(PROXY + encodeURIComponent(ICS_URL));
+      var resp = await fetch(CAL_JSON + '?t=' + Date.now()); // cache bust
       if (!resp.ok) throw new Error('HTTP ' + resp.status);
-      var icsText = await resp.text();
-      var allEvents = parseICS(icsText);
+      var data = await resp.json();
+      var allEvents = data.events || [];
 
       // Render days
       var html = '';
