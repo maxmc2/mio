@@ -2,7 +2,7 @@ name: Fetch iCloud Calendar
 
 on:
   schedule:
-    - cron: '*/30 * * * *'  # Every 30 minutes
+    - cron: '*/15 * * * *'  # Every 30 minutes
   workflow_dispatch:          # Allow manual trigger
 
 jobs:
