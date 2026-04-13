@@ -473,7 +473,7 @@ async function saveToOneDrive() {
   if (!await ensureToken()) return;
   setSyncStatus('syncing', '⟳ Saving…');
   try {
-    const payload = JSON.stringify({ clients, nextId, periodGroupState, activePeriodGroup });
+    const payload = JSON.stringify({ clients, nextId, periodGroupState, activePeriodGroup, lastModified: Date.now() });
     const response = await fetch(
       `https://graph.microsoft.com/v1.0/me/drive/root:/${EXCEL_FILE_NAME}:/content`,
       {
@@ -512,6 +512,12 @@ async function loadFromOneDrive() {
     if (!response.ok) throw new Error('Load failed: ' + response.status);
     const loaded = await response.json();
     if (loaded.clients) {
+      // Safety: never overwrite non-empty local data with empty remote
+      if (loaded.clients.length === 0 && clients && clients.length > 0) {
+        saveToOneDrive();
+        setSyncStatus('synced','✓ OneDrive synced');
+        return;
+      }
       clients = loaded.clients;
       nextId = loaded.nextId || (clients.length ? Math.max(...clients.map(c=>c.id))+1 : 1);
       if (loaded.periodGroupState) periodGroupState = loaded.periodGroupState;
@@ -531,7 +537,7 @@ async function loadFromOneDrive() {
 // ── LOCAL STORAGE (always runs as backup) ──────────────────────────────────
 
 function saveToLocalStorage() {
-  try { localStorage.setItem('mio-vat-crm-v3', JSON.stringify({clients, nextId, periodGroupState, activePeriodGroup})); } catch(e) {}
+  try { localStorage.setItem('mio-vat-crm-v3', JSON.stringify({clients, nextId, periodGroupState, activePeriodGroup, lastModified: Date.now()})); } catch(e) {}
 }
 
 function triggerSave() {

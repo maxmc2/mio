@@ -1031,7 +1031,7 @@ async function saveToOneDrive() {
   if (!await ensureToken()) return;
   setSyncStatus('syncing','⟳ Saving…');
   try {
-    var payload = JSON.stringify({ clients: clients, nextId: nextId });
+    var payload = JSON.stringify({ clients: clients, nextId: nextId, lastModified: Date.now() });
     var r = await fetch('https://graph.microsoft.com/v1.0/me/drive/root:/'+DATA_FILE+':/content', {
       method: 'PUT',
       headers: { 'Authorization': 'Bearer '+accessToken, 'Content-Type': 'application/json' },
@@ -1054,6 +1054,12 @@ async function loadFromOneDrive() {
     if (!r.ok) throw new Error(r.status);
     var loaded = await r.json();
     if (loaded.clients) {
+      // Safety: never overwrite non-empty local data with empty remote
+      if (loaded.clients.length === 0 && clients && clients.length > 0) {
+        saveToOneDrive();
+        setSyncStatus('synced','✓ OneDrive synced');
+        return;
+      }
       clients = loaded.clients;
       nextId = loaded.nextId || (clients.length ? Math.max.apply(null,clients.map(function(c){return c.id;}))+1 : 1);
       saveToLocalStorage(); render();
@@ -1064,7 +1070,7 @@ async function loadFromOneDrive() {
 }
 
 function saveToLocalStorage() {
-  try { localStorage.setItem('mio-aml-v1', JSON.stringify({clients:clients,nextId:nextId})); } catch(e){}
+  try { localStorage.setItem('mio-aml-v1', JSON.stringify({clients:clients,nextId:nextId,lastModified:Date.now()})); } catch(e){}
 }
 
 function triggerSave() {

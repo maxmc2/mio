@@ -453,7 +453,7 @@ async function saveToOneDrive() {
   if (!await ensureToken()) return;
   setSyncStatus('syncing', '⟳ Saving…');
   try {
-    const payload = JSON.stringify({ clients, nextId, taxYear });
+    const payload = JSON.stringify({ clients, nextId, taxYear, lastModified: Date.now() });
     const r = await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${DATA_FILE}:/content`, {
       method: 'PUT',
       headers: { 'Authorization': 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
@@ -476,6 +476,12 @@ async function loadFromOneDrive() {
     if (!r.ok) throw new Error(r.status);
     const loaded = await r.json();
     if (loaded.clients) {
+      // Safety: never overwrite non-empty local data with empty remote
+      if (loaded.clients.length === 0 && clients && clients.length > 0) {
+        saveToOneDrive();
+        setSyncStatus('synced','✓ OneDrive synced');
+        return;
+      }
       clients = loaded.clients;
       nextId = loaded.nextId || (clients.length ? Math.max(...clients.map(c=>c.id))+1 : 1);
       if (loaded.taxYear) { taxYear = loaded.taxYear; document.getElementById('taxYear').value = taxYear; updateYear(); }
@@ -487,7 +493,7 @@ async function loadFromOneDrive() {
 }
 
 function saveToLocalStorage() {
-  try { localStorage.setItem('mio-tax-v1', JSON.stringify({clients, nextId, taxYear})); } catch(e) {}
+  try { localStorage.setItem('mio-tax-v1', JSON.stringify({clients, nextId, taxYear, lastModified: Date.now()})); } catch(e) {}
 }
 
 function triggerSave() {

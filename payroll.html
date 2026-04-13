@@ -717,6 +717,12 @@ async function loadFromOneDrive() {
     if (!r.ok) throw new Error(r.status);
     var loaded = await r.json();
     if (loaded.employers) {
+      // Safety: never overwrite non-empty local data with empty remote
+      if (loaded.employers.length === 0 && employers && employers.length > 0) {
+        saveToOneDrive();
+        setSyncStatus('synced','✓ OneDrive synced');
+        return;
+      }
       employers = loaded.employers;
       nextId = loaded.nextId || (employers.length ? Math.max.apply(null,employers.map(function(e){return e.id;}))+1 : 1);
       if (loaded.taxYearStart) {
@@ -739,7 +745,7 @@ async function loadFromOneDrive() {
 }
 
 function saveToLocalStorage() {
-  try { localStorage.setItem('mio-payroll-v1', JSON.stringify({employers:employers,nextId:nextId,taxYearStart:taxYearStart,w1DateStr:w1DateStr})); } catch(e){}
+  try { localStorage.setItem('mio-payroll-v1', JSON.stringify({employers:employers,nextId:nextId,lastModified:Date.now(),taxYearStart:taxYearStart,w1DateStr:w1DateStr})); } catch(e){}
 }
 
 function triggerSave() {

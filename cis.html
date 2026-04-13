@@ -555,7 +555,7 @@ async function saveToOneDrive() {
   if (!await ensureToken()) return;
   setSyncStatus('syncing','⟳ Saving…');
   try {
-    var payload = JSON.stringify({ contractors: contractors, nextId: nextId, taxYearStart: taxYearStart });
+    var payload = JSON.stringify({ contractors: contractors, nextId: nextId, taxYearStart: taxYearStart, lastModified: Date.now() });
     var r = await fetch('https://graph.microsoft.com/v1.0/me/drive/root:/'+DATA_FILE+':/content', {
       method: 'PUT',
       headers: { 'Authorization': 'Bearer '+accessToken, 'Content-Type': 'application/json' },
@@ -578,6 +578,9 @@ async function loadFromOneDrive() {
     if (!r.ok) throw new Error(r.status);
     var loaded = await r.json();
     if (loaded.contractors) {
+      if (loaded.contractors.length === 0 && contractors && contractors.length > 0) {
+        saveToOneDrive(); setSyncStatus('synced','✓ OneDrive synced'); return;
+      }
       contractors = loaded.contractors;
       nextId = loaded.nextId || (contractors.length ? Math.max.apply(null,contractors.map(function(c){return c.id;}))+1 : 1);
       if (loaded.taxYearStart) {
@@ -593,7 +596,7 @@ async function loadFromOneDrive() {
 }
 
 function saveToLocalStorage() {
-  try { localStorage.setItem('mio-cis-v1', JSON.stringify({contractors:contractors,nextId:nextId,taxYearStart:taxYearStart})); } catch(e){}
+  try { localStorage.setItem('mio-cis-v1', JSON.stringify({contractors:contractors,nextId:nextId,taxYearStart:taxYearStart,lastModified:Date.now()})); } catch(e){}
 }
 
 function triggerSave() {

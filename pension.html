@@ -578,7 +578,7 @@ async function saveToOneDrive() {
   if (!await ensureToken()) return;
   setSyncStatus('syncing','⟳ Saving…');
   try {
-    var payload = JSON.stringify({ clients: clients, nextId: nextId, taxYearStart: taxYearStart });
+    var payload = JSON.stringify({ clients: clients, nextId: nextId, taxYearStart: taxYearStart, lastModified: Date.now() });
     var r = await fetch('https://graph.microsoft.com/v1.0/me/drive/root:/'+DATA_FILE+':/content', {
       method: 'PUT',
       headers: { 'Authorization': 'Bearer '+accessToken, 'Content-Type': 'application/json' },
@@ -616,7 +616,7 @@ async function loadFromOneDrive() {
 }
 
 function saveToLocalStorage() {
-  try { localStorage.setItem('mio-pension-v1', JSON.stringify({clients:clients,nextId:nextId,taxYearStart:taxYearStart})); } catch(e){}
+  try { localStorage.setItem('mio-pension-v1', JSON.stringify({clients:clients,nextId:nextId,taxYearStart:taxYearStart,lastModified:Date.now()})); } catch(e){}
 }
 
 function triggerSave() {
