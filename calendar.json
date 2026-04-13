@@ -1,10 +1,45 @@
 {
-  "updated": "2026-04-13T11:27:25.508339+00:00",
+  "updated": "2026-04-13T11:39:32.223095+00:00",
   "events": [
+    {
+      "summary": "Delphine\u2019s birthday",
+      "dtstart": "20250823",
+      "dtend": "20250824",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Email Deni with July pmt on account info",
+      "dtstart": "20260703T120000",
+      "dtend": "20260703T130000",
+      "location": "",
+      "description": ""
+    },
     {
       "summary": "Lee Nockels",
       "dtstart": "20260415T110000",
       "dtend": "20260415T120000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "TWCC - LP1 claim",
+      "dtstart": "20260601",
+      "dtend": "20260602",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "CK Carpets - LP1 claim",
+      "dtstart": "20260501",
+      "dtend": "20260502",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Bakers bday",
+      "dtstart": "20250803T160000",
+      "dtend": "20250803T170000",
       "location": "",
       "description": ""
     },
@@ -23,9 +58,9 @@
       "description": ""
     },
     {
-      "summary": "Test",
-      "dtstart": "20260422T120000",
-      "dtend": "20260422T130000",
+      "summary": "Put Gary on TWCC payroll",
+      "dtstart": "20260428T190000",
+      "dtend": "20260428T200000",
       "location": "",
       "description": ""
     },
