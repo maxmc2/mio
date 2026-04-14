@@ -161,16 +161,8 @@ async function initMsal() {
   try {
     await msalInstance.initialize();
     await msalInstance.handleRedirectPromise();
-    checkIfLoggedIn();
   } catch (err) {
     console.error('MSAL init error:', err);
-  }
-}
-
-function checkIfLoggedIn() {
-  const accounts = msalInstance.getAllAccounts();
-  if (accounts.length > 0) {
-    redirectToDashboard();
   }
 }
 
@@ -183,14 +175,14 @@ async function signIn() {
       scopes: ['Files.ReadWrite', 'User.Read']
     });
 
-    if (response.accessToken) {
-      // Store token and expiry time (24 hours from now)
+    if (response && response.accessToken) {
+      // Store token (24 hours)
       const expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000);
       localStorage.setItem('authToken', response.accessToken);
       localStorage.setItem('authExpiry', expiryTime);
-      localStorage.setItem('authUser', response.account.name);
       
-      redirectToDashboard();
+      // Redirect to dashboard
+      window.location.href = 'dashboard.html';
     }
   } catch (err) {
     console.error('Sign-in error:', err);
@@ -201,13 +193,6 @@ async function signIn() {
   }
 }
 
-function redirectToDashboard() {
-  setTimeout(() => {
-    window.location.href = 'dashboard.html';
-  }, 500);
-}
-
-// Initialize MSAL when page loads
 initMsal();
 </script>
 
