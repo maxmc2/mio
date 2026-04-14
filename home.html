@@ -291,9 +291,6 @@ setInterval(function() {
     weekOffset += dir;
     loadCalendar();
   }
-  
-  // Make globally accessible
-  window.changeWeek = changeWeek;
 
   function updateWeekLabel(days) {
     var label = document.getElementById('calWeekLabel');
@@ -429,6 +426,10 @@ setInterval(function() {
       calDays.innerHTML = '<span class="cal-error">Calendar unavailable</span>';
     }
   }
+
+  // Make globally accessible AFTER functions are defined
+  window.changeWeek = changeWeek;
+  window.loadCalendar = loadCalendar;
 
   loadCalendar();
 }
