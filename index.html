@@ -63,7 +63,7 @@ setInterval(function() {
 
   .tile-aml      .tile-icon { background: #FDF4E3; }
   .tile-accounts .tile-icon { background: #E1F5EE; }
-  .tile-tax      .tile-icon { background: #EAF3DE; }
+  .tile-tax      .tile-icon { background: #E6F1FB; }
   .tile-vat      .tile-icon { background: #E6F1FB; }
   .tile-payroll  .tile-icon { background: #FAEEDA; }
   .tile-cis      .tile-icon { background: #FAECE7; }
@@ -79,6 +79,24 @@ setInterval(function() {
   .pos-pension  { grid-column: 3; grid-row: 3; }
   .pos-tables   { grid-column: 2; grid-row: 4; }
 
+
+  /* CALENDAR STRIP */
+  .cal-strip { background: #fff; border-bottom: 1px solid #e5e5e0; padding: 0 16px; flex-shrink: 0; display: flex; align-items: center; min-height: 48px; overflow: hidden; justify-content: center; gap: 8px; }
+  .cal-nav-btn { background: none; border: 1px solid #ddd; border-radius: 6px; width: 26px; height: 26px; cursor: pointer; font-size: 13px; color: #555; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.12s; }
+  .cal-nav-btn:hover { background: #f0f0ec; }
+  .cal-week-label { font-size: 11px; font-weight: 600; color: #888; white-space: nowrap; min-width: 70px; text-align: center; flex-shrink: 0; }
+  .cal-week-label.current { color: #1e2a4a; }
+  .cal-days { display: flex; align-items: stretch; gap: 0; flex: 1; overflow: hidden; justify-content: center; }
+  .cal-day { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-right: 1px solid #f0f0ec; min-width: 0; flex-shrink: 0; }
+  .cal-day:last-child { border-right: none; }
+  .cal-day-label { font-size: 11px; font-weight: 600; color: #1e2a4a; white-space: nowrap; min-width: 36px; flex-shrink: 0; }
+  .cal-day-label.today { color: #1e2a4a; }
+  .cal-events { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+  .cal-event { font-size: 11px; color: #444; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 1px 6px; border-radius: 3px; background: #E6F1FB; border-left: 3px solid #1e2a4a; }
+  .cal-event.timed::before { content: attr(data-time); font-weight: 600; color: #0C447C; margin-right: 4px; }
+  .cal-none { font-size: 11px; color: #ccc; font-style: italic; }
+  .cal-loading { font-size: 11px; color: #aaa; font-style: italic; display: flex; align-items: center; }
+  .cal-error { font-size: 11px; color: #e07070; font-style: italic; display: flex; align-items: center; }
   .corner-logo { position: fixed; bottom: 14px; left: 18px; z-index: 50; }
   .corner-logo img { height: 46px; width: auto; max-height: 46px; display: block; mix-blend-mode: multiply; opacity: 0.88; filter: contrast(1.05); }
 </style>
@@ -89,6 +107,14 @@ setInterval(function() {
 <div class="top-bar">
   <span class="top-bar-title">Mark It Off</span>
   <span style="position:absolute;right:24px;background:rgba(255,255,255,0.1);color:#8fa3cc;font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;letter-spacing:0.05em;border:1px solid rgba(255,255,255,0.15);">Beta V1.8</span>
+</div>
+
+<!-- Calendar strip -->
+<div class="cal-strip" id="calStrip">
+  <button class="cal-nav-btn" onclick="changeWeek(-1)" title="Previous week">&#8593;</button>
+  <div class="cal-week-label current" id="calWeekLabel">This week</div>
+  <button class="cal-nav-btn" onclick="changeWeek(1)" title="Next week">&#8595;</button>
+  <div class="cal-days" id="calDays"><span class="cal-loading">Loading calendar…</span></div>
 </div>
 
 <div class="grid-wrap">
@@ -224,6 +250,172 @@ setInterval(function() {
     msalScript.addEventListener('load', run);
   }
 })();
+
+
+// ── iCLOUD CALENDAR ────────────────────────────────────────────────────────
+(function() {
+  // Calendar JSON — updated by GitHub Action
+  var CAL_JSON = '/calendar.json';
+
+  var weekOffset = 0;
+
+  function getWeekDays() {
+    var days = [];
+    var now = new Date();
+    var dow = now.getDay();
+    var monday = new Date(now);
+    monday.setDate(now.getDate() - ((dow + 6) % 7) + (weekOffset * 7));
+    for (var i = 0; i < 7; i++) {
+      var d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      days.push(d);
+    }
+    return days;
+  }
+
+  function changeWeek(dir) {
+    weekOffset += dir;
+    loadCalendar();
+  }
+  window.changeWeek = changeWeek;
+
+  function updateWeekLabel(days) {
+    var label = document.getElementById('calWeekLabel');
+    if (!label) return;
+    if (weekOffset === 0) {
+      label.textContent = 'This week';
+      label.className = 'cal-week-label current';
+    } else if (weekOffset === 1) {
+      label.textContent = 'Next week';
+      label.className = 'cal-week-label';
+    } else if (weekOffset === -1) {
+      label.textContent = 'Last week';
+      label.className = 'cal-week-label';
+    } else {
+      var start = days[0].toLocaleDateString('en-GB', {day:'numeric', month:'short'});
+      var end   = days[6].toLocaleDateString('en-GB', {day:'numeric', month:'short'});
+      label.textContent = start + ' – ' + end;
+      label.className = 'cal-week-label';
+    }
+  }
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function formatDateUTC(d) {
+    return d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate()) + 'T000000Z';
+  }
+
+  function parseICS(text) {
+    var events = [];
+    var blocks = text.split('BEGIN:VEVENT');
+    for (var i = 1; i < blocks.length; i++) {
+      var block = blocks[i];
+      var get = function(key) {
+        var m = block.match(new RegExp(key + '[^:]*:([^\r\n]+)'));
+        return m ? m[1].trim() : '';
+      };
+      var summary = get('SUMMARY');
+      var dtstart = get('DTSTART');
+      var dtend   = get('DTEND');
+      if (!summary) continue;
+      events.push({ summary: summary, dtstart: dtstart, dtend: dtend });
+    }
+    return events;
+  }
+
+  function parseDate(str) {
+    if (!str) return null;
+    // All day: YYYYMMDD
+    if (str.length === 8) {
+      return new Date(
+        parseInt(str.substr(0,4)),
+        parseInt(str.substr(4,2))-1,
+        parseInt(str.substr(6,2))
+      );
+    }
+    // With time: YYYYMMDDTHHmmssZ or YYYYMMDDTHHmmss
+    var y=str.substr(0,4), mo=str.substr(4,2), d=str.substr(6,2);
+    var h=str.substr(9,2), mi=str.substr(11,2);
+    if (str.endsWith('Z')) {
+      return new Date(Date.UTC(+y,+mo-1,+d,+h,+mi));
+    }
+    return new Date(+y,+mo-1,+d,+h,+mi);
+  }
+
+  function sameDay(a, b) {
+    return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+  }
+
+  function formatTime(dt) {
+    if (!dt) return '';
+    return dt.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+  }
+
+  function isAllDay(str) { return str && str.length === 8; }
+
+  async function loadCalendar() {
+    var calDays = document.getElementById('calDays');
+    var days = getWeekDays();
+    var today = new Date();
+
+    // Build date range for CalDAV report
+    var start = days[0];
+    var end   = new Date(days[6]);
+    end.setDate(end.getDate() + 1);
+
+    var startStr = formatDateUTC(start);
+    var endStr   = formatDateUTC(end);
+
+    try {
+      var resp = await fetch(CAL_JSON + '?t=' + Date.now()); // cache bust
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      var data = await resp.json();
+      var allEvents = data.events || [];
+
+      // Render days
+      var html = '';
+      days.forEach(function(day) {
+        var isToday = sameDay(day, today);
+        var dayLabel = day.toLocaleDateString('en-GB', {weekday:'short', day:'numeric'});
+        var dayEvents = allEvents.filter(function(ev) {
+          var dt = parseDate(ev.dtstart);
+          return dt && sameDay(dt, day);
+        }).sort(function(a, b) {
+          var ta = parseDate(a.dtstart);
+          var tb = parseDate(b.dtstart);
+          return (ta||0) - (tb||0);
+        });
+
+        html += '<div class="cal-day">';
+        html += '<div class="cal-day-label' + (isToday ? ' today' : '') + '">' + dayLabel + '</div>';
+        html += '<div class="cal-events">';
+        if (dayEvents.length === 0) {
+          html += '<span class="cal-none">—</span>';
+        } else {
+          dayEvents.forEach(function(ev) {
+            var dt = parseDate(ev.dtstart);
+            var allDay = isAllDay(ev.dtstart);
+            var timeStr = (!allDay && dt) ? formatTime(dt) : '';
+            html += '<div class="cal-event' + (timeStr ? ' timed' : '') + '"' +
+              (timeStr ? ' data-time="' + timeStr + '"' : '') + '>' +
+              ev.summary + '</div>';
+          });
+        }
+        html += '</div></div>';
+      });
+
+      calDays.innerHTML = html;
+      updateWeekLabel(days);
+
+    } catch(e) {
+      console.warn('Calendar error:', e);
+      calDays.innerHTML = '<span class="cal-error">Calendar unavailable</span>';
+    }
+  }
+
+  loadCalendar();
+})();
+
 </script>
 </body>
 </html>
