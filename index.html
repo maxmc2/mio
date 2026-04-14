@@ -159,6 +159,16 @@ const msalInstance = new msal.PublicClientApplication(msalConfig);
 
 async function initMsal() {
   try {
+    // Check if user already has a valid token
+    const token = localStorage.getItem('authToken');
+    const expiry = localStorage.getItem('authExpiry');
+    
+    if (token && expiry && new Date().getTime() < parseInt(expiry)) {
+      // Token still valid, redirect to home
+      window.location.href = 'home.html';
+      return;
+    }
+    
     await msalInstance.initialize();
     const response = await msalInstance.handleRedirectPromise();
     
