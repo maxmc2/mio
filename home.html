@@ -286,8 +286,11 @@ setInterval(function() {
     return days;
   }
 
+  var userChangedWeek = false;
+  
   function changeWeek(dir) {
     weekOffset += dir;
+    userChangedWeek = true;
     loadCalendar();
   }
 
@@ -366,7 +369,10 @@ setInterval(function() {
   function isAllDay(str) { return str && str.length === 8; }
 
   async function loadCalendar() {
-    checkWeekAdvance();
+    if (!userChangedWeek) {
+      checkWeekAdvance();
+    }
+    userChangedWeek = false;  // Reset flag
     var calDays = document.getElementById('calDays');
     var days = getWeekDays();
     var today = new Date();
