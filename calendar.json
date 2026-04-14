@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-14T00:15:17.060649+00:00",
+  "updated": "2026-04-14T00:20:16.479807+00:00",
   "events": [
     {
       "summary": "Delphine\u2019s birthday",
@@ -68,13 +68,6 @@
       "summary": "Put Gary on TWCC payroll",
       "dtstart": "20260428T190000",
       "dtend": "20260428T200000",
-      "location": "",
-      "description": ""
-    },
-    {
-      "summary": "Mands",
-      "dtstart": "20260414T090000",
-      "dtend": "20260414T100000",
       "location": "",
       "description": ""
     },
