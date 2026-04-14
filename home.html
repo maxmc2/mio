@@ -291,6 +291,8 @@ setInterval(function() {
     weekOffset += dir;
     loadCalendar();
   }
+  
+  // Make globally accessible
   window.changeWeek = changeWeek;
 
   function updateWeekLabel(days) {
