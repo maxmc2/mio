@@ -1,6 +1,13 @@
 {
-  "updated": "2026-04-14T00:50:18.647436+00:00",
+  "updated": "2026-04-14T00:55:13.117314+00:00",
   "events": [
+    {
+      "summary": "John Perkins",
+      "dtstart": "20260421T120000",
+      "dtend": "20260421T130000",
+      "location": "",
+      "description": ""
+    },
     {
       "summary": "Delphine\u2019s birthday",
       "dtstart": "20250823",
