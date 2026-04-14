@@ -64,9 +64,12 @@
     addLogoutButton: addLogoutButton
   };
   
-  // Auto-check auth on page load
+  // Auto-check auth on page load (but not on login.html)
   document.addEventListener('DOMContentLoaded', function() {
-    Auth.requireAuth();
+    // Don't check auth on login page
+    if (window.location.pathname !== '/login.html' && !window.location.pathname.endsWith('/login.html')) {
+      Auth.requireAuth();
+    }
     Auth.addLogoutButton();
   });
   
