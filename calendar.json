@@ -1,10 +1,17 @@
 {
-  "updated": "2026-04-14T10:30:28.103659+00:00",
+  "updated": "2026-04-14T10:35:13.574374+00:00",
   "events": [
     {
       "summary": "John Perkins",
       "dtstart": "20260421T110000",
       "dtend": "20260421T120000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Mands",
+      "dtstart": "20260416T090000",
+      "dtend": "20260416T100000",
       "location": "",
       "description": ""
     },
