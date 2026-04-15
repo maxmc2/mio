@@ -664,15 +664,6 @@ async function loadData() {
     if (result && result.accessToken) accessToken = result.accessToken;
   } catch(e){}
 
-  if (loaded) {
-    contractors = loaded.contractors||[];
-    nextId = loaded.nextId||(contractors.length ? Math.max.apply(null,contractors.map(function(c){return c.id;}))+1 : 1);
-    if (loaded.taxYearStart) {
-      taxYearStart = loaded.taxYearStart;
-      document.getElementById('taxYearStart').value = taxYearStart;
-      document.getElementById('taxYearEnd').value = taxYearStart + 1;
-    }
-  }
   render();
 
   accessToken = await getToken();

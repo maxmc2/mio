@@ -651,12 +651,6 @@ async function loadData() {
     if (d) loaded = JSON.parse(d);
   } catch(e) {}
 
-  if (loaded) {
-    clients = loaded.clients || [];
-    nextId = loaded.nextId || (clients.length ? Math.max(...clients.map(c=>c.id))+1 : 1);
-    if (loaded.periodGroupState) periodGroupState = loaded.periodGroupState;
-    if (loaded.activePeriodGroup !== undefined) activePeriodGroup = loaded.activePeriodGroup;
-  }
   if (!clients.length) clients = getDefaults();
 
   const m = new Date().getMonth();

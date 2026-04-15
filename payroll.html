@@ -940,19 +940,6 @@ async function loadData() {
     if (result && result.accessToken) accessToken = result.accessToken;
   } catch(e){}
 
-  if (loaded) {
-    employers = loaded.employers||[];
-    nextId = loaded.nextId||(employers.length ? Math.max.apply(null,employers.map(function(e){return e.id;}))+1 : 1);
-    if (loaded.taxYearStart) {
-      taxYearStart = loaded.taxYearStart;
-      document.getElementById('taxYearStart').value = taxYearStart;
-      document.getElementById('taxYearEnd').value = taxYearStart + 1;
-    }
-    if (loaded.w1DateStr) {
-      w1DateStr = loaded.w1DateStr;
-      document.getElementById('w1Date').value = w1DateStr;
-    }
-  }
   selectedPeriod = localStorage.getItem('mio-payroll-period-'+currentTab) || (currentTab === 'monthly' ? 'M1' : 'W1');
   render();
   scrollToSelected();
