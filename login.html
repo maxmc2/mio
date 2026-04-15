@@ -175,20 +175,24 @@ async function signIn() {
       scopes: ['Files.ReadWrite', 'User.Read']
     });
 
-    if (response && response.accessToken) {
+    if (response) {
       // Store token (24 hours)
       const expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000);
-      localStorage.setItem('authToken', response.accessToken);
+      localStorage.setItem('authToken', response.accessToken || 'authenticated');
       localStorage.setItem('authExpiry', expiryTime);
       
-      // Redirect to dashboard
-      window.location.href = 'dashboard.html';
+      // Redirect to dashboard after a short delay
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 500);
+    } else {
+      throw new Error('No response from login');
     }
   } catch (err) {
     console.error('Sign-in error:', err);
     document.getElementById('loginForm').style.display = 'block';
     document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('errorMsg').textContent = 'Sign-in failed. Please try again.';
+    document.getElementById('errorMsg').textContent = 'Sign-in failed. Please try again. Error: ' + err.message;
     document.getElementById('errorMsg').style.display = 'block';
   }
 }
