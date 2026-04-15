@@ -115,6 +115,20 @@
 </head>
 <body>
 
+<script>
+// Check if token is expired - redirect to login if so
+(function() {
+  var token = localStorage.getItem('authToken');
+  var expiry = localStorage.getItem('authExpiry');
+  var now = new Date().getTime();
+  
+  if (!token || !expiry || now > parseInt(expiry)) {
+    // Token missing or expired - go to login
+    window.location.href = '/login.html';
+  }
+})();
+</script>
+
 <div class="login-container">
   <div class="login-header">
     <div class="login-title">Mark It Off</div>

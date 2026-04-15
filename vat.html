@@ -144,6 +144,17 @@
 </head>
 <body>
 
+<script>
+(function() {
+  var token = localStorage.getItem("authToken");
+  var expiry = localStorage.getItem("authExpiry");
+  var now = new Date().getTime();
+  if (!token || !expiry || now > parseInt(expiry)) {
+    window.location.href = "login.html";
+  }
+})();
+</script>
+
 <div class="top-bar">
   <div class="top-bar-left" style="display:flex;align-items:center;gap:16px;">
     <div class="top-bar-title">VAT Returns</div>
