@@ -171,7 +171,26 @@ async function signIn() {
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('loadingState').style.display = 'block';
 
-    const response = await msalInstance.loginRedirect({
+    // Check if we're returning from a redirect
+    const accounts = msalInstance.getAllAccounts();
+    if (accounts.length > 0) {
+      // Successfully signed in, get token and redirect
+      const token = await msalInstance.acquireTokenSilent({
+        scopes: ['Files.ReadWrite', 'User.Read'],
+        account: accounts[0]
+      });
+      
+      // Store token (24 hours)
+      const expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000);
+      localStorage.setItem('authToken', token.accessToken || 'authenticated');
+      localStorage.setItem('authExpiry', expiryTime);
+      
+      setTimeout(() => window.location.href = 'index.html', 500);
+      return;
+    }
+
+    // If no accounts, initiate login
+    await msalInstance.loginRedirect({
       scopes: ['Files.ReadWrite', 'User.Read'],
       prompt: 'select_account'
     });
@@ -198,7 +217,12 @@ async function signIn() {
   }
 }
 
-initMsal();
+async function start() {
+  await initMsal();
+  signIn();
+}
+
+start();
 </script>
 
 </body>
