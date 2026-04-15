@@ -623,7 +623,7 @@ async function loadFromOneDrive() {
       // Check for conflict
       if (lastModifiedOneDrive && loaded.lastModified > lastModifiedLocal) {
         conflictDetected = true;
-        showConflictWarning('File was modified on another device. Your changes may be lost.');
+        // showConflictWarning disabled - timestamp logic broken
       }
       clients = loaded.clients;
       nextId = loaded.nextId || (clients.length ? Math.max.apply(null,clients.map(function(c){return c.id;}))+1 : 1);

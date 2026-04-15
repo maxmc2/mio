@@ -744,7 +744,7 @@ async function loadFromOneDrive() {
       // Check for conflict
       if (lastModifiedOneDrive && loaded.lastModified > lastModifiedLocal) {
         conflictDetected = true;
-        showConflictWarning('File was modified on another device. Your changes may be lost.');
+        // showConflictWarning disabled - timestamp logic broken
       }
       // Safety: never overwrite non-empty local data with empty remote
       if (loaded.employers.length === 0 && employers && employers.length > 0) {

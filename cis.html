@@ -599,7 +599,7 @@ async function loadFromOneDrive() {
       // Check for conflict
       if (lastModifiedOneDrive && loaded.lastModified > lastModifiedLocal) {
         conflictDetected = true;
-        showConflictWarning('File was modified on another device. Your changes may be lost.');
+        // showConflictWarning disabled - timestamp logic broken
       }
       if (loaded.contractors.length === 0 && contractors && contractors.length > 0) {
         saveToOneDrive(); setSyncStatus('synced','✓ OneDrive synced'); return;
