@@ -171,7 +171,7 @@ async function signIn() {
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('loadingState').style.display = 'block';
 
-    const response = await msalInstance.loginPopup({
+    const response = await msalInstance.loginRedirect({
       scopes: ['Files.ReadWrite', 'User.Read']
     });
 
