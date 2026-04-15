@@ -681,6 +681,10 @@ function initMsal() {
   });
 }
 
+var lastModifiedLocal = Date.now();
+var lastModifiedOneDrive = null;
+var conflictDetected = false;
+
 async function getToken() {
   var accounts = msalInstance.getAllAccounts();
   if (!accounts.length) return null;
