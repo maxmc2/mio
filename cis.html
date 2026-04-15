@@ -582,7 +582,7 @@ async function saveToOneDrive() {
     document.getElementById('lastSaved').textContent = 'Synced '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
     setSyncStatus('synced','✓ OneDrive synced');
     conflictDetected = false;
-  } catch(e) { setSyncStatus('error','⚠ Sync failed'); }
+  } catch(e) { console.error('loadFromOneDrive error:', e); setSyncStatus('error','⚠ Sync failed'); }
 }
 
 async function loadFromOneDrive() {
@@ -616,6 +616,7 @@ async function loadFromOneDrive() {
       render();
       showToast('Loaded — '+contractors.length+' contractors');
     }
+    conflictDetected = false;
     setSyncStatus('synced','✓ OneDrive synced');
   } catch(e) { console.error('loadFromOneDrive error:', e); setSyncStatus('error','⚠ Sync failed — click to retry'); }
 }

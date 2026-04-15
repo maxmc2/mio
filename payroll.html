@@ -724,9 +724,10 @@ async function saveToOneDrive() {
     lastModifiedLocal = Date.now();
     lastModifiedOneDrive = lastModifiedLocal;
     document.getElementById('lastSaved').textContent = 'Synced '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    conflictDetected = false;
     setSyncStatus('synced','✓ OneDrive synced');
     conflictDetected = false;
-  } catch(e) { setSyncStatus('error','⚠ Sync failed'); }
+  } catch(e) { console.error('loadFromOneDrive error:', e); setSyncStatus('error','⚠ Sync failed'); }
 }
 
 async function loadFromOneDrive() {
@@ -748,7 +749,8 @@ async function loadFromOneDrive() {
       // Safety: never overwrite non-empty local data with empty remote
       if (loaded.employers.length === 0 && employers && employers.length > 0) {
         saveToOneDrive();
-        setSyncStatus('synced','✓ OneDrive synced');
+        conflictDetected = false;
+    setSyncStatus('synced','✓ OneDrive synced');
         return;
       }
       employers = loaded.employers;
@@ -767,6 +769,7 @@ async function loadFromOneDrive() {
       render(); scrollToSelected();
       showToast('Loaded — '+employers.length+' employers');
     }
+    conflictDetected = false;
     setSyncStatus('synced','✓ OneDrive synced');
     scrollToSelected();
     await scanPayrollFiles();
