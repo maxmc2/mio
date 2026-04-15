@@ -940,7 +940,6 @@ async function loadData() {
     if (result && result.accessToken) accessToken = result.accessToken;
   } catch(e){}
 
-  selectedPeriod = localStorage.getItem('mio-payroll-period-'+currentTab) || (currentTab === 'monthly' ? 'M1' : 'W1');
   render();
   scrollToSelected();
   if (!accessToken) accessToken = await getToken();
