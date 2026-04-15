@@ -573,8 +573,11 @@ async function saveToOneDrive() {
       body: payload
     });
     if (!r.ok) throw new Error(r.status);
+    lastModifiedLocal = Date.now();
+    lastModifiedOneDrive = lastModifiedLocal;
     document.getElementById('lastSaved').textContent = 'Synced '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
     setSyncStatus('synced','✓ OneDrive synced');
+    conflictDetected = false;
   } catch(e) { setSyncStatus('error','⚠ Sync failed'); }
 }
 
@@ -589,6 +592,11 @@ async function loadFromOneDrive() {
     if (!r.ok) throw new Error(r.status);
     var loaded = await r.json();
     if (loaded.contractors) {
+      // Check for conflict
+      if (lastModifiedOneDrive && loaded.lastModified > lastModifiedLocal) {
+        conflictDetected = true;
+        showConflictWarning('File was modified on another device. Your changes may be lost.');
+      }
       if (loaded.contractors.length === 0 && contractors && contractors.length > 0) {
         saveToOneDrive(); setSyncStatus('synced','✓ OneDrive synced'); return;
       }
@@ -599,24 +607,55 @@ async function loadFromOneDrive() {
         document.getElementById('taxYearStart').value = taxYearStart;
         document.getElementById('taxYearEnd').value = taxYearStart + 1;
       }
-      saveToLocalStorage(); render();
+      lastModifiedOneDrive = loaded.lastModified;
+      lastModifiedLocal = loaded.lastModified;
+      render();
       showToast('Loaded — '+contractors.length+' contractors');
     }
     setSyncStatus('synced','✓ OneDrive synced');
   } catch(e) { setSyncStatus('error','⚠ Sync failed — click to retry'); }
 }
 
-function saveToLocalStorage() {
-  try { localStorage.setItem('mio-cis-v1', JSON.stringify({contractors:contractors,nextId:nextId,taxYearStart:taxYearStart,lastModified:Date.now()})); } catch(e){}
+function showConflictWarning(message) {
+  var existing = document.getElementById('conflictModal');
+  if (existing) existing.remove();
+  var modal = document.createElement('div');
+  modal.id = 'conflictModal';
+  modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
+  modal.innerHTML = '<div style="background:#fff;padding:24px;border-radius:8px;max-width:400px;box-shadow:0 8px 24px rgba(0,0,0,0.15);"><h3 style="margin:0 0 12px 0;color:#c33;">⚠ Conflict Detected</h3><p style="margin:0 0 20px 0;color:#666;font-size:13px;">'+message+'</p><div style="display:flex;gap:8px;"><button onclick="document.getElementById(\'conflictModal\').remove();" style="flex:1;padding:8px;background:#f0f0f0;border:none;border-radius:6px;cursor:pointer;">Keep My Changes</button><button onclick="location.reload();" style="flex:1;padding:8px;background:#1e2a4a;color:#fff;border:none;border-radius:6px;cursor:pointer;">Reload Latest</button></div></div>';
+  document.body.appendChild(modal);
 }
 
 function triggerSave() {
-  saveToLocalStorage();
-  document.getElementById('lastSaved').textContent = 'Saved '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  lastModifiedLocal = Date.now();
+  document.getElementById('lastSaved').textContent = 'Saving '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
   if (saveQueued) return;
   saveQueued = true;
   setTimeout(async function(){ saveQueued=false; await saveToOneDrive(); }, 1500);
 }
+
+// Auto-save every 30 seconds
+setInterval(async function() {
+  if (accessToken) await saveToOneDrive();
+}, 30000);
+
+// Check for conflicts every 15 seconds
+setInterval(async function() {
+  if (!accessToken) return;
+  try {
+    var r = await fetch('https://graph.microsoft.com/v1.0/me/drive/root:/'+DATA_FILE+':/content', {
+      headers: { 'Authorization': 'Bearer '+accessToken }
+    });
+    if (r.ok) {
+      var loaded = await r.json();
+      if (loaded.lastModified && loaded.lastModified > lastModifiedLocal && loaded.lastModified !== lastModifiedOneDrive) {
+        conflictDetected = true;
+        setSyncStatus('warning','⚠ File updated elsewhere');
+        showConflictWarning('File was modified on another device.');
+      }
+    }
+  } catch(e) {}
+}, 15000);
 
 async function loadData() {
   initMsal();
@@ -625,8 +664,6 @@ async function loadData() {
     if (result && result.accessToken) accessToken = result.accessToken;
   } catch(e){}
 
-  var loaded = null;
-  try { var d = localStorage.getItem('mio-cis-v1'); if(d) loaded=JSON.parse(d); } catch(e){}
   if (loaded) {
     contractors = loaded.contractors||[];
     nextId = loaded.nextId||(contractors.length ? Math.max.apply(null,contractors.map(function(c){return c.id;}))+1 : 1);

@@ -428,6 +428,9 @@ const EXCEL_FILE_NAME = 'vat_data.json';
 let msalInstance = null;
 let accessToken = null;
 let saveQueued = false;
+let lastModifiedLocal = Date.now();
+let lastModifiedOneDrive = null;
+let conflictDetected = false;
 
 function setSyncStatus(state, text) {
   const btn = document.getElementById('syncStatusBtn');
@@ -514,9 +517,12 @@ async function saveToOneDrive() {
       }
     );
     if (!response.ok) throw new Error('Save failed: ' + response.status);
+    lastModifiedLocal = Date.now();
+    lastModifiedOneDrive = lastModifiedLocal;
     const now = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
     document.getElementById('lastSaved').textContent = 'Synced ' + now;
     setSyncStatus('synced', '✓ OneDrive synced');
+    conflictDetected = false;
   } catch(e) {
     setSyncStatus('error', '⚠ Sync failed');
     console.error('OneDrive save error:', e);
@@ -532,7 +538,6 @@ async function loadFromOneDrive() {
       { headers: { 'Authorization': 'Bearer ' + accessToken } }
     );
     if (response.status === 404) {
-      // File doesn't exist yet — first time, just mark as connected
       setSyncStatus('synced', '✓ OneDrive connected');
       showToast('Connected to OneDrive — data will sync automatically');
       return;
@@ -540,6 +545,11 @@ async function loadFromOneDrive() {
     if (!response.ok) throw new Error('Load failed: ' + response.status);
     const loaded = await response.json();
     if (loaded.clients) {
+      // Check for conflict
+      if (lastModifiedOneDrive && loaded.lastModified > lastModifiedLocal) {
+        conflictDetected = true;
+        showConflictWarning('File was modified on another device. Your changes may be lost.');
+      }
       // Safety: never overwrite non-empty local data with empty remote
       if (loaded.clients.length === 0 && clients && clients.length > 0) {
         saveToOneDrive();
@@ -550,13 +560,13 @@ async function loadFromOneDrive() {
       nextId = loaded.nextId || (clients.length ? Math.max(...clients.map(c=>c.id))+1 : 1);
       if (loaded.periodGroupState) periodGroupState = loaded.periodGroupState;
       if (loaded.activePeriodGroup !== undefined) activePeriodGroup = loaded.activePeriodGroup;
-      // Migration: tag any clients missing _periodIdx
       clients.forEach(cl => {
         if (cl._periodIdx === undefined) {
           cl._periodIdx = periodGroupState[cl.stagger || 0];
         }
       });
-      saveToLocalStorage();
+      lastModifiedOneDrive = loaded.lastModified;
+      lastModifiedLocal = loaded.lastModified;
       renderAll();
       document.querySelectorAll('.period-tab').forEach((t,i) => t.classList.toggle('active', i===activePeriodGroup));
       showToast('OneDrive data loaded — ' + clients.length + ' clients');
@@ -570,18 +580,55 @@ async function loadFromOneDrive() {
 
 // ── LOCAL STORAGE (always runs as backup) ──────────────────────────────────
 
-function saveToLocalStorage() {
-  try { localStorage.setItem('mio-vat-crm-v3', JSON.stringify({clients, nextId, periodGroupState, activePeriodGroup, lastModified: Date.now()})); } catch(e) {}
+
+function showConflictWarning(message) {
+  var existing = document.getElementById('conflictModal');
+  if (existing) existing.remove();
+  
+  var modal = document.createElement('div');
+  modal.id = 'conflictModal';
+  modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
+  modal.innerHTML = '<div style="background:#fff;padding:24px;border-radius:8px;max-width:400px;box-shadow:0 8px 24px rgba(0,0,0,0.15);">'+
+    '<h3 style="margin:0 0 12px 0;color:#c33;">⚠ Conflict Detected</h3>'+
+    '<p style="margin:0 0 20px 0;color:#666;font-size:13px;">'+message+'</p>'+
+    '<div style="display:flex;gap:8px;">'+
+    '<button onclick="document.getElementById(\'conflictModal\').remove();" style="flex:1;padding:8px;background:#f0f0f0;border:none;border-radius:6px;cursor:pointer;">Keep My Changes</button>'+
+    '<button onclick="location.reload();" style="flex:1;padding:8px;background:#1e2a4a;color:#fff;border:none;border-radius:6px;cursor:pointer;">Reload Latest</button>'+
+    '</div></div>';
+  document.body.appendChild(modal);
 }
 
 function triggerSave() {
-  saveToLocalStorage();
+  lastModifiedLocal = Date.now();
   const now = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-  document.getElementById('lastSaved').textContent = 'Saved ' + now;
+  document.getElementById('lastSaved').textContent = 'Saving ' + now;
   if (saveQueued) return;
   saveQueued = true;
   setTimeout(async () => { saveQueued = false; await saveToOneDrive(); }, 1500);
 }
+
+// Auto-save every 30 seconds
+setInterval(async function() {
+  if (accessToken) await saveToOneDrive();
+}, 30000);
+
+// Check for conflicts every 15 seconds
+setInterval(async function() {
+  if (!accessToken) return;
+  try {
+    const r = await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${EXCEL_FILE_NAME}:/content`, {
+      headers: { 'Authorization': 'Bearer ' + accessToken }
+    });
+    if (r.ok) {
+      const loaded = await r.json();
+      if (loaded.lastModified && loaded.lastModified > lastModifiedLocal && loaded.lastModified !== lastModifiedOneDrive) {
+        conflictDetected = true;
+        setSyncStatus('warning','⚠ File updated elsewhere');
+        showConflictWarning('File was modified on another device.');
+      }
+    }
+  } catch(e) {}
+}, 15000);
 
 // ── DATA INIT ──────────────────────────────────────────────────────────────
 
