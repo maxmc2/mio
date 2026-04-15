@@ -2,7 +2,7 @@
   "name": "Mark It Off",
   "short_name": "Mark It Off",
   "description": "CRM dashboard",
-  "start_url": "/index.html",
+  "start_url": "/home.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1e2a4a",
