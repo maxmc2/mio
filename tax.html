@@ -548,10 +548,11 @@ setInterval(async function() {
     });
     if (r.ok) {
       const loaded = await r.json();
-      if (loaded.lastModified && loaded.lastModified > lastModifiedLocal && loaded.lastModified !== lastModifiedOneDrive) {
+      if (loaded.lastModified && loaded.lastModified > lastModifiedLocal && loaded.lastModified !== lastModifiedOneDrive) { console.log('CONFLICT CHECK:', 'loaded.lastModified=', loaded.lastModified, 'lastModifiedLocal=', lastModifiedLocal, 'lastModifiedOneDrive=', lastModifiedOneDrive); {
         conflictDetected = true;
         setSyncStatus('warning','⚠ File updated elsewhere');
-        showConflictWarning('File was modified on another device.');
+        // Conflict modal disabled - timestamp logic broken
+        console.log('Conflict detected:', loaded.lastModified, 'vs', lastModifiedLocal);
       }
     }
   } catch(e) {}
