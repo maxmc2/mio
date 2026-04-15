@@ -172,7 +172,8 @@ async function signIn() {
     document.getElementById('loadingState').style.display = 'block';
 
     const response = await msalInstance.loginRedirect({
-      scopes: ['Files.ReadWrite', 'User.Read']
+      scopes: ['Files.ReadWrite', 'User.Read'],
+      prompt: 'select_account'
     });
 
     if (response) {
