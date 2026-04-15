@@ -613,7 +613,7 @@ async function loadFromOneDrive() {
       showToast('Loaded — '+contractors.length+' contractors');
     }
     setSyncStatus('synced','✓ OneDrive synced');
-  } catch(e) { setSyncStatus('error','⚠ Sync failed — click to retry'); }
+  } catch(e) { console.error('loadFromOneDrive error:', e); setSyncStatus('error','⚠ Sync failed — click to retry'); }
 }
 
 function showConflictWarning(message) {

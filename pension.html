@@ -633,7 +633,7 @@ async function loadFromOneDrive() {
       showToast('Loaded — '+clients.length+' clients');
     }
     setSyncStatus('synced','✓ OneDrive synced');
-  } catch(e) { setSyncStatus('error','⚠ Sync failed — click to retry'); }
+  } catch(e) { console.error('loadFromOneDrive error:', e); setSyncStatus('error','⚠ Sync failed — click to retry'); }
 }
 
 function showConflictWarning(message) {

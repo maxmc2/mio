@@ -766,7 +766,7 @@ async function loadFromOneDrive() {
     setSyncStatus('synced','✓ OneDrive synced');
     scrollToSelected();
     await scanPayrollFiles();
-  } catch(e) { setSyncStatus('error','⚠ Sync failed — click to retry'); }
+  } catch(e) { console.error('loadFromOneDrive error:', e); setSyncStatus('error','⚠ Sync failed — click to retry'); }
 }
 
 function showConflictWarning(message) {
