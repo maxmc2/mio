@@ -653,7 +653,7 @@ setInterval(async function() {
     });
     if (r.ok) {
       var loaded = await r.json();
-      if (loaded.lastModified && loaded.lastModified > lastModifiedLocal && loaded.lastModified !== lastModifiedOneDrive) {
+      if (!conflictDetected && loaded.lastModified && loaded.lastModified > lastModifiedLocal && loaded.lastModified !== lastModifiedOneDrive) {
         conflictDetected = true;
         setSyncStatus('warning','⚠ File updated elsewhere');
         showConflictWarning('File was modified on another device.');
