@@ -50,8 +50,8 @@
   .stat-card { background: #fff; border: 1px solid #e5e5e0; border-radius: 8px; padding: 12px 14px; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; user-select: none; }
   .stat-card:hover { border-color: #aaa; box-shadow: 0 2px 6px rgba(0,0,0,0.07); }
   .stat-card.active-filter { border-color: #1e2a4a; box-shadow: 0 0 0 2px rgba(30,42,74,0.15); }
-  .stat-label { font-size: 11px; color: #888; margin-bottom: 4px; text-align: center; }
-  .stat-val { font-size: 22px; font-weight: 500; text-align: center; }
+  .stat-label { font-size: 11px; color: #888; margin-bottom: 4px; text-align: center; font-weight: 600; }
+  .stat-val { font-size: 22px; font-weight: 700; text-align: center; }
 
   /* TOOLBAR & TABLE */
   .toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
@@ -1062,8 +1062,7 @@ function confirmChase() {
   const logEntry = note ? `${todayLabel()}: Chased — ${note}` : `${todayLabel()}: Chased for info`;
   c.log = [logEntry, ...(c.log||[])];
   if (note) {
-    const datePrefix = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit'});
-    c.notes = `${datePrefix} ${note}`;
+    c.notes = note;
   }
   document.getElementById('chaseOverlay').classList.remove('open');
   triggerSave(); render(); showToast(c.name + ' marked as chasing');
