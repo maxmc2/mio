@@ -75,6 +75,11 @@
     transform: translateY(1px);
   }
 
+  .login-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
   .loading {
     display: none;
     text-align: center;
@@ -103,6 +108,7 @@
     font-size: 12px;
     margin-top: 16px;
     display: none;
+    text-align: left;
   }
 
   .microsoft-icon {
@@ -123,7 +129,7 @@
   </div>
 
   <div id="loginForm">
-    <button class="login-btn" onclick="signIn()">
+    <button class="login-btn" id="signInBtn" onclick="signIn()">
       <svg class="microsoft-icon" viewBox="0 0 24 24" fill="currentColor">
         <rect x="2" y="2" width="8" height="8"/>
         <rect x="14" y="2" width="8" height="8"/>
@@ -158,72 +164,121 @@ const msalConfig = {
 
 const msalInstance = new msal.PublicClientApplication(msalConfig);
 
-async function initMsal() {
+async function initializeAndHandleRedirect() {
   try {
+    console.log('[MSAL] Initializing with config:', {
+      clientId: msalConfig.auth.clientId,
+      redirectUri: msalConfig.auth.redirectUri
+    });
+    
+    // Initialize MSAL first
     await msalInstance.initialize();
-    await msalInstance.handleRedirectPromise();
+    console.log('[MSAL] Initialization complete');
+    
+    // CRITICAL: Handle redirect promise immediately
+    console.log('[MSAL] Processing redirect promise...');
+    const response = await msalInstance.handleRedirectPromise();
+    
+    if (response) {
+      console.log('[MSAL] ✓ Redirect response received');
+      console.log('[MSAL] User:', response.account.username);
+      
+      // We have a successful auth response
+      storeAuthToken(response.accessToken);
+      console.log('[MSAL] Token stored, redirecting to dashboard...');
+      redirectToDashboard();
+      return;
+    }
+    
+    console.log('[MSAL] No redirect response - checking for existing session');
+    const accounts = msalInstance.getAllAccounts();
+    console.log('[MSAL] Accounts in cache:', accounts.length);
+    
+    if (accounts.length > 0) {
+      console.log('[MSAL] Found existing account, attempting silent token acquisition...');
+      try {
+        const tokenResponse = await msalInstance.acquireTokenSilent({
+          scopes: ['User.Read'],
+          account: accounts[0]
+        });
+        console.log('[MSAL] ✓ Silent token acquired');
+        storeAuthToken(tokenResponse.accessToken);
+        redirectToDashboard();
+        return;
+      } catch (silentErr) {
+        console.warn('[MSAL] Silent token failed:', silentErr.errorCode, silentErr.error);
+        // Fall through to show login button
+      }
+    }
+    
+    console.log('[MSAL] Ready for new login');
+    showSignInButton();
+    
   } catch (err) {
-    console.error('MSAL init error:', err);
+    console.error('[MSAL] Initialization error:', err);
+    showError('Initialization failed: ' + (err.message || 'Unknown error'));
+    showSignInButton();
   }
+}
+
+function showSignInButton() {
+  document.getElementById('loginForm').style.display = 'block';
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('signInBtn').disabled = false;
+}
+
+function showLoading() {
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('loadingState').style.display = 'block';
+  document.getElementById('errorMsg').style.display = 'none';
+}
+
+function showError(message) {
+  console.error('[UI] Error:', message);
+  document.getElementById('errorMsg').textContent = message;
+  document.getElementById('errorMsg').style.display = 'block';
+}
+
+function storeAuthToken(accessToken) {
+  console.log('[Storage] Storing auth token with 24hr expiry');
+  const expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000);
+  localStorage.setItem('authToken', accessToken || 'authenticated');
+  localStorage.setItem('authExpiry', expiryTime);
+  localStorage.setItem('authTimestamp', new Date().getTime());
+}
+
+function redirectToDashboard() {
+  console.log('[Navigation] Redirecting to dashboard in 500ms');
+  setTimeout(() => {
+    window.location.href = 'index.html';
+  }, 500);
 }
 
 async function signIn() {
   try {
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('loadingState').style.display = 'block';
+    console.log('[SignIn] Sign-in button clicked');
+    document.getElementById('signInBtn').disabled = true;
+    showLoading();
 
-    // Check if we're returning from a redirect
-    const accounts = msalInstance.getAllAccounts();
-    if (accounts.length > 0) {
-      // Successfully signed in, get token and redirect
-      const token = await msalInstance.acquireTokenSilent({
-        scopes: ['Files.ReadWrite', 'User.Read'],
-        account: accounts[0]
-      });
-      
-      // Store token (24 hours)
-      const expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000);
-      localStorage.setItem('authToken', token.accessToken || 'authenticated');
-      localStorage.setItem('authExpiry', expiryTime);
-      
-      setTimeout(() => window.location.href = 'index.html', 500);
-      return;
-    }
-
-    // If no accounts, initiate login
+    console.log('[SignIn] Initiating loginRedirect to Microsoft...');
     await msalInstance.loginRedirect({
-      scopes: ['Files.ReadWrite', 'User.Read'],
+      scopes: ['User.Read'],
       prompt: 'select_account'
     });
-
-    if (response) {
-      // Store token (24 hours)
-      const expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000);
-      localStorage.setItem('authToken', response.accessToken || 'authenticated');
-      localStorage.setItem('authExpiry', expiryTime);
-      
-      // Redirect to dashboard after a short delay
-      setTimeout(() => {
-        window.location.href = 'index.html';
-      }, 500);
-    } else {
-      throw new Error('No response from login');
-    }
+    // Note: loginRedirect redirects the page immediately
+    console.log('[SignIn] Redirect initiated');
+    
   } catch (err) {
-    console.error('Sign-in error:', err);
-    document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('errorMsg').textContent = 'Sign-in failed. Please try again. Error: ' + err.message;
-    document.getElementById('errorMsg').style.display = 'block';
+    console.error('[SignIn] Error:', err);
+    showError('Sign-in failed: ' + (err.message || 'Unknown error'));
+    showSignInButton();
+    document.getElementById('signInBtn').disabled = false;
   }
 }
 
-async function start() {
-  await initMsal();
-  signIn();
-}
-
-start();
+// Start immediately when script loads
+console.log('[App] Page load detected, initializing MSAL...');
+initializeAndHandleRedirect();
 </script>
 
 </body>
