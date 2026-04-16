@@ -93,11 +93,11 @@
   .status-wrap { position:relative; display:inline-block; }
   .status-wrap .badge { cursor:pointer; user-select:none; }
   .status-wrap .badge:hover { opacity:0.85; }
-  .status-dropdown { display:none; position:fixed; background:#fff; border:1px solid #ddd; border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,0.13); z-index:500; min-width:180px; padding:4px 0; }
-  .status-dropdown.open { display:block; }
-  .status-option { padding:7px 14px; font-size:12px; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:8px; }
-  .status-option:hover { background:#f5f5f3; }
-  .status-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .status-dropdown { display:none; position:fixed; background:#fff; border:1px solid #ddd; border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,0.13); z-index:500; min-width:180px; padding:8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .status-dropdown.open { display:grid; }
+  .status-toggle-btn { padding:10px 12px; font-size:12px; font-weight:500; cursor:pointer; border:none; border-radius:6px; color:#fff; transition:opacity 0.15s, transform 0.1s; font-family:inherit; }
+  .status-toggle-btn:hover { opacity:0.85; transform:scale(1.02); }
+  .status-toggle-btn:active { transform:scale(0.98); }
   .empty-row td { text-align:center; color:#888; padding:2.5rem; }
 
   /* MODAL */
@@ -1022,8 +1022,8 @@ document.getElementById('emailOverlay').addEventListener('click',function(e){if(
 let statusDropdownId = null;
 
 const STATUS_COLORS = {
-  'New':'#3C3489','Chasing info':'#633806','Info received':'#0C447C',
-  'Ready for processing':'#72243E','Bookkeeping':'#993C1D','Processed':'#27500A',
+  'New':'#3C3489','Chasing info':'#C95F3D','Info received':'#0C447C',
+  'Ready for processing':'#72243E','Bookkeeping':'#6B5B95','Processed':'#27500A',
   'Sent for signing':'#533AB7','Filed':'#085041'
 };
 
@@ -1031,9 +1031,9 @@ function openStatusDropdown(e, id) {
   statusDropdownId = id;
   const dd = document.getElementById('statusDropdown');
   dd.innerHTML = STATUSES.filter(s=>s!=='Late').map(s => `
-    <div class="status-option" onclick="setStatusFromDropdown('${s}')">
-      <span class="status-dot" style="background:${STATUS_COLORS[s]||'#888'}"></span>${s}
-    </div>`).join('');
+    <button class="status-toggle-btn" onclick="setStatusFromDropdown('${s}')" style="background: ${STATUS_COLORS[s]||'#888'};">
+      ${s}
+    </button>`).join('');
   dd.classList.add('open');
   // Position near the click
   const rect = e.target.getBoundingClientRect();
