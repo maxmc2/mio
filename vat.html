@@ -1022,43 +1022,36 @@ document.getElementById('emailOverlay').addEventListener('click',function(e){if(
 let statusDropdownId = null;
 
 const STATUS_COLORS = {
-  'New':'#3C3489','Chasing info':'#C95F3D','Info received':'#0C447C',
-  'Ready for processing':'#72243E','Bookkeeping':'#6B5B95','Processed':'#27500A',
-  'Sent for signing':'#533AB7','Filed':'#085041'
+  'New':'#F1EFE8','Chasing info':'#FAECE7','Info received':'#E6F1FB',
+  'Ready for processing':'#FBEAF0','Bookkeeping':'#FAEEDA','Processed':'#EAF3DE',
+  'Sent for signing':'#EEEDFE','Filed':'#E1F5EE'
 };
 
-function openStatusDropdown(e, id) {
-  statusDropdownId = id;
-  const dd = document.getElementById('statusDropdown');
-  dd.innerHTML = STATUSES.filter(s=>s!=='Late').map(s => `
-    <button class="status-toggle-btn" onclick="setStatusFromDropdown('${s}')" style="background: ${STATUS_COLORS[s]||'#888'};">
-      ${s}
-    </button>`).join('');
-  dd.classList.add('open');
-  // Position near the click
-  const rect = e.target.getBoundingClientRect();
-  dd.style.top = (rect.bottom + 4) + 'px';
-  dd.style.left = rect.left + 'px';
-}
-
-function setStatusFromDropdown(status) {
-  const c = clients.find(x=>x.id===statusDropdownId);
-  if (c && c.status !== status) {
-    c.log = [`${todayLabel()}: Status → ${status}`, ...(c.log||[])];
-    c.status = status;
-    triggerSave(); render();
+function cycleStatus(e, id) {
+  e.stopPropagation();
+  const c = clients.find(x=>x.id===id);
+  if (!c) return;
+  
+  const currentIndex = STATUSES.indexOf(c.status);
+  const nextIndex = (currentIndex + 1) % STATUSES.length;
+  const newStatus = STATUSES[nextIndex];
+  
+  if (newStatus !== c.status) {
+    c.log = [`${todayLabel()}: Status → ${newStatus}`, ...(c.log||[])];
+    c.status = newStatus;
+    triggerSave(); 
+    render();
   }
-  closeStatusDropdown();
 }
 
-function closeStatusDropdown() {
-  document.getElementById('statusDropdown').classList.remove('open');
-  statusDropdownId = null;
+function openStatusDropdown(e, id) {
+  cycleStatus(e, id);
 }
+
+
 
 document.addEventListener('click', function(e) {
-  const dd = document.getElementById('statusDropdown');
-  if (dd && dd.classList.contains('open') && !dd.contains(e.target)) closeStatusDropdown();
+  // Removed dropdown closing logic - no longer needed
 });
 
 function quickChase(id) {
