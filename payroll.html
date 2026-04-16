@@ -890,7 +890,7 @@ function renderReconBanner(missingFromCrm, missingFromFolder) {
     missingFromCrm.forEach(function(name) {
       html += '<div class="recon-item missing-crm">';
       html += '<span class="recon-item-name">' + name + '</span>';
-      html += '<button class="recon-item-btn add" onclick="addFromRecon(' + JSON.stringify(name) + ')">+ Add to CRM</button>';
+      html += '<button class="recon-item-btn add" onclick="addFromRecon(\'' + name.replace(/'/g, "\\'") + '\')">+ Add to CRM</button>';
       html += '</div>';
     });
     html += '</div></div>';
@@ -903,7 +903,7 @@ function renderReconBanner(missingFromCrm, missingFromFolder) {
     missingFromFolder.forEach(function(name) {
       html += '<div class="recon-item missing-file">';
       html += '<span class="recon-item-name">' + name + '</span>';
-      html += '<button class="recon-item-btn archive" onclick="archiveFromRecon(' + JSON.stringify(name) + ')">Archive</button>';
+      html += '<button class="recon-item-btn archive" onclick="archiveFromRecon(\'' + name.replace(/'/g, "\\'") + '\')">Archive</button>';
       html += '</div>';
     });
     html += '</div></div>';
