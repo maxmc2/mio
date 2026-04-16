@@ -350,23 +350,28 @@ const REDIRECT_URI = 'https://crm.markitoff.co.uk/tax.html';
 const SCOPES = ['Files.ReadWrite', 'User.Read'];
 const DATA_FILE = 'tax_data.json';
 
+const PROGRESS_STEPS = ['Not instructed','Instructed','Bookkeeping','Accounts drafted','Tax return complete','Sent for signing','Signed','Filed'];
 
 const PROGRESS_CLASS = {
+  'Not instructed':'p-notinstructed','Instructed':'p-instructed',
   'Bookkeeping':'p-bookkeeping','Accounts drafted':'p-drafted','Tax return complete':'p-complete',
   'Sent for signing':'p-signing','Signed':'p-signed','Filed':'p-filed'
 };
 
 const PROGRESS_COLORS = {
+  'Not instructed':'#888','Instructed':'#0C447C',
   'Accounts drafted':'#0E5F5F','Bookkeeping':'#633806','Tax return complete':'#533AB7',
   'Sent for signing':'#854D0E','Signed':'#27500A','Filed':'#085041'
 };
 
 const STAT_BG = {
+  'Not instructed':'#F1EFE8','Instructed':'#E6F1FB',
   'Accounts drafted':'#D4F0F0','Bookkeeping':'#FAEEDA','Tax return complete':'#EEEDFE',
   'Sent for signing':'#FEF9C3','Signed':'#EAF3DE','Filed':'#E1F5EE'
 };
 
 const STAT_BORDER = {
+  'Not instructed':'#B4B2A9','Instructed':'#B5D4F4',
   'Accounts drafted':'#5BBFBF','Bookkeeping':'#FAC775','Tax return complete':'#AFA9EC',
   'Sent for signing':'#FDE047','Signed':'#97C459','Filed':'#5DCAA5'
 };
