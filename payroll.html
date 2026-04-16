@@ -924,11 +924,17 @@ function dismissRecon() {
 }
 
 function addFromRecon(name) {
-  // Pre-fill the add employer modal with this name
-  openModal(null);
-  document.getElementById('f-name').value = name;
-  document.getElementById('f-monthly').checked = true;
-  showToast('Pre-filled — review and save to add ' + name);
+  try {
+    // Pre-fill the add employer modal with this name
+    console.log('addFromRecon called with:', name);
+    openModal(null);
+    document.getElementById('f-name').value = name;
+    document.getElementById('f-monthly').checked = true;
+    showToast('Pre-filled — review and save to add ' + name);
+  } catch(e) {
+    console.error('addFromRecon error:', e);
+    alert('Error: ' + e.message);
+  }
 }
 
 function archiveFromRecon(name) {
