@@ -600,7 +600,7 @@ function render() {
     <tr onclick="openModal(${c.id})">
       <td><div class="client-name">${displayName(c.name)}</div><div class="sub-text">${c.utr||''}</div></td>
       <td style="font-size:13px;color:#444;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.recentNote || c.notes || '—'}</td>
-      <td><span class="status-wrap"><span class="badge ${PROGRESS_CLASS[c.progress]||'p-notinstructed'}" onclick="event.stopPropagation();openStatusDropdown(event,${c.id})">${c.progress} ▾</span></span></td>
+      <td><span class="status-wrap"><span class="badge ${PROGRESS_CLASS[c.progress]||'p-notinstructed'}" onclick="event.stopPropagation();cycleProgress(${c.id})" style="cursor:pointer">${c.progress}</span></span></td>
       <td style="font-size:12px">${fmtDate(c.instructed)}</td>
       <td style="font-size:12px">${fmtDate(c.submitted)}</td>
       <td style="text-align:center"><input type="checkbox" class="mtd-check" ${c.mtd?'checked':''} onclick="event.stopPropagation();toggleMtd(${c.id},this)"></td>
@@ -647,36 +647,25 @@ function clickStat(s) {
 
 // ── STATUS DROPDOWN ────────────────────────────────────────────────────────
 
-function openStatusDropdown(e, id) {
-  statusDropdownId = id;
-  const dd = document.getElementById('statusDropdown');
-  dd.innerHTML = PROGRESS_STEPS.map(s=>`
-    <div class="status-option" onclick="setProgress('${s}')">
-      <span class="status-dot" style="background:${PROGRESS_COLORS[s]}"></span>${s}
-    </div>`).join('');
-  dd.classList.add('open');
-  const rect = e.target.getBoundingClientRect();
-  dd.style.top = (rect.bottom+4)+'px';
-  dd.style.left = rect.left+'px';
+function cycleProgress(id) {
+  const c = clients.find(x=>x.id===id);
+  if (!c) return;
+  
+  const currentIndex = PROGRESS_STEPS.indexOf(c.progress);
+  const nextIndex = (currentIndex + 1) % PROGRESS_STEPS.length;
+  const nextProgress = PROGRESS_STEPS[nextIndex];
+  
+  c.log = [`${todayLabel()}: Progress → ${nextProgress}`, ...(c.log||[])];
+  c.progress = nextProgress;
+  if (nextProgress === 'Instructed' && !c.instructed) c.instructed = today();
+  if (nextProgress === 'Filed' && !c.submitted) c.submitted = today();
+  triggerSave(); 
+  render();
 }
 
-function setProgress(p) {
-  const c = clients.find(x=>x.id===statusDropdownId);
-  if (c && c.progress !== p) {
-    c.log = [`${todayLabel()}: Progress → ${p}`, ...(c.log||[])];
-    c.progress = p;
-    if (p === 'Instructed' && !c.instructed) c.instructed = today();
-    if (p === 'Filed' && !c.submitted) c.submitted = today();
-    triggerSave(); render();
-  }
-  document.getElementById('statusDropdown').classList.remove('open');
-}
 
 document.addEventListener('click', e => {
-  const dd = document.getElementById('statusDropdown');
-  if (dd && dd.classList.contains('open') && !dd.contains(e.target)) {
-    dd.classList.remove('open');
-  }
+  // Dropdown handling removed - using cycle instead
 });
 
 function toggleMtd(id, el) {
