@@ -714,7 +714,13 @@ async function saveToOneDrive() {
   if (!await ensureToken()) return;
   setSyncStatus('syncing','⟳ Saving…');
   try {
-    var payload = JSON.stringify({ employers: employers, nextId: nextId, taxYearStart: taxYearStart, w1DateStr: w1DateStr, lastModified: Date.now() });
+    var userPrefs = {
+      periodMonthly: localStorage.getItem('mio-payroll-period-monthly') || 'M1',
+      periodWeekly: localStorage.getItem('mio-payroll-period-weekly') || 'W1',
+      scrollMonthly: localStorage.getItem('mio-payroll-scroll-monthly') || '0',
+      scrollWeekly: localStorage.getItem('mio-payroll-scroll-weekly') || '0'
+    };
+    var payload = JSON.stringify({ employers: employers, nextId: nextId, taxYearStart: taxYearStart, w1DateStr: w1DateStr, userPrefs: userPrefs, lastModified: Date.now() });
     var r = await fetch('https://graph.microsoft.com/v1.0/me/drive/root:/'+DATA_FILE+':/content', {
       method: 'PUT',
       headers: { 'Authorization': 'Bearer '+accessToken, 'Content-Type': 'application/json' },
@@ -763,6 +769,16 @@ async function loadFromOneDrive() {
       if (loaded.w1DateStr) {
         w1DateStr = loaded.w1DateStr;
         document.getElementById('w1Date').value = w1DateStr;
+      }
+      // Restore user preferences (selected period & scroll) from OneDrive
+      if (loaded.userPrefs) {
+        var p = loaded.userPrefs;
+        if (p.periodMonthly) { localStorage.setItem('mio-payroll-period-monthly', p.periodMonthly); }
+        if (p.periodWeekly)  { localStorage.setItem('mio-payroll-period-weekly', p.periodWeekly); }
+        if (p.scrollMonthly) { localStorage.setItem('mio-payroll-scroll-monthly', p.scrollMonthly); }
+        if (p.scrollWeekly)  { localStorage.setItem('mio-payroll-scroll-weekly', p.scrollWeekly); }
+        // Apply the restored period to the current tab
+        selectedPeriod = (currentTab === 'monthly') ? (p.periodMonthly || 'M1') : (p.periodWeekly || 'W1');
       }
       lastModifiedOneDrive = loaded.lastModified;
       lastModifiedLocal = loaded.lastModified;
