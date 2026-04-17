@@ -518,7 +518,7 @@ function exportToExcel() {
     return row;
   });
   var ws = XLSX.utils.json_to_sheet(rows);
-  XLSX.utils.book_append_sheet(wb, ws, 'CIS '+taxYearStart+'/'+(taxYearStart+1));
+  XLSX.utils.book_append_sheet(wb, ws, 'CIS '+taxYearStart+'-'+(taxYearStart+1));
   XLSX.writeFile(wb, 'CIS_Returns_'+taxYearStart+'_'+(taxYearStart+1)+'.xlsx');
   showToast('Exported to Excel');
 }
