@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-17T16:15:20.164184+00:00",
+  "updated": "2026-04-17T16:20:19.259828+00:00",
   "events": [
     {
       "summary": "Kev Hewitt",
@@ -54,13 +54,6 @@
       "summary": "TWCC - LP1 claim",
       "dtstart": "20260601",
       "dtend": "20260602",
-      "location": "",
-      "description": ""
-    },
-    {
-      "summary": "Dinner",
-      "dtstart": "20260417T180000",
-      "dtend": "20260417T190000",
       "location": "",
       "description": ""
     },
