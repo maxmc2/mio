@@ -260,17 +260,8 @@ setInterval(function() {
   var weekOffset = 0;
 
   function checkWeekAdvance() {
-    // Check if it's after Sunday midnight
-    var now = new Date();
-    var dayOfWeek = now.getDay(); // 0 = Sunday
-    
-    // If it's Sunday (day 0) and past midnight, show next week
-    if (dayOfWeek === 0) {
-      weekOffset = 1;
-      document.getElementById('calWeekLabel').textContent = 'Next week';
-    } else {
-      weekOffset = 0;
-    }
+    // On Sunday, the calendar auto-advances to the upcoming week
+    // but weekOffset stays 0 so the label correctly reads "This week"
   }
 
   function getWeekDays() {
@@ -278,7 +269,12 @@ setInterval(function() {
     var now = new Date();
     var dow = now.getDay();
     var monday = new Date(now);
-    monday.setDate(now.getDate() - ((dow + 6) % 7) + (weekOffset * 7));
+    // On Sunday (dow 0), jump forward to tomorrow (Monday) instead of back 6 days
+    if (dow === 0) {
+      monday.setDate(now.getDate() + 1 + (weekOffset * 7));
+    } else {
+      monday.setDate(now.getDate() - ((dow + 6) % 7) + (weekOffset * 7));
+    }
     for (var i = 0; i < 7; i++) {
       var d = new Date(monday);
       d.setDate(monday.getDate() + i);
