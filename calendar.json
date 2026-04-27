@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-27T13:55:14.667562+00:00",
+  "updated": "2026-04-27T14:00:45.321841+00:00",
   "events": [
     {
       "summary": "Kev Hewitt",
@@ -40,13 +40,6 @@
       "summary": "Massage room 3",
       "dtstart": "20260430T103000",
       "dtend": "20260430T113000",
-      "location": "",
-      "description": ""
-    },
-    {
-      "summary": "Chiropractor",
-      "dtstart": "20260430T110000",
-      "dtend": "20260430T120000",
       "location": "",
       "description": ""
     },
