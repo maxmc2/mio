@@ -1,10 +1,17 @@
 {
-  "updated": "2026-04-28T10:00:43.786165+00:00",
+  "updated": "2026-04-28T10:05:17.007561+00:00",
   "events": [
     {
       "summary": "Matthew Staff",
       "dtstart": "20260429T140000",
       "dtend": "20260429T150000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Ben Barter",
+      "dtstart": "20260505T150000",
+      "dtend": "20260505T160000",
       "location": "",
       "description": ""
     },
