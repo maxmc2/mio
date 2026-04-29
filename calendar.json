@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-29T13:30:27.143435+00:00",
+  "updated": "2026-04-29T13:35:19.222685+00:00",
   "events": [
     {
       "summary": "Matthew Staff",
@@ -131,6 +131,13 @@
       "summary": "Mands",
       "dtstart": "20260422T090000",
       "dtend": "20260422T100000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Jobs of Oxted",
+      "dtstart": "20260527T100000",
+      "dtend": "20260527T110000",
       "location": "",
       "description": ""
     },
