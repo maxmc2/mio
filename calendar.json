@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-08T13:15:18.397485+00:00",
+  "updated": "2026-05-08T13:20:23.717810+00:00",
   "events": [
     {
       "summary": "Matthew Staff",
@@ -145,6 +145,13 @@
       "summary": "Jobs of Oxted",
       "dtstart": "20260527T100000",
       "dtend": "20260527T110000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Gill Willis",
+      "dtstart": "20260512T100000",
+      "dtend": "20260512T110000",
       "location": "",
       "description": ""
     },
