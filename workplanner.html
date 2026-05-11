@@ -16,7 +16,7 @@
   --navy-dark:     #171f38;
   --navy-border:   #2d3d6b;
   --navy-muted:    #8fa3cc;
-
+ 
   /* ── Task type colours — sourced from home.html tile-icon backgrounds ── */
   --accent:        #1e7a52;          /* green — active tasks */
   --accent-light:  #E1F5EE;
@@ -35,7 +35,7 @@
   --green:         #3B6D11;          /* green — Mandy actioned */
   --green-light:   #EAF3DE;
   --green-border:  rgba(99,153,34,0.35);
-
+ 
   /* ── Neutrals — sourced from home.html body/tile/border colours ── */
   --bg:            #f5f5f3;
   --surface:       #ffffff;
@@ -51,14 +51,14 @@
   --gray-400:      #aaa;
   --gray-600:      #777;
   --gray-800:      #2c2c2a;
-
+ 
   /* ── Weekend / bank holiday tints ── */
   --wknd-bg:       #eef0f8;
   --wknd-border:   #d0d5e8;
   --wknd-text:     #3a4a70;
   --bh-bg:         #f5f5f3;
   --bh-border:     #d8d8d2;
-
+ 
   /* ── Radii & shadows ── */
   --radius:        8px;
   --radius-lg:     12px;
@@ -68,10 +68,10 @@
   --shadow-lg:     0 8px 30px rgba(0,0,0,0.13);
 }
 html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.5; }
-
+ 
 /* ─── App Shell ─── */
 .app { display: grid; grid-template-rows: auto auto 1fr auto; height: 100vh; overflow: hidden; }
-
+ 
 /* ─── Top Bar ─── */
 .topbar {
   display: flex; align-items: center; justify-content: space-between;
@@ -93,14 +93,14 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .toggle-track.on .toggle-knob { left: 18px; }
 .btn-add { display: flex; align-items: center; gap: 6px; padding: 7px 16px; background: var(--accent-light); color: var(--accent-mid); border: none; border-radius: var(--radius); font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
 .btn-add:hover { background: #fff; }
-
+ 
 /* ─── OneDrive status ─── */
 .od-status { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 10px; border-radius: 20px; font-weight: 500; }
 .od-status.connected    { background: rgba(255,255,255,0.15); color: var(--accent-light); border: 1px solid rgba(255,255,255,0.2); }
 .od-status.connecting   { background: rgba(255,255,255,0.1);  color: #fcd87a; border: 1px solid rgba(255,255,255,0.15); }
 .od-status.disconnected { background: rgba(220,80,80,0.25);   color: #ffb3b3; border: 1px solid rgba(220,80,80,0.3); }
 .od-status.saving       { background: rgba(255,255,255,0.12); color: #93c5fd; border: 1px solid rgba(255,255,255,0.2); }
-
+ 
 /* ─── Sub Nav ─── */
 .subnav { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 48px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 16px; box-shadow: var(--shadow-sm); }
 .view-tabs { display: flex; background: var(--gray-100); border-radius: var(--radius); padding: 2px; gap: 2px; }
@@ -113,10 +113,10 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .btn-today { padding: 5px 14px; font-size: 13px; font-weight: 500; border: 1px solid var(--border-strong); border-radius: var(--radius); background: transparent; cursor: pointer; color: var(--text-muted); transition: all 0.15s; }
 .btn-today:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
 .planning-badge { display: flex; align-items: center; gap: 5px; padding: 4px 10px; background: var(--amber-light); border-radius: 20px; font-size: 12px; font-weight: 500; color: var(--amber); border: 1px solid rgba(186,117,23,0.2); }
-
+ 
 /* ─── Main ─── */
 .main { overflow: hidden; display: flex; flex-direction: column; background: var(--bg); }
-
+ 
 /* ─── Month ─── */
 .month-grid { display: flex; flex-direction: column; flex: 1; overflow: hidden; padding: 16px 20px 0; }
 .month-dow-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 6px; }
@@ -152,7 +152,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .mpill.mandy-notify, .mpill.mandy-notify-overdue { background: var(--purple-light); color: var(--purple-mid); }
 .mpill.mandy-actioned, .mpill.mandy-actioned-overdue { background: var(--green-light); color: var(--green); }
 .month-more { font-size: 10px; color: var(--text-faint); padding: 1px 6px; }
-
+ 
 /* ─── Week ─── */
 .week-view { flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 14px 20px; gap: 8px; }
 .week-header { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; flex-shrink: 0; }
@@ -167,7 +167,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .wdh.today .wdh-name { color: var(--navy); }
 .week-task-count { font-size: 10px; color: var(--text-faint); margin-top: 2px; }
 .wdh-bh-label { font-size: 9px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.3px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
+ 
 .week-cols { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; flex: 1; overflow: hidden; }
 .week-col { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 8px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; min-height: 0; scrollbar-width: thin; scrollbar-color: var(--gray-200) transparent; }
 .week-col.today { border-color: var(--navy); border-width: 1.5px; }
@@ -177,7 +177,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .week-col::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 2px; }
 .week-col-bh-banner { font-size: 10px; font-weight: 500; color: var(--gray-600); background: var(--gray-200); border-radius: 5px; padding: 4px 8px; text-align: center; }
 .empty-col { text-align: center; color: var(--text-faint); font-size: 11px; padding: 8px 4px; }
-
+ 
 /* ─── Drag and Drop ─── */
 .task-card[draggable="true"] { cursor: grab; }
 .task-card[draggable="true"]:active { cursor: grabbing; }
@@ -197,7 +197,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   pointer-events: none;
 }
 .drop-indicator.visible { opacity: 1; }
-
+ 
 /* ─── Task Cards ─── */
 .task-card { border-radius: 8px; padding: 7px 8px; border: 1px solid transparent; transition: box-shadow 0.15s; position: relative; }
 .task-card.active    { background: var(--accent-light); border-color: rgba(29,158,117,0.25); }
@@ -213,7 +213,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .task-card.mandy-actioned .tc-name,
 .task-card.mandy-actioned-overdue .tc-name { color: var(--green); }
 .task-card:hover { box-shadow: var(--shadow-sm); }
-
+ 
 /* tick + name row */
 .tc-top { display: flex; align-items: flex-start; gap: 6px; }
 .tc-check {
@@ -225,7 +225,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .tc-check:hover { border-color: var(--navy); }
 .tc-check:checked { background: var(--navy); border-color: var(--navy); }
 .tc-check:checked::after { content: ''; position: absolute; left: 3px; top: 0px; width: 5px; height: 9px; border: 2px solid white; border-top: none; border-left: none; transform: rotate(45deg); }
-
+ 
 /* purple cards get a purple checkbox */
 .task-card.mandy-notify .tc-check,
 .task-card.mandy-notify-overdue .tc-check { border-color: var(--purple); }
@@ -233,7 +233,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .task-card.mandy-notify-overdue .tc-check:hover { border-color: var(--purple-mid); }
 .task-card.mandy-notify .tc-check:checked,
 .task-card.mandy-notify-overdue .tc-check:checked { background: var(--purple); border-color: var(--purple); }
-
+ 
 /* green cards get a green checkbox */
 .task-card.mandy-actioned .tc-check,
 .task-card.mandy-actioned-overdue .tc-check { border-color: var(--green); }
@@ -241,13 +241,13 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .task-card.mandy-actioned-overdue .tc-check:hover { border-color: var(--green); }
 .task-card.mandy-actioned .tc-check:checked,
 .task-card.mandy-actioned-overdue .tc-check:checked { background: var(--green); border-color: var(--green); }
-
+ 
 .task-card.archived .tc-check { border-color: var(--gray-200); background: var(--gray-200); cursor: default; }
 .task-card.archived .tc-check:checked { background: var(--gray-400); border-color: var(--gray-400); }
 .tc-name { font-size: 12px; font-weight: 500; line-height: 1.35; color: var(--text); flex: 1; }
 .task-card.archived .tc-name { text-decoration: line-through; color: var(--text-faint); }
 .task-card.overdue .tc-name { color: var(--red); }
-
+ 
 /* badges */
 .tc-badges { display: flex; align-items: center; gap: 4px; margin-top: 4px; flex-wrap: wrap; padding-left: 21px; }
 .badge { display: inline-flex; align-items: center; gap: 3px; font-size: 9px; padding: 2px 5px; border-radius: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
@@ -258,7 +258,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .badge-orig         { background: var(--gray-100);     color: var(--gray-400); font-weight: 400; text-transform: none; letter-spacing: 0; }
 .badge-mandy        { background: var(--purple-light); color: var(--purple-mid); border: 1px solid var(--purple-border); }
 .badge-actioned     { background: var(--green-light);  color: var(--green);   border: 1px solid var(--green-border); }
-
+ 
 /* hover-reveal instructions */
 .tc-instructions {
   font-size: 11px; color: var(--text-muted); margin-top: 0;
@@ -296,7 +296,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .task-card.mandy-notify-overdue .tc-instructions:focus { border-left-color: var(--purple); }
 .task-card.mandy-actioned .tc-instructions:focus,
 .task-card.mandy-actioned-overdue .tc-instructions:focus { border-left-color: var(--green); }
-
+ 
 /* edit/delete on hover */
 .tc-actions { display: none; gap: 4px; margin-top: 5px; padding-left: 21px; }
 .task-card:hover .tc-actions { display: flex; }
@@ -306,15 +306,15 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .tc-btn-edit:hover { background: var(--gray-200); }
 .tc-btn-delete { background: rgba(163,45,45,0.08); color: var(--red); border-color: rgba(163,45,45,0.2); }
 .tc-btn-delete:hover { background: var(--red); color: white; }
-
+ 
 .add-inline { display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; color: var(--text-faint); cursor: pointer; padding: 6px; border: 1px dashed var(--border-strong); border-radius: 7px; transition: all 0.13s; margin-top: auto; }
 .add-inline:hover { background: rgba(30,42,74,0.06); border-color: var(--navy); color: var(--navy); }
-
+ 
 /* ─── Status bar ─── */
 .statusbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 24px; background: var(--surface); border-top: 1px solid var(--border); flex-shrink: 0; }
 .statusbar-left  { font-size: 12px; color: var(--text-faint); }
 .statusbar-right { font-size: 12px; color: var(--text-faint); }
-
+ 
 /* ─── Modal ─── */
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); z-index: 200; align-items: center; justify-content: center; }
 .modal-overlay.open { display: flex; }
@@ -340,7 +340,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .btn-cancel:hover { background: var(--gray-100); }
 .btn-save { padding: 8px 20px; font-size: 13px; font-weight: 500; background: var(--navy); color: white; border: none; border-radius: var(--radius); cursor: pointer; }
 .btn-save:hover { background: var(--navy-dark); }
-
+ 
 /* ─── Login splash ─── */
 .od-splash { position: fixed; inset: 0; background: #f5f5f3; display: flex; align-items: center; justify-content: center; z-index: 500; }
 .od-splash.hidden { display: none; }
@@ -359,7 +359,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .error { background: #fee; color: #c33; padding: 12px; border-radius: 6px; font-size: 12px; margin-top: 16px; display: none; text-align: left; }
 .btn-od-demo { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 9px 20px; background: transparent; color: var(--text-muted); border: 1px solid var(--border-strong); border-radius: var(--radius); font-size: 13px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.13s; }
 .btn-od-demo:hover { background: var(--gray-100); }
-
+ 
 /* ─── Toast ─── */
 .toast-wrap { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%); z-index: 300; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
 .toast { padding: 10px 18px; border-radius: var(--radius-lg); background: var(--gray-800); color: white; font-size: 13px; font-weight: 500; box-shadow: var(--shadow-md); opacity: 0; animation: toastIn 0.2s ease forwards, toastOut 0.3s ease 2.5s forwards; display: flex; align-items: center; gap: 8px; }
@@ -370,7 +370,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 </style>
 </head>
 <body>
-
+ 
 <!-- ─── Login Splash ─── -->
 <div class="od-splash" id="odSplash">
   <div class="login-container">
@@ -378,7 +378,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
       <div class="login-title">Mark It Off</div>
       <div class="login-subtitle">Workflow Planner</div>
     </div>
-
+ 
     <div id="loginForm">
       <button class="login-btn" id="signInBtn" onclick="signIn()">
         <svg class="microsoft-icon" viewBox="0 0 24 24" fill="currentColor">
@@ -389,23 +389,21 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
         </svg>
         Sign in with Microsoft
       </button>
-      <button class="btn-od-demo" onclick="useDemoMode()">
-        <i class="ti ti-flask"></i> Continue in demo mode (no saving)
-      </button>
+ 
     </div>
-
+ 
     <div class="loading" id="loadingState">
       <div class="spinner"></div>
       <div style="font-size: 13px; color: #888;">Signing you in...</div>
     </div>
-
+ 
     <div class="error" id="odError"></div>
   </div>
 </div>
-
+ 
 <!-- ─── App ─── -->
 <div class="app" id="app" style="display:none">
-
+ 
   <header class="topbar">
     <div class="logo">WORKFLOW PLANNER</div>
     <div class="cal-switcher">
@@ -421,7 +419,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
       <button class="btn-add" onclick="openModal()"><i class="ti ti-plus" aria-hidden="true"></i> Add task</button>
     </div>
   </header>
-
+ 
   <nav class="subnav">
     <div class="view-tabs">
       <button class="view-tab active" id="tabMonth" onclick="setView('month')"><i class="ti ti-calendar-month" aria-hidden="true"></i> Month</button>
@@ -435,15 +433,15 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
     </div>
     <div class="planning-badge" id="planningBadge" style="display:none"><i class="ti ti-clipboard-list" aria-hidden="true"></i> Friday planning mode</div>
   </nav>
-
+ 
   <main class="main" id="mainArea"></main>
-
+ 
   <footer class="statusbar">
     <div class="statusbar-left" id="statusMsg"></div>
     <div class="statusbar-right" id="statusRight"></div>
   </footer>
 </div>
-
+ 
 <!-- Modal -->
 <div class="modal-overlay" id="modalOverlay" onclick="overlayClick(event)">
   <div class="modal">
@@ -477,9 +475,9 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
     </div>
   </div>
 </div>
-
+ 
 <div class="toast-wrap" id="toastWrap"></div>
-
+ 
 <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
 <script>
 // ════════════════════════════════════════════
@@ -487,7 +485,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 // ════════════════════════════════════════════
 const MONTHS    = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DAYS_S    = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-
+ 
 let view         = 'month';
 let showArchived = false;
 let currentCal   = 'principal';
@@ -496,9 +494,10 @@ let nextId       = 100;
 let demoMode     = false;
 let odToken      = null;
 let isSaving     = false;
+let odEtag       = null;
 cursor.setHours(0,0,0,0);
 const TODAY = new Date(cursor);
-
+ 
 // ─── UK Bank Holidays (England & Wales) 2024–2027 ───
 const BANK_HOLIDAYS = {
   '2024-01-01':"New Year's Day",'2024-03-29':'Good Friday','2024-04-01':'Easter Monday',
@@ -514,17 +513,17 @@ const BANK_HOLIDAYS = {
   '2027-05-03':'Early May bank holiday','2027-05-31':'Spring bank holiday',
   '2027-08-30':'Summer bank holiday','2027-12-27':'Christmas Day (substitute)','2027-12-28':'Boxing Day (substitute)',
 };
-
+ 
 function getBH(dk) { return BANK_HOLIDAYS[dk] || null; }
-
+ 
 // ─── Seed data (used in demo mode and as fallback) ───
 const SEED = {
   principal: [],
   mandy: []
 };
-
+ 
 let tasks = JSON.parse(JSON.stringify(SEED));
-
+ 
 // ════════════════════════════════════════════
 //  HELPERS
 // ════════════════════════════════════════════
@@ -541,13 +540,13 @@ function findTask(id) {
   return tasks[currentCal].find(t=>t.id===id)
       || tasks[currentCal==='principal'?'mandy':'principal'].find(t=>t.id===id);
 }
-
+ 
 function findTaskInCal(id, cal) {
   return tasks[cal].find(t=>t.id===id);
 }
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function fmtDate(s) { let d=parseD(s); return d.getDate()+' '+MONTHS[d.getMonth()].slice(0,3); }
-
+ 
 // ─── Carry-forward ───────────────────────────
 function carryForward() {
   const todayDK = dk(TODAY);
@@ -567,7 +566,7 @@ function carryForward() {
     });
   });
 }
-
+ 
 // ─── Recurring generation ─────────────────────
 function generateRecurring() {
   ['principal','mandy'].forEach(cal => {
@@ -594,22 +593,22 @@ function resolveRecur(pat, base, orig) {
   if (pat==='first-working') { let d=new Date(y,m,1); while(isWknd(d))d.setDate(d.getDate()+1); return d; }
   return new Date(y,m,orig.getDate());
 }
-
+ 
 function tasksForDate(dkk) {
   return tasks[currentCal].filter(t => {
     if (t.type==='archived' && !showArchived) return false;
     return t.date===dkk;
   });
 }
-
+ 
 // ─── OneDrive / MSAL ─────────────────────────
 const OD_FILE_PATH = '/me/drive/root:/tasks.json:/content';
-
+ 
 // Build a clean redirect URI — must be http/https, not file://
 const _origin = window.location.origin;
 const _path   = window.location.pathname;
 const OD_REDIRECT_URI = _origin + _path;
-
+ 
 const msalConfig = {
   auth: {
     clientId: 'b9d8863a-6f1c-4518-8024-8073d37f79e6',
@@ -618,9 +617,9 @@ const msalConfig = {
   },
   cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: false }
 };
-
+ 
 const msalInstance = new msal.PublicClientApplication(msalConfig);
-
+ 
 async function initMSAL() {
   // Detect file:// protocol — Microsoft login requires http/https
   if (window.location.protocol === 'file:') {
@@ -632,7 +631,7 @@ async function initMSAL() {
     showSignInButton();
     return;
   }
-
+ 
   try {
     await msalInstance.initialize();
     const response = await msalInstance.handleRedirectPromise();
@@ -659,7 +658,7 @@ async function initMSAL() {
     showSignInButton();
   }
 }
-
+ 
 async function signIn() {
   try {
     document.getElementById('signInBtn').disabled = true;
@@ -671,26 +670,65 @@ async function signIn() {
     showSignInButton();
   }
 }
-
+ 
 function showSignInButton() {
   document.getElementById('loginForm').style.display = 'block';
   document.getElementById('loadingState').style.display = 'none';
 }
-
+ 
 function showLoginError(msg) {
   const el = document.getElementById('odError');
   el.textContent = msg;
   el.style.display = 'block';
 }
-
+ 
 async function launchApp() {
   document.getElementById('odSplash').classList.add('hidden');
   document.getElementById('app').style.display = 'grid';
   await loadFromOneDrive();
   carryForward(); generateRecurring();
   render();
+  startBackgroundSync(60);
 }
-
+ 
+// ─── Background sync ──────────────────────────
+function startBackgroundSync(intervalSeconds) {
+  setInterval(async () => {
+    // Don't poll if we're mid-save or not connected
+    if (isSaving || demoMode || !odToken) return;
+ 
+    try {
+      // Cheap HEAD-style check — just fetch the metadata to compare ETags
+      const res = await fetch(`https://graph.microsoft.com/v1.0${OD_FILE_PATH}`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${odToken}`, 'If-None-Match': odEtag || '' }
+      });
+ 
+      // 304 Not Modified — nothing changed, do nothing
+      if (res.status === 304) return;
+      if (!res.ok) return; // silent fail on network issues
+ 
+      // ETag changed — new data available, merge it in
+      const remoteData = await res.json();
+      const freshEtag  = res.headers.get('ETag') || null;
+ 
+      // If we have unsaved local changes in flight, do a proper merge
+      // Otherwise just replace cleanly
+      const localSnapshot = { ...tasks, _nextId: nextId };
+      const merged = mergeTasks(localSnapshot, remoteData);
+      tasks  = merged;
+      nextId = merged._nextId;
+      odEtag = freshEtag;
+ 
+      carryForward(); generateRecurring();
+      render();
+      toast('<i class="ti ti-refresh"></i> Updated from OneDrive');
+    } catch(e) {
+      // Silent — don't bother the user for a background sync hiccup
+    }
+  }, intervalSeconds * 1000);
+}
+ 
 async function loadFromOneDrive() {
   setOdStatus('connecting','Connecting…');
   try {
@@ -698,12 +736,13 @@ async function loadFromOneDrive() {
       headers: { Authorization: `Bearer ${odToken}` }
     });
     if (res.status === 404) {
-      // File doesn't exist yet — start fresh with seed
       tasks = JSON.parse(JSON.stringify(SEED));
+      odEtag = null;
       setOdStatus('connected','OneDrive — new');
       return;
     }
     if (!res.ok) throw new Error('HTTP ' + res.status);
+    odEtag = res.headers.get('ETag') || null;
     const data = await res.json();
     if (data && data.principal && data.mandy) {
       tasks = data;
@@ -718,19 +757,31 @@ async function loadFromOneDrive() {
     tasks = JSON.parse(JSON.stringify(SEED));
   }
 }
-
+ 
 async function saveToOneDrive() {
   if (demoMode || !odToken || isSaving) return;
   isSaving = true;
   setOdStatus('saving','Saving…');
   try {
     const payload = { ...tasks, _nextId: nextId };
+    const headers = {
+      Authorization: `Bearer ${odToken}`,
+      'Content-Type': 'application/json'
+    };
+    if (odEtag) headers['If-Match'] = odEtag;
+ 
     const res = await fetch(`https://graph.microsoft.com/v1.0${OD_FILE_PATH}`, {
-      method: 'PUT',
-      headers: { Authorization: `Bearer ${odToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      method: 'PUT', headers, body: JSON.stringify(payload)
     });
+ 
+    if (res.status === 412) {
+      // Conflict — another machine saved since we last loaded; merge and retry
+      isSaving = false;
+      await mergeAndSave();
+      return;
+    }
     if (!res.ok) throw new Error('HTTP ' + res.status);
+    odEtag = res.headers.get('ETag') || odEtag;
     setOdStatus('connected','OneDrive ✓');
   } catch(e) {
     setOdStatus('disconnected','Save failed');
@@ -739,14 +790,88 @@ async function saveToOneDrive() {
     isSaving = false;
   }
 }
-
+ 
+// ─── Merge helpers ────────────────────────────
+function mergeTasks(local, remote) {
+  const localDeleted  = local._deletedIds  || {};
+  const remoteDeleted = remote._deletedIds || {};
+ 
+  // Union of deleted IDs — keep the latest deletion timestamp
+  const mergedDeleted = {};
+  new Set([...Object.keys(localDeleted), ...Object.keys(remoteDeleted)]).forEach(id => {
+    mergedDeleted[id] = Math.max(localDeleted[id] || 0, remoteDeleted[id] || 0);
+  });
+ 
+  const merged = { principal: [], mandy: [], _deletedIds: mergedDeleted };
+ 
+  ['principal', 'mandy'].forEach(cal => {
+    const lMap = new Map((local[cal]  || []).map(t => [t.id, t]));
+    const rMap = new Map((remote[cal] || []).map(t => [t.id, t]));
+    new Set([...lMap.keys(), ...rMap.keys()]).forEach(id => {
+      const deletedAt = mergedDeleted[id] || 0;
+      const lt = lMap.get(id), rt = rMap.get(id);
+      const winner = (lt && rt)
+        ? ((lt.lastModified || 0) >= (rt.lastModified || 0) ? lt : rt)
+        : (lt || rt);
+      // If deleted more recently than last edit, drop it
+      if (deletedAt > (winner.lastModified || 0)) return;
+      merged[cal].push(winner);
+    });
+  });
+ 
+  merged._nextId = Math.max(local._nextId || 100, remote._nextId || 100);
+  return merged;
+}
+ 
+async function mergeAndSave() {
+  if (isSaving) return;
+  isSaving = true;
+  setOdStatus('saving','Merging…');
+  try {
+    // Fetch the latest version from OneDrive
+    const res = await fetch(`https://graph.microsoft.com/v1.0${OD_FILE_PATH}`, {
+      headers: { Authorization: `Bearer ${odToken}` }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const remoteData = await res.json();
+    const freshEtag  = res.headers.get('ETag') || null;
+ 
+    // Merge remote into our local state
+    const localSnapshot = { ...tasks, _nextId: nextId };
+    const mergedData    = mergeTasks(localSnapshot, remoteData);
+    tasks  = mergedData;
+    nextId = mergedData._nextId;
+ 
+    // Save the merged result
+    const saveRes = await fetch(`https://graph.microsoft.com/v1.0${OD_FILE_PATH}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${odToken}`,
+        'Content-Type': 'application/json',
+        ...(freshEtag ? { 'If-Match': freshEtag } : {})
+      },
+      body: JSON.stringify(mergedData)
+    });
+    if (!saveRes.ok) throw new Error('HTTP ' + saveRes.status);
+    odEtag = saveRes.headers.get('ETag') || freshEtag;
+    setOdStatus('connected','OneDrive ✓');
+    toast('<i class="ti ti-git-merge"></i> Changes merged from other device');
+    render();
+  } catch(e) {
+    setOdStatus('disconnected','Merge failed');
+    toast('⚠ Could not merge changes. Your local edits are still here — try saving again.');
+  } finally {
+    isSaving = false;
+  }
+}
+ 
 function setOdStatus(cls, text) {
   const badge = document.getElementById('odStatusBadge');
   badge.className = 'od-status ' + cls;
   document.getElementById('odStatusText').textContent = text;
   document.getElementById('statusRight').textContent = cls==='saving' ? 'Saving to OneDrive…' : (cls==='connected' ? 'Synced' : cls==='disconnected' ? '⚠ Not saved' : '');
 }
-
+ 
 function useDemoMode() {
   demoMode = true;
   document.getElementById('odSplash').classList.add('hidden');
@@ -756,7 +881,7 @@ function useDemoMode() {
   setOdStatus('disconnected','Demo mode — not saving');
   render();
 }
-
+ 
 // ════════════════════════════════════════════
 //  RENDER
 // ════════════════════════════════════════════
@@ -765,7 +890,7 @@ function render() {
   document.getElementById('planningBadge').style.display = isFriday() ? 'flex' : 'none';
   view==='month' ? renderMonth() : renderWeek();
 }
-
+ 
 function updatePeriod() {
   const el = document.getElementById('navPeriod');
   if (view==='month') { el.textContent = MONTHS[cursor.getMonth()]+' '+cursor.getFullYear(); }
@@ -774,7 +899,7 @@ function updatePeriod() {
     el.textContent = ws.getDate()+' '+MONTHS[ws.getMonth()].slice(0,3)+' – '+we.getDate()+' '+MONTHS[we.getMonth()].slice(0,3)+' '+we.getFullYear();
   }
 }
-
+ 
 function updateStatus() {
   let all=tasks[currentCal];
   let active=all.filter(t=>t.type!=='archived').length;
@@ -785,7 +910,7 @@ function updateStatus() {
   if (over) msg += ` · ⚠ ${over} overdue`;
   document.getElementById('statusMsg').textContent = msg;
 }
-
+ 
 // ── Month ────────────────────────────────────
 function renderMonth() {
   let y=cursor.getFullYear(), m=cursor.getMonth();
@@ -823,7 +948,7 @@ function renderMonth() {
   html+='</div></div>';
   document.getElementById('mainArea').innerHTML=html;
 }
-
+ 
 // ── Week ─────────────────────────────────────
 function renderWeek() {
   let ws=weekStart(cursor);
@@ -854,7 +979,7 @@ function renderWeek() {
   html+='</div></div>';
   document.getElementById('mainArea').innerHTML=html;
 }
-
+ 
 function renderCard(t) {
   // Determine CSS class for card colour
   let tc;
@@ -866,9 +991,9 @@ function renderCard(t) {
   else if (t.type==='recurring')             tc='recurring';
   else if (t.type==='overdue')               tc='overdue';
   else                                        tc='active';
-
+ 
   let origBadge = t.originalDate ? `<span class="badge badge-orig">Was: ${fmtDate(t.originalDate)}</span>` : '';
-
+ 
   // Pick the right "carried forward" badge colour to match card colour
   let carriedBadge = '';
   if (t.type === 'mandy-notify-overdue') {
@@ -878,17 +1003,17 @@ function renderCard(t) {
   } else if (t.type === 'overdue') {
     carriedBadge = `<span class="badge badge-carried"><i class="ti ti-arrow-forward" style="font-size:8px"></i> Carried forward</span>`;
   }
-
+ 
   let isMandy   = tc === 'mandy-notify' || tc === 'mandy-notify-overdue';
   let isActioned= tc === 'mandy-actioned' || tc === 'mandy-actioned-overdue';
   let checked = t.type==='archived' ? 'checked' : '';
   let checkDisabled = t.type==='archived' ? 'disabled' : '';
-
+ 
   let isDraggable = t.type !== 'archived';
   let dragAttrs = isDraggable
     ? `draggable="true" ondragstart="onDragStart(event,${t.id})" ondragend="onDragEnd(event)"`
     : '';
-
+ 
   return `<div class="task-card ${tc}" id="tc-${t.id}" ${dragAttrs}>
     <div class="tc-top">
       <input type="checkbox" class="tc-check" ${checked} ${checkDisabled} onchange="completeTask(${t.id},event)" title="Mark complete" />
@@ -916,24 +1041,25 @@ function renderCard(t) {
     </div>` : ''}
   </div>`;
 }
-
+ 
 // ════════════════════════════════════════════
 //  INTERACTIONS
 // ════════════════════════════════════════════
 function completeTask(id, e) {
   e.stopPropagation();
-
+ 
   // Always find the task in the CURRENT calendar explicitly
   let t = tasks[currentCal].find(t => t.id === id);
   if (!t || t.type === 'archived') return;
-
+ 
   const completedDate = dk(TODAY);
   const taskName = t.name;
   const wasMandy = (currentCal === 'mandy');
-
+ 
   // Archive the task in its own calendar
   t.type = 'archived';
-
+  t.lastModified = Date.now();
+ 
   if (wasMandy) {
     // FR-37 & FR-38: create purple notification in principal's calendar
     const notifId = nextId++;
@@ -949,7 +1075,7 @@ function completeTask(id, e) {
       expanded: false,
       mandyNotify: true
     });
-
+ 
     saveToOneDrive();
     render();
     toast('<i class="ti ti-bell"></i> Mandy\'s task archived · Purple notification created in My Calendar');
@@ -959,7 +1085,7 @@ function completeTask(id, e) {
     toast('<i class="ti ti-check"></i> Task completed');
   }
 }
-
+ 
 function saveInstructions(id, el) {
   // Search current calendar only — instructions are always edited in context
   let t = tasks[currentCal].find(t => t.id === id);
@@ -967,16 +1093,22 @@ function saveInstructions(id, el) {
   let newText = el.innerText.trim();
   if (newText === t.instructions) return;
   t.instructions = newText;
+  t.lastModified = Date.now();
   saveToOneDrive();
   toast('<i class="ti ti-device-floppy"></i> Notes saved');
 }
-
+ 
 function deleteTask(id, e) {
   e.stopPropagation();
   let idx = tasks[currentCal].findIndex(t => t.id === id);
-  if (idx !== -1) { tasks[currentCal].splice(idx, 1); saveToOneDrive(); toast('Task deleted'); render(); }
+  if (idx !== -1) {
+    if (!tasks._deletedIds) tasks._deletedIds = {};
+    tasks._deletedIds[id] = Date.now();
+    tasks[currentCal].splice(idx, 1);
+    saveToOneDrive(); toast('Task deleted'); render();
+  }
 }
-
+ 
 function editTask(id, e) {
   e.stopPropagation();
   let t = tasks[currentCal].find(t => t.id === id);
@@ -992,7 +1124,7 @@ function editTask(id, e) {
   toggleRecurOpts();
   document.getElementById('modalOverlay').classList.add('open');
 }
-
+ 
 function drillWeek(dkk) { cursor=parseD(dkk); setView('week'); }
 function setView(v) {
   view=v;
@@ -1009,7 +1141,7 @@ function switchCal(cal) {
   document.querySelectorAll('.cal-btn').forEach((b,i)=>b.classList.toggle('active',(cal==='principal'&&i===0)||(cal==='mandy'&&i===1)));
   render();
 }
-
+ 
 // ─── Modal ───────────────────────────────────
 function openModal() {
   document.getElementById('modalTitle').textContent='Add task';
@@ -1027,7 +1159,7 @@ function openModalForDate(dkk) { openModal(); document.getElementById('fDate').v
 function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
 function overlayClick(e) { if(e.target===document.getElementById('modalOverlay'))closeModal(); }
 function toggleRecurOpts() { document.getElementById('recurSection').classList.toggle('visible',document.getElementById('fRecurring').checked); }
-
+ 
 function saveTask() {
   let name  = document.getElementById('fName').value.trim();
   let date  = document.getElementById('fDate').value;
@@ -1037,14 +1169,15 @@ function saveTask() {
   let pat   = document.getElementById('fRecurPattern').value;
   let eid   = document.getElementById('editId').value;
   if (!name || !date) return;
-
+ 
   if (eid) {
     let t = tasks[currentCal].find(t => t.id === parseInt(eid));
     if (t) {
       let dateChanged = t.date !== date;
       t.name = name; t.instructions = instr;
       t.recurring = rec; t.recurPattern = rec ? pat : '';
-
+      t.lastModified = Date.now();
+ 
       // If a mandy-notify task has its date manually changed → turn green
       if (dateChanged && (t.type==='mandy-notify' || t.type==='mandy-notify-overdue')) {
         t.type = 'mandy-actioned';
@@ -1052,7 +1185,7 @@ function saveTask() {
       } else if (dateChanged && t.type==='mandy-actioned-overdue') {
         t.type = 'mandy-actioned';
       }
-
+ 
       t.date = date;
       if (rec && !t.type.startsWith('mandy') && t.type !== 'archived') t.type = 'recurring';
     }
@@ -1062,20 +1195,21 @@ function saveTask() {
       id: nextId++, date, name,
       type: rec ? 'recurring' : 'active',
       recurring: rec, recurPattern: rec ? pat : '',
-      originalDate: '', instructions: instr, expanded: false
+      originalDate: '', instructions: instr, expanded: false,
+      lastModified: Date.now()
     });
     if (cal !== currentCal) currentCal = cal;
     toast('<i class="ti ti-circle-check"></i> Task added');
   }
-
+ 
   if (rec) generateRecurring();
   saveToOneDrive(); closeModal(); render();
 }
-
+ 
 // ─── Drag & Drop ─────────────────────────────
 let dragTaskId   = null;
 let dragFromDate = null;
-
+ 
 function onDragStart(e, id) {
   dragTaskId = id;
   let t = findTask(id);
@@ -1088,7 +1222,7 @@ function onDragStart(e, id) {
     if (el) el.classList.add('dragging');
   }, 0);
 }
-
+ 
 function onDragEnd(e) {
   let el = document.getElementById('tc-' + dragTaskId);
   if (el) el.classList.remove('dragging');
@@ -1097,7 +1231,7 @@ function onDragEnd(e) {
     col.classList.remove('drag-over', 'drag-over-invalid');
   });
 }
-
+ 
 function onDragOver(e, targetDate) {
   e.preventDefault();
   let col = e.currentTarget;
@@ -1106,26 +1240,26 @@ function onDragOver(e, targetDate) {
   col.classList.remove('drag-over-invalid');
   e.dataTransfer.dropEffect = 'move';
 }
-
+ 
 function onDragLeave(e) {
   // Only fire when leaving the column itself, not a child
   if (!e.currentTarget.contains(e.relatedTarget)) {
     e.currentTarget.classList.remove('drag-over', 'drag-over-invalid');
   }
 }
-
+ 
 function onDrop(e, targetDate) {
   e.preventDefault();
   let col = e.currentTarget;
   col.classList.remove('drag-over', 'drag-over-invalid');
-
+ 
   if (!dragTaskId) return;
   let t = findTask(dragTaskId);
   if (!t || t.type === 'archived') return;
   if (t.date === targetDate) return; // dropped on same day — no change
-
+ 
   let oldDate = t.date;
-
+ 
   // If it's a mandy-notify task being manually moved, turn it green
   if (t.type === 'mandy-notify' || t.type === 'mandy-notify-overdue') {
     t.type = 'mandy-actioned';
@@ -1137,17 +1271,18 @@ function onDrop(e, targetDate) {
     t.type = 'overdue';
     if (!t.originalDate) t.originalDate = oldDate;
   }
-
+ 
   t.date = targetDate;
+  t.lastModified = Date.now();
   saveToOneDrive();
-
+ 
   let dayName = new Date(targetDate + 'T00:00:00').toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'short' });
   toast(`<i class="ti ti-drag-drop"></i> Moved to ${dayName}`);
   render();
   dragTaskId = null;
   dragFromDate = null;
 }
-
+ 
 // ─── Keyboard ────────────────────────────────
 document.addEventListener('keydown', e=>{
   if (e.key==='Escape') closeModal();
@@ -1155,14 +1290,14 @@ document.addEventListener('keydown', e=>{
   if (e.key==='ArrowLeft' &&document.activeElement.tagName==='BODY') navBack();
   if (e.key==='ArrowRight'&&document.activeElement.tagName==='BODY') navFwd();
 });
-
+ 
 // ─── Toast ───────────────────────────────────
 function toast(msg) {
   let el=document.createElement('div'); el.className='toast'; el.innerHTML=msg;
   document.getElementById('toastWrap').appendChild(el);
   setTimeout(()=>el.remove(),3000);
 }
-
+ 
 // ─── Boot ────────────────────────────────────
 initMSAL();
 </script>
