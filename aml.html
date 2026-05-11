@@ -375,7 +375,8 @@ let statusDropdownId = null;
 let msalInstance = null;
 let accessToken  = null;
 let saveQueued   = false;
-let sortByLatestExpiry = true; // true = show latest first, false = show earliest first
+let sortByExpiry = false; // Only sort by expiry if user clicked the header
+let sortByLatestExpiry = false; // If sorting by expiry: false = soonest first, true = latest first
 
 // ── STATUSES ───────────────────────────────────────────────────────────────
 const STATUS_CLASS = {
@@ -495,9 +496,16 @@ function latestExpiry(c) {
   return dates.sort().reverse()[0] || '';
 }
 
-// Toggle between sorting by latest and earliest expiry
+// Toggle expiry sorting on/off and direction
 function toggleExpirySort() {
-  sortByLatestExpiry = !sortByLatestExpiry;
+  if (!sortByExpiry) {
+    // First click: enable expiry sorting, show soonest first
+    sortByExpiry = true;
+    sortByLatestExpiry = false;
+  } else {
+    // Second click: toggle direction (latest first)
+    sortByLatestExpiry = !sortByLatestExpiry;
+  }
   render();
   return false;
 }
@@ -526,15 +534,17 @@ function render() {
     var bo = order[b._status] !== undefined ? order[b._status] : 5;
     if (ao !== bo) return ao - bo;
     
-    // Within each status group, sort by expiry date if column is being used for sorting
-    var aExp = nextExpiry(a) || '';
-    var bExp = nextExpiry(b) || '';
-    if (aExp && bExp) {
-      var expCompare = sortByLatestExpiry ? (bExp.localeCompare(aExp)) : (aExp.localeCompare(bExp));
-      if (expCompare !== 0) return expCompare;
+    // If user clicked expiry header, sort by expiry date
+    if (sortByExpiry) {
+      var aExp = nextExpiry(a) || '';
+      var bExp = nextExpiry(b) || '';
+      if (aExp && bExp) {
+        var expCompare = sortByLatestExpiry ? (bExp.localeCompare(aExp)) : (aExp.localeCompare(bExp));
+        if (expCompare !== 0) return expCompare;
+      }
     }
     
-    // Fall back to name sorting
+    // Default: sort alphabetically by surname then firstname
     var s = a.surname.localeCompare(b.surname);
     if (s !== 0) return s;
     return a.firstname.localeCompare(b.firstname);
