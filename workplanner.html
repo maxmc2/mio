@@ -412,12 +412,12 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
       <button class="cal-btn" onclick="switchCal('mandy')"><i class="ti ti-user" aria-hidden="true"></i> Mandy</button>
     </div>
     <div class="topbar-right">
-      <div class="od-status connecting" id="odStatusBadge"><i class="ti ti-brand-onedrive"></i> <span id="odStatusText">Connecting…</span></div>
+      <button class="btn-add" onclick="openModal()"><i class="ti ti-plus" aria-hidden="true"></i> Add task</button>
       <label class="archive-toggle" onclick="toggleArchive()">
         <div class="toggle-track" id="archToggle"><div class="toggle-knob"></div></div>
         <span>Show archived</span>
       </label>
-      <button class="btn-add" onclick="openModal()"><i class="ti ti-plus" aria-hidden="true"></i> Add task</button>
+      <div class="od-status connecting" id="odStatusBadge"><span id="odStatusText">Connecting…</span></div>
     </div>
   </header>
  
