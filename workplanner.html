@@ -204,6 +204,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .task-card.active    { background: var(--accent-light); border-color: rgba(29,158,117,0.25); }
 .task-card.overdue   { background: var(--red-light); border-color: var(--red-border); }
 .task-card.recurring { background: var(--blue-light); border-color: rgba(55,138,221,0.25); }
+.task-card.annual { background: var(--amber-light); border-color: rgba(186,117,23,0.25); }
 .task-card.archived  { background: var(--gray-100); border-color: var(--border); opacity: 0.65; }
 .task-card.mandy-notify         { background: var(--purple-light); border-color: var(--purple-border); }
 .task-card.mandy-notify-overdue { background: var(--purple-light); border-color: var(--purple-border); }
@@ -594,12 +595,13 @@ function carryForward() {
 }
  
 // ─── Recurring generation ─────────────────────
-function generateRecurring() {
+function generateRecurring(baseDate = null) {
+  let base = baseDate ? new Date(baseDate) : new Date(TODAY);
   ['principal','mandy'].forEach(cal => {
     tasks[cal].filter(t=>t.recurring).forEach(tmpl => {
-      for (let mo=0; mo<=1; mo++) {
-        let base = new Date(TODAY); base.setMonth(base.getMonth()+mo);
-        let td = resolveRecur(tmpl.recurPattern, base, parseD(tmpl.date));
+      for (let mo=-1; mo<=2; mo++) {
+        let checkMonth = new Date(base); checkMonth.setMonth(checkMonth.getMonth()+mo);
+        let td = resolveRecur(tmpl.recurPattern, checkMonth, parseD(tmpl.date));
         let dkk = dk(td);
         let ms = new Date(td.getFullYear(),td.getMonth(),1);
         let me = new Date(td.getFullYear(),td.getMonth()+1,0);
@@ -1001,6 +1003,7 @@ function useDemoMode() {
 //  RENDER
 // ════════════════════════════════════════════
 function render() {
+  generateRecurring(cursor);
   updatePeriod(); updateStatus();
   document.getElementById('planningBadge').style.display = isFriday() ? 'flex' : 'none';
   view==='month' ? renderMonth() : renderWeek();
@@ -1133,7 +1136,7 @@ function renderCard(t) {
     ? `ondblclick="event.stopPropagation()"`
     : `ondblclick="editTask(${t.id},event)"`;
 
-  return `<div class="task-card ${tc}" id="tc-${t.id}" ${dragAttrs} ${dblClick}>
+  return `<div class="task-card ${tc}${t.recurring && t.recurPattern && t.recurPattern.startsWith('annual:') ? ' annual' : ''}" id="tc-${t.id}" ${dragAttrs} ${dblClick}>
     <div class="tc-top">
       <input type="checkbox" class="tc-check" ${checked} ${checkDisabled} onchange="completeTask(${t.id},event)" title="Mark complete" />
       <div class="tc-name">${esc(t.name)}</div>
