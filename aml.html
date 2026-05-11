@@ -499,6 +499,7 @@ function latestExpiry(c) {
 function toggleExpiryDisplay() {
   showLatestExpiry = !showLatestExpiry;
   render();
+  return false;
 }
 
 // ── RENDER ─────────────────────────────────────────────────────────────────
@@ -566,7 +567,7 @@ function render() {
         +'<td><span class="badge '+(STATUS_CLASS[c._status]||'s-pending')+'">'+c._status+'</span></td>'
         +'<td style="font-size:12px">'+idDoc+'</td>'
         +'<td style="font-size:12px">'+addrDoc+'</td>'
-        +'<td style="font-size:12px;cursor:pointer;" onclick="event.stopPropagation();toggleExpiryDisplay()" title="Click to toggle between earliest and latest expiry">'+expDisplay+'</td>'
+        +'<td style="font-size:12px;cursor:pointer;" onclick="return toggleExpiryDisplay()" title="Click to toggle between earliest and latest expiry">'+expDisplay+'</td>'
         +'<td style="font-size:12px">'+(c.chcode || '—')+'</td>'
         +'<td style="font-size:12px">'+(c.dateRequested ? fmtDate(c.dateRequested) : '—')+'</td>'
         +'<td><button class="btn btn-sm" onclick="event.stopPropagation();openEmailModal('+c.id+')" style="background:#FEF9C3;color:#854D0E;border:1px solid #FDE047;padding:2px 7px;font-size:11px;" title="Send renewal request">✉</button></td>'
