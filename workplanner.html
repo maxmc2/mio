@@ -149,6 +149,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .mpill.active    { background: var(--accent-light); color: var(--accent-mid); }
 .mpill.overdue   { background: var(--red-light); color: var(--red); }
 .mpill.recurring { background: var(--blue-light); color: var(--blue); }
+.mpill.annual    { background: var(--amber-light); color: var(--amber); }
 .mpill.archived  { background: var(--gray-100); color: var(--gray-400); text-decoration: line-through; }
 .mpill.mandy-notify, .mpill.mandy-notify-overdue { background: var(--purple-light); color: var(--purple-mid); }
 .mpill.mandy-actioned, .mpill.mandy-actioned-overdue { background: var(--green-light); color: var(--green); }
@@ -1058,7 +1059,7 @@ function renderMonth() {
       else if (t.type==='recurring')              tc='recurring';
       else if (t.type==='overdue')                tc='overdue';
       else                                         tc='active';
-      html+=`<div class="mpill ${tc}">${esc(t.name)}</div>`;
+      html+=`<div class="mpill ${tc}${t.recurring && t.recurPattern && t.recurPattern.startsWith('annual:') ? ' annual' : ''}">${esc(t.name)}</div>`;
     });
     if (dayTasks.length>3) html+=`<div class="month-more">+${dayTasks.length-3} more</div>`;
     html+='</div>';
