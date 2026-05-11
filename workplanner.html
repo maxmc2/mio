@@ -459,23 +459,38 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
       </div>
     </div>
     <div class="field"><label>Instructions / notes</label><textarea id="fInstr" placeholder="Step-by-step notes, links, reminders…"></textarea></div>
-    <label class="modal-check"><input type="checkbox" id="fRecurring" onchange="toggleRecurOpts()" /><span class="modal-check-label"><i class="ti ti-refresh"></i> Repeat monthly</span></label>
+    <label class="modal-check"><input type="checkbox" id="fRecurring" onchange="toggleRecurOpts()" /><span class="modal-check-label"><i class="ti ti-refresh"></i> Repeat task</span></label>
     <div class="recur-section" id="recurSection">
-      <div class="field"><label>Recurrence pattern</label>
-        <select id="fRecurPattern" onchange="toggleSpecificDate()">
-          <option value="date">Same date each month</option>
-          <option value="first-monday">First Monday of month</option>
-          <option value="last-friday">Last Friday of month</option>
-          <option value="first-working">First working day of month</option>
-          <option value="last-day">Last day of month</option>
-          <option value="specific">Specific date each month</option>
+      <div class="field"><label>Recurrence type</label>
+        <select id="fRecurType" onchange="toggleRecurOptions()">
+          <option value="monthly">Monthly</option>
+          <option value="annually">Annually</option>
         </select>
       </div>
-      <div class="field" id="specificDateField" style="display:none">
-        <label>Pick a date — the day repeats every month</label>
-        <input type="date" id="fSpecificDay"
-               style="width:100%;padding:9px 12px;font-size:14px;font-family:'DM Sans',sans-serif;border:1px solid var(--border-strong);border-radius:var(--radius);outline:none;background:var(--surface);color:var(--text);" />
-        <p style="font-size:11px;color:var(--text-faint);margin-top:4px;">Only the day number is used. If that day doesn't exist in a shorter month, the last day of that month is used instead.</p>
+      <div id="monthlyOptions">
+        <div class="field"><label>Recurrence pattern</label>
+          <select id="fRecurPattern" onchange="toggleSpecificDate()">
+            <option value="date">Same date each month</option>
+            <option value="first-monday">First Monday of month</option>
+            <option value="last-friday">Last Friday of month</option>
+            <option value="first-working">First working day of month</option>
+            <option value="last-day">Last day of month</option>
+            <option value="specific">Specific date each month</option>
+          </select>
+        </div>
+        <div class="field" id="specificDateField" style="display:none">
+          <label>Pick a date — the day repeats every month</label>
+          <input type="date" id="fSpecificDay"
+                 style="width:100%;padding:9px 12px;font-size:14px;font-family:'DM Sans',sans-serif;border:1px solid var(--border-strong);border-radius:var(--radius);outline:none;background:var(--surface);color:var(--text);" />
+          <p style="font-size:11px;color:var(--text-faint);margin-top:4px;">Only the day number is used. If that day doesn't exist in a shorter month, the last day of that month is used instead.</p>
+        </div>
+      </div>
+      <div id="annuallyOptions" style="display:none">
+        <div class="field">
+          <label>Pick a date — the task repeats on this date every year</label>
+          <input type="date" id="fAnnualDate"
+                 style="width:100%;padding:9px 12px;font-size:14px;font-family:'DM Sans',sans-serif;border:1px solid var(--border-strong);border-radius:var(--radius);outline:none;background:var(--surface);color:var(--text);" />
+        </div>
       </div>
     </div>
     <div class="modal-actions">
@@ -605,6 +620,13 @@ function resolveRecur(pat, base, orig) {
     let day = parseInt(pat.split(':')[1]) || 1;
     let lastDay = new Date(y,m+1,0).getDate();
     return new Date(y, m, Math.min(day, lastDay));
+  }
+  // Handle annual: pattern is "annual:MM-DD"
+  if (pat && pat.startsWith('annual:')) {
+    let parts = pat.split(':')[1].split('-');
+    let month = parseInt(parts[0]) - 1; // Convert to 0-indexed
+    let day = parseInt(parts[1]);
+    return new Date(y, month, day);
   }
   return new Date(y,m,orig.getDate());
 }
@@ -1215,20 +1237,38 @@ function editTask(id, e) {
   document.getElementById('fCal').value   = currentCal;
   document.getElementById('fInstr').value = t.instructions || '';
   document.getElementById('fRecurring').checked = !!t.recurring;
-  // Restore specific:N pattern — set select to 'specific' and pre-fill the date picker
+  
+  // Determine recurrence type (monthly or annual) and restore pattern
   let pat = t.recurPattern || 'date';
-  if (pat.startsWith('specific:')) {
-    document.getElementById('fRecurPattern').value = 'specific';
-    let day = parseInt(pat.split(':')[1]) || 1;
+  let recType = 'monthly';
+  
+  // Handle annual patterns
+  if (pat.startsWith('annual:')) {
+    recType = 'annually';
+    document.getElementById('fRecurType').value = 'annually';
+    let parts = pat.split(':')[1].split('-');
+    let month = parts[0];
+    let day = parts[1];
     let now = new Date(TODAY);
-    let lastOfMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
-    let safeDay = Math.min(day, lastOfMonth);
-    document.getElementById('fSpecificDay').value =
-      now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(safeDay).padStart(2,'0');
+    document.getElementById('fAnnualDate').value = 
+      now.getFullYear() + '-' + month + '-' + day;
   } else {
-    document.getElementById('fRecurPattern').value = pat;
-    document.getElementById('fSpecificDay').value  = dk(TODAY);
+    document.getElementById('fRecurType').value = 'monthly';
+    // Restore specific:N pattern — set select to 'specific' and pre-fill the date picker
+    if (pat.startsWith('specific:')) {
+      document.getElementById('fRecurPattern').value = 'specific';
+      let day = parseInt(pat.split(':')[1]) || 1;
+      let now = new Date(TODAY);
+      let lastOfMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+      let safeDay = Math.min(day, lastOfMonth);
+      document.getElementById('fSpecificDay').value =
+        now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(safeDay).padStart(2,'0');
+    } else {
+      document.getElementById('fRecurPattern').value = pat;
+      document.getElementById('fSpecificDay').value  = dk(TODAY);
+    }
   }
+  
   toggleRecurOpts();
   document.getElementById('modalOverlay').classList.add('open');
 }
@@ -1300,8 +1340,10 @@ function openModal() {
   document.getElementById('fCal').value=currentCal;
   document.getElementById('fInstr').value='';
   document.getElementById('fRecurring').checked=false;
+  document.getElementById('fRecurType').value='monthly';
   document.getElementById('fRecurPattern').value='date';
   document.getElementById('fSpecificDay').value=dk(TODAY);
+  document.getElementById('fAnnualDate').value=dk(TODAY);
   toggleRecurOpts();
   document.getElementById('modalOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('fName').focus(),50);
@@ -1311,6 +1353,12 @@ function closeModal() { document.getElementById('modalOverlay').classList.remove
 function overlayClick(e) { if(e.target===document.getElementById('modalOverlay'))closeModal(); }
 function toggleRecurOpts() {
   document.getElementById('recurSection').classList.toggle('visible', document.getElementById('fRecurring').checked);
+  toggleRecurOptions();
+}
+function toggleRecurOptions() {
+  const type = document.getElementById('fRecurType').value;
+  document.getElementById('monthlyOptions').style.display = type === 'monthly' ? 'block' : 'none';
+  document.getElementById('annuallyOptions').style.display = type === 'annually' ? 'block' : 'none';
   toggleSpecificDate();
 }
 function toggleSpecificDate() {
@@ -1324,14 +1372,28 @@ function saveTask() {
   let cal   = document.getElementById('fCal').value;
   let instr = document.getElementById('fInstr').value.trim();
   let rec   = document.getElementById('fRecurring').checked;
-  let pat   = document.getElementById('fRecurPattern').value;
+  let recType = document.getElementById('fRecurType').value;
+  let pat   = recType === 'monthly' ? document.getElementById('fRecurPattern').value : 'annually';
   let eid   = document.getElementById('editId').value;
 
-  // Encode specific day from date picker into pattern e.g. "specific:15"
+  // Encode specific day from date picker into pattern e.g. "specific:15" (monthly)
   if (pat === 'specific') {
     const dateVal = document.getElementById('fSpecificDay').value;
     let day = dateVal ? new Date(dateVal + 'T00:00:00').getDate() : 1;
     pat = 'specific:' + Math.max(1, Math.min(31, day));
+  }
+  
+  // Encode annual date into pattern e.g. "annual:03-15" (month-day)
+  if (pat === 'annually') {
+    const dateVal = document.getElementById('fAnnualDate').value;
+    if (dateVal) {
+      const d = new Date(dateVal + 'T00:00:00');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      pat = 'annual:' + month + '-' + day;
+    } else {
+      rec = false; // Can't set annual without a date
+    }
   }
 
   if (!name || !date) return;
