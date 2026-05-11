@@ -79,7 +79,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   background: var(--navy); border-bottom: 2px solid var(--navy-border);
   z-index: 10; flex-shrink: 0;
 }
-.logo { font-family: 'Cinzel', serif; font-size: 20px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; display: flex; align-items: center; gap: 10px; }
+.logo { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 16px; font-weight: 600; letter-spacing: 0; text-transform: none; color: #fff; display: flex; align-items: center; gap: 10px; }
 .logo i { font-size: 18px; color: var(--accent-light); }
 .cal-switcher { display: flex; background: rgba(255,255,255,0.1); border-radius: 24px; padding: 3px; gap: 2px; border: 1px solid rgba(255,255,255,0.15); }
 .cal-btn { padding: 5px 18px; border-radius: 20px; font-size: 13px; font-weight: 500; border: none; background: transparent; cursor: pointer; color: var(--navy-muted); transition: all 0.18s; }
@@ -91,8 +91,8 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .toggle-track.on { background: var(--accent-light); }
 .toggle-knob { width: 16px; height: 16px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
 .toggle-track.on .toggle-knob { left: 18px; }
-.btn-add { display: flex; align-items: center; gap: 6px; padding: 7px 16px; background: var(--accent-light); color: var(--accent-mid); border: none; border-radius: var(--radius); font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
-.btn-add:hover { background: #fff; }
+.btn-add { display: flex; align-items: center; gap: 6px; padding: 7px 16px; background: #fff; color: var(--navy); border: none; border-radius: var(--radius); font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+.btn-add:hover { background: var(--accent-light); }
  
 /* ─── OneDrive status ─── */
 .od-status { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 10px; border-radius: 20px; font-weight: 500; }
@@ -161,8 +161,8 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .wdh.weekend { background: var(--wknd-bg); border-color: var(--wknd-border); }
 .wdh.weekend .wdh-name, .wdh.weekend .wdh-num, .wdh.weekend .week-task-count { color: var(--wknd-text); }
 .wdh.bank-holiday { background: var(--bh-bg); border-color: var(--bh-border); }
-.wdh-name { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; color: var(--text-faint); }
-.wdh-num  { font-size: 22px; font-weight: 600; color: var(--text); line-height: 1.2; }
+.wdh-name { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+.wdh-num  { font-size: 18px; font-weight: 500; color: var(--text); line-height: 1.2; }
 .wdh.today .wdh-num { color: var(--navy); font-weight: 700; }
 .wdh.today .wdh-name { color: var(--navy); }
 .week-task-count { font-size: 10px; color: var(--text-faint); margin-top: 2px; }
@@ -405,7 +405,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 <div class="app" id="app" style="display:none">
  
   <header class="topbar">
-    <div class="logo">WORKFLOW PLANNER</div>
+    <div class="logo">Workflow Planner</div>
     <div class="cal-switcher">
       <button class="cal-btn active" onclick="switchCal('principal')"><i class="ti ti-user" aria-hidden="true"></i> My Calendar</button>
       <button class="cal-btn" onclick="switchCal('mandy')"><i class="ti ti-user" aria-hidden="true"></i> Mandy</button>
@@ -461,12 +461,20 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
     <label class="modal-check"><input type="checkbox" id="fRecurring" onchange="toggleRecurOpts()" /><span class="modal-check-label"><i class="ti ti-refresh"></i> Repeat monthly</span></label>
     <div class="recur-section" id="recurSection">
       <div class="field"><label>Recurrence pattern</label>
-        <select id="fRecurPattern">
+        <select id="fRecurPattern" onchange="toggleSpecificDate()">
           <option value="date">Same date each month</option>
           <option value="first-monday">First Monday of month</option>
           <option value="last-friday">Last Friday of month</option>
           <option value="first-working">First working day of month</option>
+          <option value="last-day">Last day of month</option>
+          <option value="specific">Specific date each month</option>
         </select>
+      </div>
+      <div class="field" id="specificDateField" style="display:none">
+        <label>Pick a date — the day repeats every month</label>
+        <input type="date" id="fSpecificDay"
+               style="width:100%;padding:9px 12px;font-size:14px;font-family:'DM Sans',sans-serif;border:1px solid var(--border-strong);border-radius:var(--radius);outline:none;background:var(--surface);color:var(--text);" />
+        <p style="font-size:11px;color:var(--text-faint);margin-top:4px;">Only the day number is used. If that day doesn't exist in a shorter month, the last day of that month is used instead.</p>
       </div>
     </div>
     <div class="modal-actions">
@@ -591,6 +599,12 @@ function resolveRecur(pat, base, orig) {
   if (pat==='first-monday')  { let d=new Date(y,m,1); while(d.getDay()!==1)d.setDate(d.getDate()+1); return d; }
   if (pat==='last-friday')   { let d=new Date(y,m+1,0); while(d.getDay()!==5)d.setDate(d.getDate()-1); return d; }
   if (pat==='first-working') { let d=new Date(y,m,1); while(isWknd(d))d.setDate(d.getDate()+1); return d; }
+  if (pat==='last-day')      return new Date(y,m+1,0);
+  if (pat && pat.startsWith('specific:')) {
+    let day = parseInt(pat.split(':')[1]) || 1;
+    let lastDay = new Date(y,m+1,0).getDate();
+    return new Date(y, m, Math.min(day, lastDay));
+  }
   return new Date(y,m,orig.getDate());
 }
  
@@ -603,23 +617,47 @@ function tasksForDate(dkk) {
  
 // ─── OneDrive / MSAL ─────────────────────────
 const OD_FILE_PATH = '/me/drive/root:/tasks.json:/content';
- 
+
 // Build a clean redirect URI — must be http/https, not file://
 const _origin = window.location.origin;
 const _path   = window.location.pathname;
 const OD_REDIRECT_URI = _origin + _path;
- 
+
 const msalConfig = {
   auth: {
     clientId: 'b9d8863a-6f1c-4518-8024-8073d37f79e6',
     authority: 'https://login.microsoftonline.com/common',
     redirectUri: OD_REDIRECT_URI
   },
-  cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: false }
+  cache: { cacheLocation: 'localStorage', storeAuthStateInCookie: true }
 };
- 
+
 const msalInstance = new msal.PublicClientApplication(msalConfig);
- 
+
+// ── 24-hour token cache ──────────────────────
+const TOKEN_KEY  = 'mio_token';
+const EXPIRY_KEY = 'mio_expiry';
+const TTL_MS     = 24 * 60 * 60 * 1000; // 24 hours
+
+function saveTokenCache(token) {
+  localStorage.setItem(TOKEN_KEY,  token);
+  localStorage.setItem(EXPIRY_KEY, Date.now() + TTL_MS);
+}
+
+function loadTokenCache() {
+  try {
+    const token  = localStorage.getItem(TOKEN_KEY);
+    const expiry = parseInt(localStorage.getItem(EXPIRY_KEY) || '0');
+    if (token && Date.now() < expiry) return token;
+  } catch(e) {}
+  return null;
+}
+
+function clearTokenCache() {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(EXPIRY_KEY);
+}
+
 async function initMSAL() {
   // Detect file:// protocol — Microsoft login requires http/https
   if (window.location.protocol === 'file:') {
@@ -631,15 +669,28 @@ async function initMSAL() {
     showSignInButton();
     return;
   }
- 
+
+  // ── 1. Use cached token if still valid (within 24 hours) ──
+  const cached = loadTokenCache();
+  if (cached) {
+    odToken = cached;
+    await launchApp();
+    return;
+  }
+
   try {
     await msalInstance.initialize();
+
+    // ── 2. Handle redirect returning from Microsoft login ──
     const response = await msalInstance.handleRedirectPromise();
     if (response) {
       odToken = response.accessToken;
+      saveTokenCache(odToken);
       await launchApp();
       return;
     }
+
+    // ── 3. Try silent token from existing MSAL session ──
     const accounts = msalInstance.getAllAccounts();
     if (accounts.length > 0) {
       try {
@@ -648,10 +699,12 @@ async function initMSAL() {
           account: accounts[0]
         });
         odToken = silent.accessToken;
+        saveTokenCache(odToken);
         await launchApp();
         return;
       } catch(e) { /* session expired — fall through to show login */ }
     }
+
     showSignInButton();
   } catch(err) {
     showLoginError('Initialisation failed: ' + (err.message || 'Unknown error'));
@@ -687,6 +740,8 @@ async function launchApp() {
   document.getElementById('app').style.display = 'grid';
   await loadFromOneDrive();
   carryForward(); generateRecurring();
+  loadViewState();
+  applyViewState();
   render();
   startBackgroundSync(60);
 }
@@ -778,6 +833,16 @@ async function saveToOneDrive() {
       // Conflict — another machine saved since we last loaded; merge and retry
       isSaving = false;
       await mergeAndSave();
+      return;
+    }
+    if (res.status === 401) {
+      // Token expired — clear cache and show sign-in
+      clearTokenCache();
+      odToken = null;
+      setOdStatus('disconnected', 'Session expired');
+      document.getElementById('odSplash').classList.remove('hidden');
+      document.getElementById('app').style.display = 'none';
+      showSignInButton();
       return;
     }
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -879,6 +944,8 @@ function useDemoMode() {
   tasks = JSON.parse(JSON.stringify(SEED));
   carryForward(); generateRecurring();
   setOdStatus('disconnected','Demo mode — not saving');
+  loadViewState();
+  applyViewState();
   render();
 }
  
@@ -926,8 +993,8 @@ function renderMonth() {
     let wknd=isWknd(d), bh=getBH(dkk);
     let dayTasks=tasksForDate(dkk);
     let cls='month-cell'+(isToday?' today':'')+(isOther?' other-month':bh?' bank-holiday':wknd?' weekend':'');
-    let clickAttr=bh?'':(`onclick="drillWeek('${dkk}')"`);
-    html+=`<div class="${cls}" ${clickAttr} title="${bh?bh+' — Bank Holiday':'Click to view week'}">`;
+    let clickAttr=bh?'':(`onclick="drillWeek('${dkk}')" ondblclick="openModalForDate('${dkk}')"`);;
+    html+=`<div class="${cls}" ${clickAttr} title="${bh?bh+' — Bank Holiday':'Click to view week · Double-click to add task'}">`;
     html+=`<div class="day-num">${d.getDate()}</div>`;
     if (bh) html+=`<div class="bh-label">🏴󠁧󠁢󠁥󠁮󠁧󠀠 ${bh}</div>`;
     dayTasks.slice(0,3).forEach(t=>{
@@ -969,8 +1036,8 @@ function renderWeek() {
     let dkk=dk(d), isToday=dkk===dk(TODAY), wknd=isWknd(d), bh=getBH(dkk);
     let dayTasks=tasksForDate(dkk);
     // All columns accept drops including bank holidays
-    let dropAttrs = `data-date="${dkk}" ondragover="onDragOver(event,'${dkk}')" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'${dkk}')"`;
-    html+=`<div class="week-col${isToday?' today':''}${bh?' bank-holiday':wknd?' weekend':''}" ${dropAttrs}>`;
+    let dropAttrs = `data-date="${dkk}" ondragover="onDragOver(event,'${dkk}')" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'${dkk}')" ondblclick="openModalForDate('${dkk}')"`;
+    html+=`<div class="week-col${isToday?' today':''}${bh?' bank-holiday':wknd?' weekend':''}" ${dropAttrs} title="Double-click to add task">`;
     if (bh) html+=`<div class="week-col-bh-banner"><i class="ti ti-building-bank" style="font-size:11px"></i> Bank holiday</div>`;
     if (!dayTasks.length&&!bh) html+=`<div class="empty-col">${dkk<dk(TODAY)?'No tasks':'Clear'}</div>`;
     dayTasks.forEach(t=>{ html+=renderCard(t); });
@@ -1014,7 +1081,7 @@ function renderCard(t) {
     ? `draggable="true" ondragstart="onDragStart(event,${t.id})" ondragend="onDragEnd(event)"`
     : '';
  
-  return `<div class="task-card ${tc}" id="tc-${t.id}" ${dragAttrs}>
+  return `<div class="task-card ${tc}" id="tc-${t.id}" ${dragAttrs} ondblclick="event.stopPropagation()">
     <div class="tc-top">
       <input type="checkbox" class="tc-check" ${checked} ${checkDisabled} onchange="completeTask(${t.id},event)" title="Mark complete" />
       <div class="tc-name">${esc(t.name)}</div>
@@ -1120,25 +1187,79 @@ function editTask(id, e) {
   document.getElementById('fCal').value   = currentCal;
   document.getElementById('fInstr').value = t.instructions || '';
   document.getElementById('fRecurring').checked = !!t.recurring;
-  document.getElementById('fRecurPattern').value = t.recurPattern || 'date';
+  // Restore specific:N pattern — set select to 'specific' and pre-fill the date picker
+  let pat = t.recurPattern || 'date';
+  if (pat.startsWith('specific:')) {
+    document.getElementById('fRecurPattern').value = 'specific';
+    let day = parseInt(pat.split(':')[1]) || 1;
+    let now = new Date(TODAY);
+    let lastOfMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+    let safeDay = Math.min(day, lastOfMonth);
+    document.getElementById('fSpecificDay').value =
+      now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(safeDay).padStart(2,'0');
+  } else {
+    document.getElementById('fRecurPattern').value = pat;
+    document.getElementById('fSpecificDay').value  = dk(TODAY);
+  }
   toggleRecurOpts();
   document.getElementById('modalOverlay').classList.add('open');
 }
  
-function drillWeek(dkk) { cursor=parseD(dkk); setView('week'); }
+function drillWeek(dkk) { cursor=parseD(dkk); saveViewState(); setView('week'); }
+// ─── View state persistence ───────────────────
+// Saves: view (month/week), cursor date, active calendar, archived toggle
+const VS_KEY = 'mio_viewstate';
+
+function saveViewState() {
+  try {
+    localStorage.setItem(VS_KEY, JSON.stringify({
+      view,
+      cursor: cursor.toISOString(),
+      currentCal,
+      showArchived
+    }));
+  } catch(e) {}
+}
+
+function loadViewState() {
+  try {
+    const raw = localStorage.getItem(VS_KEY);
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    if (s.view === 'month' || s.view === 'week') view = s.view;
+    if (s.cursor) { cursor = new Date(s.cursor); cursor.setHours(0,0,0,0); }
+    if (s.currentCal === 'principal' || s.currentCal === 'mandy') currentCal = s.currentCal;
+    if (typeof s.showArchived === 'boolean') showArchived = s.showArchived;
+  } catch(e) {}
+}
+
+function applyViewState() {
+  // Sync tab buttons
+  document.getElementById('tabMonth').classList.toggle('active', view === 'month');
+  document.getElementById('tabWeek').classList.toggle('active',  view === 'week');
+  // Sync archive toggle
+  document.getElementById('archToggle').classList.toggle('on', showArchived);
+  // Sync calendar switcher buttons
+  document.querySelectorAll('.cal-btn').forEach((b, i) =>
+    b.classList.toggle('active', (currentCal === 'principal' && i === 0) || (currentCal === 'mandy' && i === 1))
+  );
+}
+
 function setView(v) {
   view=v;
   document.getElementById('tabMonth').classList.toggle('active',v==='month');
   document.getElementById('tabWeek').classList.toggle('active',v==='week');
+  saveViewState();
   render();
 }
-function navBack() { if(view==='month')cursor.setMonth(cursor.getMonth()-1); else cursor.setDate(cursor.getDate()-7); render(); }
-function navFwd()  { if(view==='month')cursor.setMonth(cursor.getMonth()+1); else cursor.setDate(cursor.getDate()+7); render(); }
-function goToday() { cursor=new Date(TODAY); render(); }
-function toggleArchive() { showArchived=!showArchived; document.getElementById('archToggle').classList.toggle('on',showArchived); render(); }
+function navBack() { if(view==='month')cursor.setMonth(cursor.getMonth()-1); else cursor.setDate(cursor.getDate()-7); saveViewState(); render(); }
+function navFwd()  { if(view==='month')cursor.setMonth(cursor.getMonth()+1); else cursor.setDate(cursor.getDate()+7); saveViewState(); render(); }
+function goToday() { cursor=new Date(TODAY); saveViewState(); render(); }
+function toggleArchive() { showArchived=!showArchived; document.getElementById('archToggle').classList.toggle('on',showArchived); saveViewState(); render(); }
 function switchCal(cal) {
   currentCal=cal;
   document.querySelectorAll('.cal-btn').forEach((b,i)=>b.classList.toggle('active',(cal==='principal'&&i===0)||(cal==='mandy'&&i===1)));
+  saveViewState();
   render();
 }
  
@@ -1151,6 +1272,8 @@ function openModal() {
   document.getElementById('fCal').value=currentCal;
   document.getElementById('fInstr').value='';
   document.getElementById('fRecurring').checked=false;
+  document.getElementById('fRecurPattern').value='date';
+  document.getElementById('fSpecificDay').value=dk(TODAY);
   toggleRecurOpts();
   document.getElementById('modalOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('fName').focus(),50);
@@ -1158,7 +1281,14 @@ function openModal() {
 function openModalForDate(dkk) { openModal(); document.getElementById('fDate').value=dkk; }
 function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
 function overlayClick(e) { if(e.target===document.getElementById('modalOverlay'))closeModal(); }
-function toggleRecurOpts() { document.getElementById('recurSection').classList.toggle('visible',document.getElementById('fRecurring').checked); }
+function toggleRecurOpts() {
+  document.getElementById('recurSection').classList.toggle('visible', document.getElementById('fRecurring').checked);
+  toggleSpecificDate();
+}
+function toggleSpecificDate() {
+  const pat = document.getElementById('fRecurPattern').value;
+  document.getElementById('specificDateField').style.display = pat === 'specific' ? 'block' : 'none';
+}
  
 function saveTask() {
   let name  = document.getElementById('fName').value.trim();
@@ -1168,6 +1298,14 @@ function saveTask() {
   let rec   = document.getElementById('fRecurring').checked;
   let pat   = document.getElementById('fRecurPattern').value;
   let eid   = document.getElementById('editId').value;
+
+  // Encode specific day from date picker into pattern e.g. "specific:15"
+  if (pat === 'specific') {
+    const dateVal = document.getElementById('fSpecificDay').value;
+    let day = dateVal ? new Date(dateVal + 'T00:00:00').getDate() : 1;
+    pat = 'specific:' + Math.max(1, Math.min(31, day));
+  }
+
   if (!name || !date) return;
  
   if (eid) {
