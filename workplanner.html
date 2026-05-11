@@ -253,6 +253,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .tc-badges { display: flex; align-items: center; gap: 4px; margin-top: 4px; flex-wrap: wrap; padding-left: 21px; }
 .badge { display: inline-flex; align-items: center; gap: 3px; font-size: 9px; padding: 2px 5px; border-radius: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
 .badge-rec          { background: var(--blue-light);   color: var(--blue); }
+.badge-annual       { background: var(--amber-light);  color: var(--amber); }
 .badge-carried      { background: var(--red-light);    color: var(--red);    border: 1px solid var(--red-border); }
 .badge-carried-purple{ background: var(--purple-light); color: var(--purple-mid); border: 1px solid var(--purple-border); }
 .badge-carried-green { background: var(--green-light);  color: var(--green);   border: 1px solid var(--green-border); }
@@ -488,8 +489,9 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
       <div id="annuallyOptions" style="display:none">
         <div class="field">
           <label>Pick a date — the task repeats on this date every year</label>
-          <input type="date" id="fAnnualDate"
+          <input type="text" id="fAnnualDate" placeholder="DD-MM" maxlength="5"
                  style="width:100%;padding:9px 12px;font-size:14px;font-family:'DM Sans',sans-serif;border:1px solid var(--border-strong);border-radius:var(--radius);outline:none;background:var(--surface);color:var(--text);" />
+          <p style="font-size:11px;color:var(--text-faint);margin-top:4px;">Enter as DD-MM format (e.g., 25-12 for 25 December)</p>
         </div>
       </div>
     </div>
@@ -1137,7 +1139,10 @@ function renderCard(t) {
       <div class="tc-name">${esc(t.name)}</div>
     </div>
     <div class="tc-badges">
-      ${t.recurring ? `<span class="badge badge-rec"><i class="ti ti-refresh" style="font-size:8px"></i> Monthly</span>` : ''}
+      ${t.recurring ? (t.recurPattern && t.recurPattern.startsWith('annual:') 
+        ? `<span class="badge badge-annual"><i class="ti ti-refresh" style="font-size:8px"></i> Annually</span>`
+        : `<span class="badge badge-rec"><i class="ti ti-refresh" style="font-size:8px"></i> Monthly</span>`) 
+        : ''}
       ${carriedBadge}
       ${isMandy    ? `<span class="badge badge-mandy"><i class="ti ti-user" style="font-size:8px"></i> Mandy</span>` : ''}
       ${isActioned ? `<span class="badge badge-actioned"><i class="ti ti-calendar-check" style="font-size:8px"></i> Rescheduled</span>` : ''}
@@ -1246,12 +1251,8 @@ function editTask(id, e) {
   if (pat.startsWith('annual:')) {
     recType = 'annually';
     document.getElementById('fRecurType').value = 'annually';
-    let parts = pat.split(':')[1].split('-');
-    let month = parts[0];
-    let day = parts[1];
-    let now = new Date(TODAY);
-    document.getElementById('fAnnualDate').value = 
-      now.getFullYear() + '-' + month + '-' + day;
+    const [month, day] = pat.split(':')[1].split('-');
+    document.getElementById('fAnnualDate').value = day + '-' + month;
   } else {
     document.getElementById('fRecurType').value = 'monthly';
     // Restore specific:N pattern — set select to 'specific' and pre-fill the date picker
@@ -1343,7 +1344,8 @@ function openModal() {
   document.getElementById('fRecurType').value='monthly';
   document.getElementById('fRecurPattern').value='date';
   document.getElementById('fSpecificDay').value=dk(TODAY);
-  document.getElementById('fAnnualDate').value=dk(TODAY);
+  let today = new Date(TODAY);
+  document.getElementById('fAnnualDate').value = String(today.getDate()).padStart(2,'0') + '-' + String(today.getMonth()+1).padStart(2,'0');
   toggleRecurOpts();
   document.getElementById('modalOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('fName').focus(),50);
@@ -1384,15 +1386,14 @@ function saveTask() {
   }
   
   // Encode annual date into pattern e.g. "annual:03-15" (month-day)
+  // Input is DD-MM, convert to MM-DD for storage
   if (pat === 'annually') {
-    const dateVal = document.getElementById('fAnnualDate').value;
-    if (dateVal) {
-      const d = new Date(dateVal + 'T00:00:00');
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
+    const dateVal = document.getElementById('fAnnualDate').value.trim();
+    if (dateVal && /^\d{2}-\d{2}$/.test(dateVal)) {
+      const [day, month] = dateVal.split('-');
       pat = 'annual:' + month + '-' + day;
     } else {
-      rec = false; // Can't set annual without a date
+      rec = false; // Can't set annual without valid DD-MM format
     }
   }
 
