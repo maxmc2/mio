@@ -413,13 +413,11 @@ function render() {
         } else if (val === 'SUB') {
           cls = 'pen-sub'; label = 'Submitted';
         } else {
-          cls = 'pen-blank'; label = isCurrent ? '—' : '';
+          cls = 'pen-blank'; label = '—';
           if (isOverdue) cls += ' overdue-cell';
-          if (!isCurrent) cls += ' pen-locked';
+
         }
-        var btn = isCurrent
-          ? '<button class="pen-cell '+cls+'" data-id="'+c.id+'" data-month="'+m.m+'" onclick="toggleCell(this.dataset.id,this.dataset.month)">'+label+'</button>'
-          : '<button class="pen-cell '+cls+'" style="cursor:default">'+label+'</button>';
+        var btn = '<button class="pen-cell '+cls+'" data-id="'+c.id+'" data-month="'+m.m+'" onclick="toggleCell(this.dataset.id,this.dataset.month)">'+label+'</button>';
         return '<td class="'+(isCurrent?'current-col':'')+'">'+btn+'</td>';
       }).join('');
 
