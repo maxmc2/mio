@@ -171,9 +171,9 @@
 
 <!-- 3 period tabs -->
 <div class="period-tabs">
-  <div class="period-tab active" id="stab-0" onclick="switchPeriodGroup(0)">Period 1 &nbsp;<span style="font-weight:400;font-size:11px;opacity:0.7">Jan·Apr·Jul·Oct</span></div>
-  <div class="period-tab" id="stab-1" onclick="switchPeriodGroup(1)">Period 2 &nbsp;<span style="font-weight:400;font-size:11px;opacity:0.7">Feb·May·Aug·Nov</span></div>
-  <div class="period-tab" id="stab-2" onclick="switchPeriodGroup(2)">Period 3 &nbsp;<span style="font-weight:400;font-size:11px;opacity:0.7">Mar·Jun·Sep·Dec</span></div>
+  <div class="period-tab active" id="stab-0" onclick="switchPeriodGroup(0)">Period 1 &nbsp;<span style="font-weight:400;font-size:11px;opacity:0.7">Mar·Jun·Sep·Dec</span></div>
+  <div class="period-tab" id="stab-1" onclick="switchPeriodGroup(1)">Period 2 &nbsp;<span style="font-weight:400;font-size:11px;opacity:0.7">Apr·Jul·Oct·Jan</span></div>
+  <div class="period-tab" id="stab-2" onclick="switchPeriodGroup(2)">Period 3 &nbsp;<span style="font-weight:400;font-size:11px;opacity:0.7">May·Aug·Nov·Feb</span></div>
 </div>
 
 <!-- Period navigation bar -->
@@ -239,9 +239,9 @@
     <div class="form-row two">
       <div><label>VAT period</label>
         <select id="f-stagger">
-          <option value="0">Period 1 — Jan/Apr/Jul/Oct</option>
-          <option value="1">Period 2 — Feb/May/Aug/Nov</option>
-          <option value="2">Period 3 — Mar/Jun/Sep/Dec</option>
+          <option value="0">Period 1 — Mar/Jun/Sep/Dec</option>
+          <option value="1">Period 2 — Apr/Jul/Oct/Jan</option>
+          <option value="2">Period 3 — May/Aug/Nov/Feb</option>
         </select>
       </div>
       <div><label>Status</label>
@@ -821,7 +821,13 @@ function render() {
     if (fStatus && c.status!==fStatus) return false;
     if (fScheme && c.scheme!==fScheme) return false;
     return true;
-  }).sort((a,b) => a.name.localeCompare(b.name));
+  }).sort((a,b) => {
+    // Filed returns go to bottom
+    if (a.status === 'Filed' && b.status !== 'Filed') return 1;
+    if (a.status !== 'Filed' && b.status === 'Filed') return -1;
+    // Otherwise sort by name
+    return a.name.localeCompare(b.name);
+  });
 
   const tb = document.getElementById('clientTable');
   tb.innerHTML = filtered.length ? filtered.map(c=>`
