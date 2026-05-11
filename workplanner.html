@@ -95,18 +95,19 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .btn-add:hover { background: var(--accent-light); }
  
 /* ─── OneDrive status ─── */
-.od-status { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 10px; border-radius: 20px; font-weight: 500; }
-.od-status.connected    { background: rgba(255,255,255,0.15); color: var(--accent-light); border: 1px solid rgba(255,255,255,0.2); }
-.od-status.connecting   { background: rgba(255,255,255,0.1);  color: #fcd87a; border: 1px solid rgba(255,255,255,0.15); }
-.od-status.disconnected { background: rgba(220,80,80,0.25);   color: #ffb3b3; border: 1px solid rgba(220,80,80,0.3); }
-.od-status.saving       { background: rgba(255,255,255,0.12); color: #93c5fd; border: 1px solid rgba(255,255,255,0.2); }
+.od-status { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 12px; border-radius: 20px; font-weight: 500; cursor: default; transition: opacity 0.2s; }
+.od-status.connected    { background: #1a3a1a; color: #6fcf6f; }
+.od-status.connecting   { background: rgba(255,255,255,0.1); color: #fcd87a; border: 1px solid rgba(255,255,255,0.15); }
+.od-status.disconnected { background: #3a1a1a; color: #f07070; cursor: pointer; }
+.od-status.disconnected:hover { opacity: 0.85; }
+.od-status.saving       { background: #1a2a3a; color: #7ab8f5; }
  
 /* ─── Sub Nav ─── */
-.subnav { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 48px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 16px; box-shadow: var(--shadow-sm); }
+.subnav { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 48px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 16px; box-shadow: var(--shadow-sm); position: relative; }
 .view-tabs { display: flex; background: var(--gray-100); border-radius: var(--radius); padding: 2px; gap: 2px; }
 .view-tab { padding: 5px 16px; font-size: 13px; font-weight: 500; border: none; background: transparent; border-radius: 6px; cursor: pointer; color: var(--text-muted); transition: all 0.15s; }
 .view-tab.active { background: var(--navy); color: #fff; }
-.nav-center { display: flex; align-items: center; gap: 10px; }
+.nav-center { display: flex; align-items: center; gap: 10px; position: absolute; left: 50%; transform: translateX(-50%); }
 .nav-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-strong); border-radius: var(--radius); background: transparent; cursor: pointer; color: var(--text-muted); transition: all 0.15s; font-size: 16px; }
 .nav-btn:hover { background: var(--gray-100); border-color: var(--navy); color: var(--navy); }
 .nav-period { font-size: 15px; font-weight: 600; min-width: 200px; text-align: center; color: var(--navy); }
@@ -932,9 +933,32 @@ async function mergeAndSave() {
  
 function setOdStatus(cls, text) {
   const badge = document.getElementById('odStatusBadge');
+  if (!badge) return;
   badge.className = 'od-status ' + cls;
-  document.getElementById('odStatusText').textContent = text;
-  document.getElementById('statusRight').textContent = cls==='saving' ? 'Saving to OneDrive…' : (cls==='connected' ? 'Synced' : cls==='disconnected' ? '⚠ Not saved' : '');
+
+  let label = '';
+  if (cls === 'connected') {
+    const time = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    label = `✓ OneDrive synced ${time}`;
+    badge.onclick = null;
+  } else if (cls === 'disconnected') {
+    label = '⚠ Sync failed — click to retry';
+    badge.onclick = () => saveToOneDrive();
+  } else if (cls === 'saving') {
+    label = '↻ Syncing…';
+    badge.onclick = null;
+  } else {
+    label = text;
+    badge.onclick = null;
+  }
+
+  document.getElementById('odStatusText').textContent = label;
+  // Keep statusRight in sync for the footer bar
+  const sr = document.getElementById('statusRight');
+  if (sr) sr.textContent =
+    cls === 'saving'       ? 'Saving to OneDrive…' :
+    cls === 'connected'    ? `Synced ${new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}` :
+    cls === 'disconnected' ? '⚠ Not saved' : '';
 }
  
 function useDemoMode() {
@@ -1081,7 +1105,11 @@ function renderCard(t) {
     ? `draggable="true" ondragstart="onDragStart(event,${t.id})" ondragend="onDragEnd(event)"`
     : '';
  
-  return `<div class="task-card ${tc}" id="tc-${t.id}" ${dragAttrs} ondblclick="event.stopPropagation()">
+  let dblClick = t.type === 'archived'
+    ? `ondblclick="event.stopPropagation()"`
+    : `ondblclick="editTask(${t.id},event)"`;
+
+  return `<div class="task-card ${tc}" id="tc-${t.id}" ${dragAttrs} ${dblClick}>
     <div class="tc-top">
       <input type="checkbox" class="tc-check" ${checked} ${checkDisabled} onchange="completeTask(${t.id},event)" title="Mark complete" />
       <div class="tc-name">${esc(t.name)}</div>
@@ -1421,6 +1449,40 @@ function onDrop(e, targetDate) {
   dragFromDate = null;
 }
  
+// ─── Mouse drag to navigate (month & week) ───
+(function() {
+  const THRESHOLD = 80; // px minimum horizontal drag to trigger navigation
+  let startX = null, startY = null, dragging = false;
+
+  function getArea() { return document.getElementById('mainArea'); }
+
+  document.addEventListener('mousedown', e => {
+    const area = getArea();
+    if (!area || !area.contains(e.target)) return;
+    if (e.button !== 0) return;
+    if (e.target.closest('button, input, select, textarea, a, .task-card, .add-inline, .mpill')) return;
+    startX = e.clientX;
+    startY = e.clientY;
+    dragging = false;
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (startX === null) return;
+    if (Math.abs(e.clientX - startX) > 8) dragging = true;
+  });
+
+  document.addEventListener('mouseup', e => {
+    if (startX === null) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (dragging && Math.abs(dx) > THRESHOLD && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      if (dx < 0) navFwd();
+      else         navBack();
+    }
+    startX = null; startY = null; dragging = false;
+  });
+})();
+
 // ─── Keyboard ────────────────────────────────
 document.addEventListener('keydown', e=>{
   if (e.key==='Escape') closeModal();
