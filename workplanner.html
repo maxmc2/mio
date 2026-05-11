@@ -1490,6 +1490,13 @@ document.addEventListener('keydown', e=>{
   if (e.key==='ArrowLeft' &&document.activeElement.tagName==='BODY') navBack();
   if (e.key==='ArrowRight'&&document.activeElement.tagName==='BODY') navFwd();
 });
+
+// ─── Mouse Wheel Navigation ──────────────────
+document.getElementById('mainArea').addEventListener('wheel', e=>{
+  e.preventDefault();
+  if (e.deltaY < 0) navBack();  // scroll up = previous month/week
+  if (e.deltaY > 0) navFwd();   // scroll down = next month/week
+}, {passive: false});
  
 // ─── Toast ───────────────────────────────────
 function toast(msg) {
