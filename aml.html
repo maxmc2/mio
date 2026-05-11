@@ -204,7 +204,7 @@
           <th>Status</th>
           <th>ID document</th>
           <th>Address document</th>
-          <th>Next expiry</th>
+          <th style="cursor:pointer;" onclick="toggleExpirySort()" title="Click to sort by latest/earliest expiry">Next expiry</th>
           <th>CH code</th>
           <th>Date requested</th>
           <th></th>
@@ -375,7 +375,7 @@ let statusDropdownId = null;
 let msalInstance = null;
 let accessToken  = null;
 let saveQueued   = false;
-let showLatestExpiry = false; // Toggle between earliest (false) and latest (true) expiry
+let sortByLatestExpiry = true; // true = show latest first, false = show earliest first
 
 // ── STATUSES ───────────────────────────────────────────────────────────────
 const STATUS_CLASS = {
@@ -495,9 +495,9 @@ function latestExpiry(c) {
   return dates.sort().reverse()[0] || '';
 }
 
-// Toggle between earliest and latest expiry display
-function toggleExpiryDisplay() {
-  showLatestExpiry = !showLatestExpiry;
+// Toggle between sorting by latest and earliest expiry
+function toggleExpirySort() {
+  sortByLatestExpiry = !sortByLatestExpiry;
   render();
   return false;
 }
@@ -525,6 +525,16 @@ function render() {
     var ao = order[a._status] !== undefined ? order[a._status] : 5;
     var bo = order[b._status] !== undefined ? order[b._status] : 5;
     if (ao !== bo) return ao - bo;
+    
+    // Within each status group, sort by expiry date if column is being used for sorting
+    var aExp = latestExpiry(a) || '';
+    var bExp = latestExpiry(b) || '';
+    if (aExp && bExp) {
+      var expCompare = sortByLatestExpiry ? (bExp.localeCompare(aExp)) : (aExp.localeCompare(bExp));
+      if (expCompare !== 0) return expCompare;
+    }
+    
+    // Fall back to name sorting
     var s = a.surname.localeCompare(b.surname);
     if (s !== 0) return s;
     return a.firstname.localeCompare(b.firstname);
@@ -536,7 +546,7 @@ function render() {
   } else {
     tb.innerHTML = filtered.map(function(c){
       var rowClass = c._status==='Expired' ? 'row-expired' : (c._status==='Expiring soon' ? 'row-expiring' : '');
-      var exp = showLatestExpiry ? latestExpiry(c) : nextExpiry(c);
+      var exp = latestExpiry(c);
       var expDisplay = '—';
       if (exp) {
         var d = new Date(exp);
@@ -567,7 +577,7 @@ function render() {
         +'<td><span class="badge '+(STATUS_CLASS[c._status]||'s-pending')+'">'+c._status+'</span></td>'
         +'<td style="font-size:12px">'+idDoc+'</td>'
         +'<td style="font-size:12px">'+addrDoc+'</td>'
-        +'<td style="font-size:12px;cursor:pointer;" onclick="return toggleExpiryDisplay()" title="Click to toggle between earliest and latest expiry">'+expDisplay+'</td>'
+        +'<td style="font-size:12px">'+expDisplay+'</td>'
         +'<td style="font-size:12px">'+(c.chcode || '—')+'</td>'
         +'<td style="font-size:12px">'+(c.dateRequested ? fmtDate(c.dateRequested) : '—')+'</td>'
         +'<td><button class="btn btn-sm" onclick="event.stopPropagation();openEmailModal('+c.id+')" style="background:#FEF9C3;color:#854D0E;border:1px solid #FDE047;padding:2px 7px;font-size:11px;" title="Send renewal request">✉</button></td>'
