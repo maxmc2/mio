@@ -527,8 +527,8 @@ function render() {
     if (ao !== bo) return ao - bo;
     
     // Within each status group, sort by expiry date if column is being used for sorting
-    var aExp = latestExpiry(a) || '';
-    var bExp = latestExpiry(b) || '';
+    var aExp = nextExpiry(a) || '';
+    var bExp = nextExpiry(b) || '';
     if (aExp && bExp) {
       var expCompare = sortByLatestExpiry ? (bExp.localeCompare(aExp)) : (aExp.localeCompare(bExp));
       if (expCompare !== 0) return expCompare;
@@ -546,7 +546,7 @@ function render() {
   } else {
     tb.innerHTML = filtered.map(function(c){
       var rowClass = c._status==='Expired' ? 'row-expired' : (c._status==='Expiring soon' ? 'row-expiring' : '');
-      var exp = latestExpiry(c);
+      var exp = nextExpiry(c);
       var expDisplay = '—';
       if (exp) {
         var d = new Date(exp);
