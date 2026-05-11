@@ -77,11 +77,11 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 24px; height: 56px;
   background: var(--navy); border-bottom: 2px solid var(--navy-border);
-  z-index: 10; flex-shrink: 0;
+  z-index: 10; flex-shrink: 0; position: relative;
 }
 .logo { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 16px; font-weight: 600; letter-spacing: 0; text-transform: none; color: #fff; display: flex; align-items: center; gap: 10px; }
 .logo i { font-size: 18px; color: var(--accent-light); }
-.cal-switcher { display: flex; background: rgba(255,255,255,0.1); border-radius: 24px; padding: 3px; gap: 2px; border: 1px solid rgba(255,255,255,0.15); }
+.cal-switcher { display: flex; background: rgba(255,255,255,0.1); border-radius: 24px; padding: 3px; gap: 2px; border: 1px solid rgba(255,255,255,0.15); position: absolute; left: 50%; transform: translateX(-50%); }
 .cal-btn { padding: 5px 18px; border-radius: 20px; font-size: 13px; font-weight: 500; border: none; background: transparent; cursor: pointer; color: var(--navy-muted); transition: all 0.18s; }
 .cal-btn.active { background: rgba(255,255,255,0.18); color: #fff; }
 .topbar-right { display: flex; align-items: center; gap: 14px; }
