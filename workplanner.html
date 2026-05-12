@@ -881,18 +881,10 @@ async function initMSAL() {
     return;
   }
 
-  // ── 1. Use cached token if still valid (within 24 hours) ──
-  const cached = loadTokenCache();
-  if (cached) {
-    odToken = cached;
-    await launchApp();
-    return;
-  }
-
   try {
     await msalInstance.initialize();
 
-    // ── 2. Handle redirect returning from Microsoft login ──
+    // ── 1. Handle redirect returning from Microsoft login ──
     const response = await msalInstance.handleRedirectPromise();
     if (response) {
       odToken = response.accessToken;
@@ -902,7 +894,7 @@ async function initMSAL() {
       return;
     }
 
-    // ── 3. Try silent token from existing MSAL session ──
+    // ── 2. Try to refresh token from existing MSAL session ──
     const accounts = msalInstance.getAllAccounts();
     if (accounts.length > 0) {
       try {
@@ -916,11 +908,20 @@ async function initMSAL() {
         await launchApp();
         return;
       } catch(e) { 
-        console.log('Silent token acquisition failed, showing sign-in');
-        /* session expired — fall through to show login */ 
+        console.log('Silent token refresh failed on page load');
       }
     }
 
+    // ── 3. Fall back to cached token if refresh failed ──
+    const cached = loadTokenCache();
+    if (cached) {
+      odToken = cached;
+      console.log('Using cached token from localStorage');
+      await launchApp();
+      return;
+    }
+
+    // No token available — show login
     showSignInButton();
   } catch(err) {
     showLoginError('Initialisation failed: ' + (err.message || 'Unknown error'));
