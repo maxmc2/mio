@@ -976,6 +976,13 @@ async function launchApp() {
   render();
   startBackgroundSync(60);
   startSessionExpiryTimer(); // Start 24-hour session countdown
+  
+  // ← NEW: Refresh access token every 30 minutes to prevent 1-hour expiry
+  setInterval(async () => {
+    if (!demoMode && odToken) {
+      await refreshTokenSilently();
+    }
+  }, 30 * 60 * 1000); // 30 minutes
 }
  
 // ─── Background sync ──────────────────────────
@@ -1045,11 +1052,41 @@ async function loadFromOneDrive() {
   }
 }
  
+// ── Silent token refresh (prevent 1-hour expiry issues) ───
+async function refreshTokenSilently() {
+  try {
+    const accounts = msalInstance.getAllAccounts();
+    if (accounts.length === 0) return false;
+    
+    const silent = await msalInstance.acquireTokenSilent({
+      scopes: ['Files.ReadWrite', 'User.Read'],
+      account: accounts[0]
+    });
+    
+    if (silent && silent.accessToken) {
+      odToken = silent.accessToken;
+      // Reset 24-hour session timer since user is still active
+      const userEmail = accounts[0].username || accounts[0].name || 'User';
+      saveTokenCache(odToken, userEmail);
+      return true;
+    }
+  } catch(e) {
+    console.log('Silent token refresh failed (may need re-login):', e.message);
+  }
+  return false;
+}
+
 async function saveToOneDrive() {
   if (demoMode || !odToken || isSaving) return;
   isSaving = true;
   setOdStatus('saving','Saving…');
   try {
+    // ← NEW: Try to refresh token before saving
+    const refreshed = await refreshTokenSilently();
+    if (!odToken) {
+      throw new Error('No authentication token available');
+    }
+    
     const payload = { ...tasks, _nextId: nextId };
     const headers = {
       Authorization: `Bearer ${odToken}`,
@@ -1068,10 +1105,18 @@ async function saveToOneDrive() {
       return;
     }
     if (res.status === 401) {
-      // Token expired — clear cache and show sign-in
+      // ← UPDATED: Try refresh once more before giving up
+      const retried = await refreshTokenSilently();
+      if (retried) {
+        isSaving = false;
+        await saveToOneDrive(); // Retry with fresh token
+        return;
+      }
+      
+      // Token truly expired — clear cache and show sign-in
       clearTokenCache();
       odToken = null;
-      setOdStatus('disconnected', 'Session expired');
+      setOdStatus('disconnected', 'Session expired — please sign in again');
       document.getElementById('odSplash').classList.remove('hidden');
       document.getElementById('app').style.display = 'none';
       showSignInButton();
