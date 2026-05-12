@@ -682,10 +682,19 @@ function resolveRecur(pat, base, orig) {
 }
  
 function tasksForDate(dkk) {
-  return tasks[currentCal].filter(t => {
+  let dayTasks = tasks[currentCal].filter(t => {
     if (t.type==='archived' && !showArchived) return false;
     return t.date===dkk;
   });
+  
+  // ← NEW: Sort carried forward tasks to top
+  dayTasks.sort((a, b) => {
+    const aIsCarried = a.originalDate ? 1 : 0;
+    const bIsCarried = b.originalDate ? 1 : 0;
+    return bIsCarried - aIsCarried; // Carried forward first
+  });
+  
+  return dayTasks;
 }
  
 // ─── OneDrive / MSAL ─────────────────────────
@@ -1547,7 +1556,17 @@ function openModal() {
   document.getElementById('fAnnualDate').value = String(today.getDate()).padStart(2,'0') + '-' + String(today.getMonth()+1).padStart(2,'0');
   toggleRecurOpts();
   document.getElementById('modalOverlay').classList.add('open');
-  setTimeout(()=>document.getElementById('fName').focus(),50);
+  
+  // ← NEW: Add Enter key support for quick task creation
+  const fNameInput = document.getElementById('fName');
+  fNameInput.onkeydown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      saveTask();
+    }
+  };
+  
+  setTimeout(()=>fNameInput.focus(),50);
 }
 function openModalForDate(dkk) { openModal(); document.getElementById('fDate').value=dkk; }
 function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
