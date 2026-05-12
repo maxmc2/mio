@@ -697,13 +697,9 @@ const _path   = window.location.pathname;
 const OD_REDIRECT_URI = _origin + _path;
 
 // ═══════════════════════════════════════════════════════════════════════
-// ⚠️  IMPORTANT: Update your Azure AD Client ID below
+// Your Azure AD Client ID (already configured and working)
 // ═══════════════════════════════════════════════════════════════════════
-// 1. Go to portal.azure.com > Azure Active Directory > App registrations
-// 2. Find your "Mark It Off" app registration
-// 3. Copy the Application (client) ID from the Overview page
-// 4. Paste it below (replace the placeholder)
-const AZURE_CLIENT_ID = 'YOUR_AZURE_CLIENT_ID_HERE'; // 👈 REPLACE THIS
+const AZURE_CLIENT_ID = 'b9d8863a-6f1c-4518-8024-8073d37f79e6';
 
 const msalConfig = {
   auth: {
