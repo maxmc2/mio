@@ -1030,9 +1030,17 @@ async function loadFromOneDrive() {
       headers: { Authorization: `Bearer ${odToken}` }
     });
     if (res.status === 404) {
-      tasks = JSON.parse(JSON.stringify(SEED));
+      // ← NEW: Only create seed if we have NO existing data
+      if (Object.keys(tasks).length === 0) {
+        tasks = JSON.parse(JSON.stringify(SEED));
+      }
       odEtag = null;
       setOdStatus('connected','OneDrive — new');
+      return;
+    }
+    if (res.status === 401) {
+      // ← NEW: Don't clear data on auth error
+      setOdStatus('disconnected','❌ Not authenticated');
       return;
     }
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -1041,13 +1049,20 @@ async function loadFromOneDrive() {
     if (data && data.principal && data.mandy) {
       tasks = data;
       if (data._nextId) nextId = data._nextId;
-    } else {
+    } else if (Object.keys(tasks).length === 0) {
+      // ← NEW: Only use seed as fallback if we have no data
       tasks = JSON.parse(JSON.stringify(SEED));
     }
-    setOdStatus('connected','OneDrive');
+    setOdStatus('connected','OneDrive ✓');
   } catch(e) {
-    setOdStatus('disconnected','OneDrive error');
-    toast('⚠ Could not load from OneDrive. Working offline.');
+    console.warn('⚠️ Load error (preserving local data):', e.message);
+    setOdStatus('disconnected','❌ Load failed — offline mode');
+    // ← NEW: Don't clear tasks on error — preserve what we have in memory
+    if (Object.keys(tasks).length === 0) {
+      // Only use seed if we have literally nothing
+      tasks = JSON.parse(JSON.stringify(SEED));
+    }
+    toast('⚠ Could not load from OneDrive. Using offline version.');
     tasks = JSON.parse(JSON.stringify(SEED));
   }
 }
@@ -1078,6 +1093,15 @@ async function refreshTokenSilently() {
 
 async function saveToOneDrive() {
   if (demoMode || !odToken || isSaving) return;
+  
+  // ← NEW: Critical protection — never save if tasks are empty or invalid
+  const taskCount = Object.values(tasks).flat().length;
+  if (taskCount === 0) {
+    console.warn('⚠️ Blocked: Attempted to save empty task list');
+    setOdStatus('disconnected', '❌ No tasks to save — not connected?');
+    return;
+  }
+  
   isSaving = true;
   setOdStatus('saving','Saving…');
   try {
@@ -1088,6 +1112,16 @@ async function saveToOneDrive() {
     }
     
     const payload = { ...tasks, _nextId: nextId };
+    
+    // ← NEW: Final validation — check payload has data before sending
+    const payloadTaskCount = Object.values(payload).filter(v => Array.isArray(v)).flat().length;
+    if (payloadTaskCount === 0) {
+      console.error('❌ Validation failed: Payload would overwrite with empty data');
+      isSaving = false;
+      setOdStatus('disconnected', '❌ Data validation failed — not saved');
+      return;
+    }
+    
     const headers = {
       Authorization: `Bearer ${odToken}`,
       'Content-Type': 'application/json'
@@ -1116,7 +1150,7 @@ async function saveToOneDrive() {
       // Token truly expired — clear cache and show sign-in
       clearTokenCache();
       odToken = null;
-      setOdStatus('disconnected', 'Session expired — please sign in again');
+      setOdStatus('disconnected', '❌ Not connected — sign in to save');
       document.getElementById('odSplash').classList.remove('hidden');
       document.getElementById('app').style.display = 'none';
       showSignInButton();
