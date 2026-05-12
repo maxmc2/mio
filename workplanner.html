@@ -371,6 +371,51 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 @keyframes toastOut { to { opacity:0; transform: translateY(6px); } }
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 3px; }
+
+/* ─── Session Expiry Modal ─── */
+.session-modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center;
+  z-index: 9999; backdrop-filter: blur(2px);
+}
+.session-modal {
+  background: white; border-radius: var(--radius-xl); box-shadow: var(--shadow-lg);
+  max-width: 400px; width: 90%; padding: 32px; text-align: center;
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.session-modal-header {
+  font-size: 18px; font-weight: 600; color: var(--navy); margin-bottom: 16px;
+}
+.session-modal-body {
+  font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 24px;
+}
+.session-modal-body p {
+  margin: 8px 0;
+}
+.session-modal-body p strong {
+  color: var(--text);
+}
+.session-modal-actions {
+  display: flex; gap: 12px; justify-content: center;
+}
+.session-modal-btn {
+  padding: 10px 24px; border-radius: var(--radius); font-size: 14px; font-weight: 600;
+  border: none; cursor: pointer; transition: all 0.2s;
+}
+.session-modal-btn.primary {
+  background: var(--navy); color: white;
+}
+.session-modal-btn.primary:hover {
+  background: var(--navy-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(30,42,74,0.3);
+}
+.session-modal-btn.secondary {
+  background: var(--gray-100); color: var(--text);
+}
+.session-modal-btn.secondary:hover {
+  background: var(--gray-200);
+}
+
 </style>
 </head>
 <body>
@@ -651,9 +696,18 @@ const _origin = window.location.origin;
 const _path   = window.location.pathname;
 const OD_REDIRECT_URI = _origin + _path;
 
+// ═══════════════════════════════════════════════════════════════════════
+// ⚠️  IMPORTANT: Update your Azure AD Client ID below
+// ═══════════════════════════════════════════════════════════════════════
+// 1. Go to portal.azure.com > Azure Active Directory > App registrations
+// 2. Find your "Mark It Off" app registration
+// 3. Copy the Application (client) ID from the Overview page
+// 4. Paste it below (replace the placeholder)
+const AZURE_CLIENT_ID = 'YOUR_AZURE_CLIENT_ID_HERE'; // 👈 REPLACE THIS
+
 const msalConfig = {
   auth: {
-    clientId: 'b9d8863a-6f1c-4518-8024-8073d37f79e6',
+    clientId: AZURE_CLIENT_ID,
     authority: 'https://login.microsoftonline.com/common',
     redirectUri: OD_REDIRECT_URI
   },
@@ -663,20 +717,42 @@ const msalConfig = {
 const msalInstance = new msal.PublicClientApplication(msalConfig);
 
 // ── 24-hour token cache ──────────────────────
-const TOKEN_KEY  = 'mio_token';
-const EXPIRY_KEY = 'mio_expiry';
-const TTL_MS     = 24 * 60 * 60 * 1000; // 24 hours
+const TOKEN_KEY      = 'mio_token';
+const EXPIRY_KEY     = 'mio_expiry';
+const SESSION_START  = 'mio_session_start';
+const USER_INFO_KEY  = 'mio_user_info';
+const TTL_MS         = 24 * 60 * 60 * 1000; // 24 hours
+const WARNING_MS     = 30 * 60 * 1000;      // Warn 30 mins before expiry
 
-function saveTokenCache(token) {
-  localStorage.setItem(TOKEN_KEY,  token);
-  localStorage.setItem(EXPIRY_KEY, Date.now() + TTL_MS);
+let sessionExpiryTimer = null;
+let sessionWarningShown = false;
+
+function saveTokenCache(token, userEmail) {
+  const now = Date.now();
+  const expiry = now + TTL_MS;
+  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem(EXPIRY_KEY, expiry);
+  localStorage.setItem(SESSION_START, now);
+  if (userEmail) localStorage.setItem(USER_INFO_KEY, JSON.stringify({ email: userEmail }));
+  
+  // Clear old warning if exists
+  sessionWarningShown = false;
+  clearTimeout(sessionExpiryTimer);
+  startSessionExpiryTimer();
 }
 
 function loadTokenCache() {
   try {
     const token  = localStorage.getItem(TOKEN_KEY);
     const expiry = parseInt(localStorage.getItem(EXPIRY_KEY) || '0');
-    if (token && Date.now() < expiry) return token;
+    const now = Date.now();
+    
+    if (token && now < expiry) {
+      // Token is still valid, restart expiry timer
+      clearTimeout(sessionExpiryTimer);
+      startSessionExpiryTimer();
+      return token;
+    }
   } catch(e) {}
   return null;
 }
@@ -684,9 +760,110 @@ function loadTokenCache() {
 function clearTokenCache() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(EXPIRY_KEY);
+  localStorage.removeItem(SESSION_START);
+  localStorage.removeItem(USER_INFO_KEY);
+  clearTimeout(sessionExpiryTimer);
+  sessionWarningShown = false;
+}
+
+function startSessionExpiryTimer() {
+  try {
+    const expiry = parseInt(localStorage.getItem(EXPIRY_KEY) || '0');
+    const now = Date.now();
+    const timeUntilExpiry = expiry - now;
+    
+    if (timeUntilExpiry <= 0) {
+      // Already expired
+      showSessionExpiredModal();
+      return;
+    }
+    
+    // Show warning 30 mins before expiry
+    const timeUntilWarning = timeUntilExpiry - WARNING_MS;
+    
+    if (timeUntilWarning > 0) {
+      sessionExpiryTimer = setTimeout(() => {
+        if (!sessionWarningShown) {
+          sessionWarningShown = true;
+          showSessionWarningModal();
+        }
+      }, timeUntilWarning);
+    } else if (!sessionWarningShown) {
+      // Less than 30 mins left, show warning immediately
+      sessionWarningShown = true;
+      showSessionWarningModal();
+    }
+    
+    // Set final expiry
+    const finalTimer = setTimeout(() => {
+      showSessionExpiredModal();
+    }, timeUntilExpiry);
+  } catch(e) {
+    console.error('Error starting expiry timer:', e);
+  }
+}
+
+function showSessionWarningModal() {
+  const expiry = parseInt(localStorage.getItem(EXPIRY_KEY) || '0');
+  const now = Date.now();
+  const minutesLeft = Math.ceil((expiry - now) / 60000);
+  
+  const modal = document.createElement('div');
+  modal.className = 'session-modal-overlay';
+  modal.innerHTML = `
+    <div class="session-modal">
+      <div class="session-modal-header">⏰ Session Expiring Soon</div>
+      <div class="session-modal-body">
+        <p>Your session will expire in <strong>${minutesLeft} minute${minutesLeft !== 1 ? 's' : ''}</strong>.</p>
+        <p>You'll be asked to sign in again to continue protecting your tasks.</p>
+      </div>
+      <div class="session-modal-actions">
+        <button class="session-modal-btn primary" onclick="location.reload()">Refresh Now</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function showSessionExpiredModal() {
+  clearTokenCache();
+  odToken = null;
+  
+  const modal = document.createElement('div');
+  modal.className = 'session-modal-overlay';
+  modal.innerHTML = `
+    <div class="session-modal">
+      <div class="session-modal-header">🔐 Session Expired</div>
+      <div class="session-modal-body">
+        <p>Your 24-hour session has expired.</p>
+        <p>For security, please sign in again with your Microsoft credentials.</p>
+        <p style="font-size: 12px; color: #666; margin-top: 12px;">Your tasks and files are safely stored in OneDrive.</p>
+      </div>
+      <div class="session-modal-actions">
+        <button class="session-modal-btn primary" onclick="location.reload()">Sign In Again</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  
+  // Hide the app
+  document.getElementById('app').style.display = 'none';
+  if (document.getElementById('odSplash')) {
+    document.getElementById('odSplash').classList.remove('hidden');
+  }
 }
 
 async function initMSAL() {
+  // ⚠️ Validate that Client ID has been configured
+  if (AZURE_CLIENT_ID === 'YOUR_AZURE_CLIENT_ID_HERE') {
+    showLoginError(
+      '❌ Azure Client ID not configured. ' +
+      'Please replace "YOUR_AZURE_CLIENT_ID_HERE" with your actual Client ID from portal.azure.com'
+    );
+    showSignInButton();
+    return;
+  }
+
   // Detect file:// protocol — Microsoft login requires http/https
   if (window.location.protocol === 'file:') {
     showLoginError(
@@ -713,7 +890,8 @@ async function initMSAL() {
     const response = await msalInstance.handleRedirectPromise();
     if (response) {
       odToken = response.accessToken;
-      saveTokenCache(odToken);
+      const userEmail = response.account?.username || response.account?.name || 'User';
+      saveTokenCache(odToken, userEmail);
       await launchApp();
       return;
     }
@@ -727,10 +905,14 @@ async function initMSAL() {
           account: accounts[0]
         });
         odToken = silent.accessToken;
-        saveTokenCache(odToken);
+        const userEmail = accounts[0].username || accounts[0].name || 'User';
+        saveTokenCache(odToken, userEmail);
         await launchApp();
         return;
-      } catch(e) { /* session expired — fall through to show login */ }
+      } catch(e) { 
+        console.log('Silent token acquisition failed, showing sign-in');
+        /* session expired — fall through to show login */ 
+      }
     }
 
     showSignInButton();
@@ -772,6 +954,7 @@ async function launchApp() {
   applyViewState();
   render();
   startBackgroundSync(60);
+  startSessionExpiryTimer(); // Start 24-hour session countdown
 }
  
 // ─── Background sync ──────────────────────────
