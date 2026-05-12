@@ -111,8 +111,8 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .nav-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-strong); border-radius: var(--radius); background: transparent; cursor: pointer; color: var(--text-muted); transition: all 0.15s; font-size: 16px; }
 .nav-btn:hover { background: var(--gray-100); border-color: var(--navy); color: var(--navy); }
 .nav-period { font-size: 15px; font-weight: 600; min-width: 200px; text-align: center; color: var(--navy); }
-.btn-today { padding: 5px 14px; font-size: 13px; font-weight: 500; border: 1px solid var(--border-strong); border-radius: var(--radius); background: transparent; cursor: pointer; color: var(--text-muted); transition: all 0.15s; }
-.btn-today:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
+.btn-today { padding: 5px 16px; font-size: 13px; font-weight: 500; border: none; background: transparent; border-radius: 6px; cursor: pointer; color: var(--text-muted); transition: all 0.15s; }
+.btn-today:hover { background: var(--gray-100); color: var(--navy); }
 .planning-badge { display: flex; align-items: center; gap: 5px; padding: 4px 10px; background: var(--amber-light); border-radius: 20px; font-size: 12px; font-weight: 500; color: var(--amber); border: 1px solid rgba(186,117,23,0.2); }
  
 /* ─── Main ─── */
@@ -473,12 +473,12 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
     <div class="view-tabs">
       <button class="view-tab active" id="tabMonth" onclick="setView('month')"><i class="ti ti-calendar-month" aria-hidden="true"></i> Month</button>
       <button class="view-tab" id="tabWeek" onclick="setView('week')"><i class="ti ti-calendar-week" aria-hidden="true"></i> Week</button>
+      <button class="btn-today" onclick="goToday()">Today</button>
     </div>
     <div class="nav-center">
       <button class="nav-btn" onclick="navBack()"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
       <div class="nav-period" id="navPeriod"></div>
       <button class="nav-btn" onclick="navFwd()"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
-      <button class="btn-today" onclick="goToday()">Today</button>
     </div>
     <div class="planning-badge" id="planningBadge" style="display:none"><i class="ti ti-clipboard-list" aria-hidden="true"></i> Friday planning mode</div>
   </nav>
@@ -722,6 +722,7 @@ const WARNING_MS     = 30 * 60 * 1000;      // Warn 30 mins before expiry
 
 let sessionExpiryTimer = null;
 let sessionWarningShown = false;
+let signInInProgress = false;  // ← NEW: Guard flag
 
 function saveTokenCache(token, userEmail) {
   const now = Date.now();
@@ -919,12 +920,27 @@ async function initMSAL() {
 }
  
 async function signIn() {
+  if (signInInProgress) return; // Prevent multiple attempts
+  signInInProgress = true;
+  
   try {
     document.getElementById('signInBtn').disabled = true;
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('loadingState').style.display = 'block';
+    
+    // ← NEW: Clear any stale MSAL state first
+    try {
+      const accounts = msalInstance.getAllAccounts();
+      for (let account of accounts) {
+        await msalInstance.logout({ account });
+      }
+    } catch(e) {
+      console.log('Clearing previous session...');
+    }
+    
     await msalInstance.loginRedirect({ scopes: ['Files.ReadWrite','User.Read'], prompt: 'select_account' });
   } catch(err) {
+    signInInProgress = false; // Reset flag on error
     showLoginError('Sign-in failed: ' + (err.message || 'Unknown error'));
     showSignInButton();
   }
