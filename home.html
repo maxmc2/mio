@@ -6,9 +6,8 @@
 <title>Mark It Off – Dashboard</title>
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="icon" type="image/png" sizes="512x512" href="favicon-512.png">
-<link rel="icon" type="image/png" sizes="512x512" href="favicon-512.png">
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
 <link rel="apple-touch-icon" href="favicon-512.png">
-<link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
 <script>
 // Auto-refresh dashboard every 5 minutes to fetch latest calendar data
@@ -111,11 +110,14 @@ setInterval(function() {
 </div>
 
 <!-- Calendar strip -->
-<div class="cal-strip" id="calStrip">
+<div class="cal-strip" id="calStrip" style="position:relative;">
   <button class="cal-nav-btn" onclick="changeWeek(-1)" title="Previous week">&#8593;</button>
   <div class="cal-week-label current" id="calWeekLabel">This week</div>
   <button class="cal-nav-btn" onclick="changeWeek(1)" title="Next week">&#8595;</button>
   <div class="cal-days" id="calDays"><span class="cal-loading">Loading calendar…</span></div>
+  <a href="workplanner_improved.html" style="position:absolute;right:24px;top:50%;transform:translateY(-50%);background:#1e2a4a;color:#fff;font-size:12px;font-weight:600;padding:6px 14px;border-radius:6px;text-decoration:none;transition:background 0.2s;display:flex;align-items:center;gap:5px;white-space:nowrap;" onmouseover="this.style.background='#171f38'" onmouseout="this.style.background='#1e2a4a'">
+    <span style="font-size:14px;">📋</span> Planner
+  </a>
 </div>
 
 <div class="grid-wrap">
@@ -260,8 +262,17 @@ setInterval(function() {
   var weekOffset = 0;
 
   function checkWeekAdvance() {
-    // On Sunday, the calendar auto-advances to the upcoming week
-    // but weekOffset stays 0 so the label correctly reads "This week"
+    // Check if it's after Sunday midnight
+    var now = new Date();
+    var dayOfWeek = now.getDay(); // 0 = Sunday
+    
+    // If it's Sunday (day 0) and past midnight, show next week
+    if (dayOfWeek === 0) {
+      weekOffset = 1;
+      document.getElementById('calWeekLabel').textContent = 'Next week';
+    } else {
+      weekOffset = 0;
+    }
   }
 
   function getWeekDays() {
@@ -269,12 +280,7 @@ setInterval(function() {
     var now = new Date();
     var dow = now.getDay();
     var monday = new Date(now);
-    // On Sunday (dow 0), jump forward to tomorrow (Monday) instead of back 6 days
-    if (dow === 0) {
-      monday.setDate(now.getDate() + 1 + (weekOffset * 7));
-    } else {
-      monday.setDate(now.getDate() - ((dow + 6) % 7) + (weekOffset * 7));
-    }
+    monday.setDate(now.getDate() - ((dow + 6) % 7) + (weekOffset * 7));
     for (var i = 0; i < 7; i++) {
       var d = new Date(monday);
       d.setDate(monday.getDate() + i);
