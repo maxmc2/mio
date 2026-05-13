@@ -1873,7 +1873,16 @@ function toggleSpecificDate() {
   document.getElementById('specificDateField').style.display = pat === 'specific' ? 'block' : 'none';
 }
  
+let savingTask = false; // ← NEW: Prevent saveTask from running twice
+
 function saveTask() {
+  if (savingTask) {
+    console.log('⏭ saveTask skipped (already saving)');
+    return;
+  }
+  savingTask = true;
+  
+  try {
   let name  = document.getElementById('fName').value.trim();
   let date  = document.getElementById('fDate').value;
   let cal   = document.getElementById('fCal').value;
@@ -1940,6 +1949,9 @@ function saveTask() {
     // generateRecurring(); // DISABLED: Recurring feature temporarily removed
   }
   saveToOneDrive(); closeModal(); render();
+  } finally {
+    savingTask = false;
+  }
 }
  
 // ─── Drag & Drop ─────────────────────────────
