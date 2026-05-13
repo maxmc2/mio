@@ -1357,6 +1357,8 @@ async function saveToOneDrive() {
     console.log('✅ Save successful (200), new ETag from response:', newETag ? newETag.substring(0,20)+'...' : 'none');
     odEtag = newETag;
     setOdStatus('connected','OneDrive ✓');
+    // Add small delay to prevent background sync from interfering
+    await new Promise(r => setTimeout(r, 500));
   } catch(e) {
     setOdStatus('disconnected','Save failed');
     toast('⚠ Could not save to OneDrive.');
