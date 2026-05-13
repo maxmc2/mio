@@ -507,7 +507,11 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
       </div>
     </div>
     <div class="field"><label>Instructions / notes</label><textarea id="fInstr" placeholder="Step-by-step notes, links, reminders…"></textarea></div>
-    <label class="modal-check" style="display:none;"><input type="checkbox" id="fRecurring" onchange="toggleRecurOpts()" /><span class="modal-check-label"><i class="ti ti-refresh"></i> Repeat task</span></label>
+    <div id="recurringInstanceNotice" style="display:none;padding:10px 12px;background:#e8f4fd;border-left:3px solid #2c7fb8;border-radius:6px;margin:8px 0;font-size:13px;color:#1e4d6e;">
+      <i class="ti ti-info-circle" style="margin-right:4px;"></i>
+      <strong>This is a recurring task occurrence.</strong> Edits only affect this occurrence.
+    </div>
+    <label class="modal-check"><input type="checkbox" id="fRecurring" onchange="toggleRecurOpts()" /><span class="modal-check-label"><i class="ti ti-refresh"></i> Repeat task</span></label>
     <div class="recur-section" id="recurSection">
       <div class="field"><label>Recurrence type</label>
         <select id="fRecurType" onchange="toggleRecurOptions()">
@@ -544,6 +548,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button id="btnDeleteSeries" onclick="deleteSeriesFromModal()" style="display:none;background:#dc2626;color:white;border:none;padding:8px 14px;border-radius:6px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;">Delete entire series</button>
       <button class="btn-save" onclick="saveTask()">Save task</button>
     </div>
   </div>
@@ -627,6 +632,8 @@ function carryForward() {
   const carryTypes = new Set(['active','overdue','recurring','mandy-notify','mandy-notify-overdue','mandy-actioned','mandy-actioned-overdue']);
   ['principal','mandy'].forEach(cal => {
     tasks[cal].forEach(t => {
+      // ← Never carry forward templates (they have no specific date)
+      if (t.type === 'template') return;
       if (carryTypes.has(t.type) && t.date < todayDK) {
         let d = parseD(t.date);
         let nwd = nextWorkDay(d);
@@ -641,207 +648,204 @@ function carryForward() {
   });
 }
  
-// ─── Recurring generation ─────────────────────
-function generateRecurring(baseDate = null) {
-  let base = baseDate ? new Date(baseDate) : new Date(TODAY);
+// ─── Recurring generation (REWRITTEN PROPERLY) ─────────────────────
+// 
+// ARCHITECTURE:
+// - TEMPLATES: type='template', recurring=true, hidden from calendar, define the pattern
+// - INSTANCES: type='active' (or carried forward types), recurring=false, templateId points to template
+// - SKIP LIST: tasks._skippedRecurring[templateId] = [date1, date2] — dates user has deleted
+// - Instances are NEVER marked recurring=true (that was the explosion bug)
+//
+function generateRecurring(extendMonths = 12) {
+  // Ensure skip list exists
+  if (!tasks._skippedRecurring) tasks._skippedRecurring = {};
+  
+  const today = new Date(TODAY);
   
   ['principal','mandy'].forEach(cal => {
-    tasks[cal].filter(t => t.recurring).forEach(tmpl => {
+    // Find templates only (type='template')
+    const templates = tasks[cal].filter(t => t.type === 'template' && t.recurring);
+    
+    templates.forEach(tmpl => {
       const pattern = tmpl.recurPattern || 'date';
-      const origDate = parseD(tmpl.date);
+      const isAnnual = pattern.startsWith('annual:');
+      const skipList = tasks._skippedRecurring[tmpl.id] || [];
       
-      console.log(`🔄 Generating recurring: "${tmpl.name}" (pattern: ${pattern}, template date: ${tmpl.date})`);
+      // Determine target dates to generate
+      let targetDates = [];
       
-      // MONTHLY RECURRENCE: Generate 12 months ahead only
-      if (pattern === 'date' || pattern === 'first-monday' || pattern === 'last-friday' || 
-          pattern === 'first-working' || pattern === 'last-day' || pattern?.startsWith('specific:')) {
+      if (isAnnual) {
+        // ANNUAL: Generate only ONE next occurrence
+        const [month, day] = pattern.split(':')[1].split('-').map(Number);
+        let nextOccurrence = new Date(today.getFullYear(), month - 1, day);
+        if (nextOccurrence < today) {
+          nextOccurrence.setFullYear(today.getFullYear() + 1);
+        }
+        targetDates.push(dk(nextOccurrence));
+      } else {
+        // MONTHLY: Generate up to extendMonths ahead (12 by default)
+        const origDate = parseD(tmpl.recurOriginalDate || tmpl.date);
+        const startMonth = new Date(today.getFullYear(), today.getMonth(), 1);
         
-        for (let mo = 0; mo < 12; mo++) {
-          let checkMonth = new Date(base);
+        for (let mo = 0; mo < extendMonths; mo++) {
+          let checkMonth = new Date(startMonth);
           checkMonth.setMonth(checkMonth.getMonth() + mo);
           
           let instanceDate = resolveRecur(pattern, checkMonth, origDate);
           let dkk = dk(instanceDate);
           
-          let alreadyExists = tasks[cal].some(t => 
-            t.id !== tmpl.id && 
-            t.name === tmpl.name && 
-            t.date === dkk
-          );
-          
-          console.log(`  mo=${mo}: dkk=${dkk}, template=${tmpl.date}, exists=${alreadyExists}, diff=${dkk !== tmpl.date}`);
-          
-          if (!alreadyExists && dkk !== tmpl.date) {
-            console.log(`    ✓ Creating instance on ${dkk}`);
-            tasks[cal].push({
-              id: nextId++,
-              date: dkk,
-              name: tmpl.name,
-              type: 'recurring',
-              recurring: true,
-              recurPattern: pattern,
-              originalDate: '',
-              instructions: tmpl.instructions || '',
-              expanded: false
-            });
+          // Only future dates
+          if (dkk >= dk(today)) {
+            targetDates.push(dkk);
           }
         }
       }
       
-      // ANNUAL RECURRENCE: Generate ONE instance for upcoming date
-      if (pattern?.startsWith('annual:')) {
-        const [month, day] = pattern.split(':')[1].split('-').map(Number);
-        let nextOccurrence = new Date(base.getFullYear(), month - 1, day);
+      // Create instances for target dates (with all the safety checks)
+      targetDates.forEach(targetDate => {
+        // Skip if user has deleted this occurrence
+        if (skipList.includes(targetDate)) return;
         
-        if (nextOccurrence < base) {
-          nextOccurrence.setFullYear(base.getFullYear() + 1);
-        }
-        
-        let dkk = dk(nextOccurrence);
-        console.log(`📅 Annual: "${tmpl.name}" on ${dkk}`);
-        
-        let alreadyExists = tasks[cal].some(t => 
-          t.id !== tmpl.id && 
-          t.name === tmpl.name && 
-          t.date === dkk
+        // Skip if instance already exists for this template+date
+        const exists = tasks[cal].some(t => 
+          t.templateId === tmpl.id && 
+          (t.originalDate === targetDate || (t.date === targetDate && !t.originalDate))
         );
+        if (exists) return;
         
-        if (!alreadyExists) {
-          tasks[cal].push({
-            id: nextId++,
-            date: dkk,
-            name: tmpl.name,
-            type: 'recurring',
-            recurring: true,
-            recurPattern: pattern,
-            originalDate: '',
-            instructions: tmpl.instructions || '',
-            expanded: false
-          });
-        }
+        // Create the instance — CRITICAL: recurring=false, NOT a template!
+        tasks[cal].push({
+          id: nextId++,
+          templateId: tmpl.id,           // Link to template
+          date: targetDate,
+          originalDate: targetDate,      // Track original scheduled date
+          name: tmpl.name,
+          type: 'active',                // Normal active task type
+          recurring: false,              // ← CRITICAL: NEVER true on instances
+          recurPattern: '',              // Instances don't carry pattern
+          instructions: tmpl.instructions || '',
+          expanded: false,
+          lastModified: Date.now()
+        });
+      });
+      
+      // Update template's tracking of how far we've generated
+      if (targetDates.length > 0) {
+        tmpl.recurMaxDate = targetDates[targetDates.length - 1];
       }
     });
   });
 }
 
-// ← REWRITTEN: Check if we need to prompt for extending recurring
+// ← Check if we need to prompt for extending recurring
 function checkRecurringWindow() {
+  const today = new Date(TODAY);
+  let needsExtension = [];
+  
   ['principal', 'mandy'].forEach(cal => {
-    tasks[cal].forEach(tmpl => {
-      if (!tmpl.recurring) return;
-      
+    tasks[cal].filter(t => t.type === 'template' && t.recurring).forEach(tmpl => {
       const pattern = tmpl.recurPattern || 'date';
-      const today = new Date(TODAY);
       
-      // MONTHLY: Check if we're within 1 month of running out of instances
-      if (!pattern.startsWith('annual:')) {
-        const lastGenerated = new Date(today);
-        lastGenerated.setMonth(lastGenerated.getMonth() + 11); // 12 months ahead
-        
-        // Count instances in the last month of the window
-        const lastMonthStart = new Date(lastGenerated);
-        lastMonthStart.setDate(1);
-        const lastMonthEnd = new Date(lastGenerated.getFullYear(), lastGenerated.getMonth() + 1, 0);
-        
-        let hasInstanceInLastMonth = tasks[cal].some(t =>
-          t.recurring && t.name === tmpl.name && 
-          t.date >= dk(lastMonthStart) && t.date <= dk(lastMonthEnd)
-        );
-        
-        // If we're viewing the last month and there are instances, prompt to extend
-        const cursor = new Date(TODAY); // Use TODAY as reference
-        if (hasInstanceInLastMonth && 
-            cursor.getMonth() === lastGenerated.getMonth() && 
-            cursor.getFullYear() === lastGenerated.getFullYear()) {
-          showExtendPrompt(tmpl);
-        }
-      }
+      // Skip if already prompted recently
+      const promptKey = `extend_prompt_${tmpl.id}`;
+      const lastPrompt = localStorage.getItem(promptKey);
+      if (lastPrompt && Date.now() - parseInt(lastPrompt) < 86400000) return; // 24h cooldown
       
-      // ANNUAL: Check if the date is approaching (within 1 month)
       if (pattern.startsWith('annual:')) {
-        const [month, day] = pattern.split(':')[1].split('-').map(Number);
-        let nextDate = new Date(today.getFullYear(), month - 1, day);
-        
-        if (nextDate < today) {
-          nextDate.setFullYear(today.getFullYear() + 1);
+        // Annual: prompt if upcoming date is within 30 days
+        const instances = tasks[cal].filter(t => t.templateId === tmpl.id);
+        if (instances.length === 0) {
+          needsExtension.push({ tmpl, cal, type: 'annual' });
+        } else {
+          const latestDate = instances.map(t => t.date).sort().pop();
+          const daysUntil = Math.floor((parseD(latestDate) - today) / 86400000);
+          if (daysUntil <= 30 && daysUntil >= -7) {
+            needsExtension.push({ tmpl, cal, type: 'annual', latestDate });
+          }
         }
-        
-        const daysUntil = Math.floor((nextDate - today) / (1000 * 60 * 60 * 24));
-        
-        // Prompt when within 30 days of the annual date
-        if (daysUntil <= 30 && daysUntil > 0) {
-          showAnnualExtendPrompt(tmpl, nextDate);
+      } else {
+        // Monthly: prompt if we're within 2 months of the last generated instance
+        if (!tmpl.recurMaxDate) return;
+        const maxDate = parseD(tmpl.recurMaxDate);
+        const monthsLeft = (maxDate.getFullYear() - today.getFullYear()) * 12 
+                         + (maxDate.getMonth() - today.getMonth());
+        if (monthsLeft <= 2) {
+          needsExtension.push({ tmpl, cal, type: 'monthly' });
         }
       }
     });
   });
+  
+  // Show prompt for the first one that needs extension
+  if (needsExtension.length > 0) {
+    showExtendPrompt(needsExtension[0]);
+  }
 }
 
-function showExtendPrompt(tmpl) {
-  // Check if we already showed this prompt recently
-  const promptKey = `prompt_${tmpl.id}`;
-  const lastPrompt = localStorage.getItem(promptKey);
-  if (lastPrompt && Date.now() - parseInt(lastPrompt) < 86400000) { // 24 hours
-    return; // Already prompted today
+function showExtendPrompt(info) {
+  const { tmpl, type } = info;
+  const promptKey = `extend_prompt_${tmpl.id}`;
+  
+  // Remove any existing prompts first
+  document.querySelectorAll('.session-modal-overlay.extend-prompt').forEach(m => m.remove());
+  
+  const modal = document.createElement('div');
+  modal.className = 'session-modal-overlay extend-prompt';
+  
+  const title = type === 'annual' ? '📅 Annual Task Continuing' : '📅 Extend Recurring Task';
+  const body = type === 'annual' 
+    ? `<p><strong>${esc(tmpl.name)}</strong></p><p>This annual task is approaching. Continue for next year?</p>`
+    : `<p><strong>${esc(tmpl.name)}</strong></p><p>You're approaching the end of generated instances.</p><p>Continue for another 12 months?</p>`;
+  
+  modal.innerHTML = `
+    <div class="session-modal">
+      <div class="session-modal-header">${title}</div>
+      <div class="session-modal-body">${body}</div>
+      <div class="session-modal-actions">
+        <button class="session-modal-btn primary" id="extendYesBtn">Yes, Continue</button>
+        <button class="session-modal-btn secondary" id="extendNoBtn">Not now</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  
+  document.getElementById('extendYesBtn').onclick = () => {
+    generateRecurring(12);
+    saveToOneDrive();
+    render();
+    localStorage.setItem(promptKey, Date.now().toString());
+    modal.remove();
+    toast('✓ Extended recurring task');
+  };
+  
+  document.getElementById('extendNoBtn').onclick = () => {
+    localStorage.setItem(promptKey, Date.now().toString());
+    modal.remove();
+  };
+}
+
+// ← Delete a recurring template + all its future instances
+function deleteRecurringSeries(templateId, cal) {
+  if (!confirm('Delete this recurring task and all its future occurrences?')) return;
+  
+  const todayDK = dk(TODAY);
+  
+  // Remove template
+  tasks[cal] = tasks[cal].filter(t => t.id !== templateId);
+  
+  // Remove all future instances of this template (keep past ones as history)
+  tasks[cal] = tasks[cal].filter(t => 
+    !(t.templateId === templateId && t.date >= todayDK)
+  );
+  
+  // Clean up skip list
+  if (tasks._skippedRecurring && tasks._skippedRecurring[templateId]) {
+    delete tasks._skippedRecurring[templateId];
   }
   
-  const modal = document.createElement('div');
-  modal.className = 'session-modal-overlay';
-  modal.innerHTML = `
-    <div class="session-modal">
-      <div class="session-modal-header">📅 Extend Recurring Task?</div>
-      <div class="session-modal-body">
-        <p><strong>${esc(tmpl.name)}</strong></p>
-        <p>You're approaching the end of recurring instances (12 months).</p>
-        <p>Generate another 12 months?</p>
-      </div>
-      <div class="session-modal-actions">
-        <button class="session-modal-btn primary" onclick="extendRecurring(); this.closest('.session-modal-overlay').remove();">Yes, Extend</button>
-        <button class="session-modal-btn secondary" onclick="localStorage.setItem('prompt_${tmpl.id}', Date.now()); this.closest('.session-modal-overlay').remove();">Not now</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-}
-
-function showAnnualExtendPrompt(tmpl, nextDate) {
-  const promptKey = `annual_prompt_${tmpl.id}`;
-  const lastPrompt = localStorage.getItem(promptKey);
-  if (lastPrompt) return; // Already prompted for this year
-  
-  const modal = document.createElement('div');
-  modal.className = 'session-modal-overlay';
-  modal.innerHTML = `
-    <div class="session-modal">
-      <div class="session-modal-header">📅 Annual Task Coming Up</div>
-      <div class="session-modal-body">
-        <p><strong>${esc(tmpl.name)}</strong></p>
-        <p>Due: ${fmtDate(dk(nextDate))}</p>
-        <p>Create instance for next year after this one?</p>
-      </div>
-      <div class="session-modal-actions">
-        <button class="session-modal-btn primary" onclick="extendAnnual('${tmpl.id}'); this.closest('.session-modal-overlay').remove();">Yes, Continue</button>
-        <button class="session-modal-btn secondary" onclick="localStorage.setItem('annual_prompt_${tmpl.id}', 'skip'); this.closest('.session-modal-overlay').remove();">Skip Next Year</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-}
-
-function extendRecurring() {
-  const futureDate = new Date(TODAY);
-  futureDate.setMonth(futureDate.getMonth() + 12);
-  generateRecurring(futureDate);
   saveToOneDrive();
-  toast('✓ Extended recurring tasks 12 more months');
-}
-
-function extendAnnual(templateId) {
-  const promptKey = `annual_prompt_${templateId}`;
-  localStorage.removeItem(promptKey);
-  // generateRecurring(); // DISABLED
-  saveToOneDrive();
-  toast('✓ Annual task will continue next year');
+  render();
+  toast('Recurring series deleted');
 }
 
 function resolveRecur(pat, base, orig) {
@@ -868,6 +872,8 @@ function resolveRecur(pat, base, orig) {
  
 function tasksForDate(dkk) {
   let dayTasks = tasks[currentCal].filter(t => {
+    // ← CRITICAL: Never show templates on the calendar
+    if (t.type === 'template') return false;
     if (t.type==='archived' && !showArchived) return false;
     return t.date===dkk;
   });
@@ -1152,17 +1158,69 @@ function showLoginError(msg) {
   el.style.display = 'block';
 }
  
+// ← Migration: Clean up old broken recurring data
+// Old data has multiple tasks with recurring=true and same name (which was the explosion bug)
+// New architecture: ONE template per recurring series, instances are NOT marked recurring
+function migrateOldRecurring() {
+  let cleaned = 0;
+  
+  ['principal', 'mandy'].forEach(cal => {
+    if (!tasks[cal]) return;
+    
+    // Find all recurring tasks (the old format had instances ALSO marked recurring)
+    const recurringTasks = tasks[cal].filter(t => t.recurring && t.type !== 'template');
+    
+    // Group by name+pattern to find duplicates
+    const groups = {};
+    recurringTasks.forEach(t => {
+      const key = (t.name || '') + '|' + (t.recurPattern || '');
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(t);
+    });
+    
+    Object.values(groups).forEach(group => {
+      if (group.length === 0) return;
+      
+      // Sort by date to find the earliest (most likely the original template)
+      group.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+      const original = group[0];
+      
+      // Convert the original into a proper template
+      original.type = 'template';
+      original.recurring = true;
+      original.recurOriginalDate = original.date;
+      original.cal = cal;
+      // Remove the date from template (it's not a calendar entry)
+      delete original.date;
+      delete original.originalDate;
+      
+      // Remove all the other "instance" tasks that were also marked recurring
+      // They'll be regenerated cleanly
+      const toRemove = group.slice(1).map(t => t.id);
+      tasks[cal] = tasks[cal].filter(t => !toRemove.includes(t.id));
+      cleaned += toRemove.length;
+    });
+  });
+  
+  if (cleaned > 0) {
+    console.log(`🧹 Migration: Cleaned up ${cleaned} duplicate recurring tasks`);
+    toast(`Cleaned up ${cleaned} duplicate recurring tasks`);
+  }
+}
+
 async function launchApp() {
   document.getElementById('odSplash').classList.add('hidden');
   document.getElementById('app').style.display = 'grid';
   await loadFromOneDrive();
-  carryForward(); 
-  // generateRecurring(); // DISABLED: Recurring feature temporarily removed
+  migrateOldRecurring(); // ← Clean up any old broken recurring data
+  carryForward();
+  generateRecurring(12); // ← Re-enabled with proper template/instance architecture
   loadViewState();
   applyViewState();
   render();
-  startBackgroundSync(60); // ← RE-ENABLED with proper coordination
-  startSessionExpiryTimer(); // Start 24-hour session countdown
+  checkRecurringWindow(); // ← Check if any recurring tasks need extending
+  startBackgroundSync(60);
+  startSessionExpiryTimer();
   
   // ← NEW: Refresh access token every 30 minutes to prevent 1-hour expiry
   setInterval(async () => {
@@ -1202,7 +1260,7 @@ function startBackgroundSync(intervalSeconds) {
       odEtag = freshEtag;
  
       carryForward(); 
-      // generateRecurring(); // DISABLED
+      generateRecurring(12); // ← Re-enabled with proper architecture
       render();
       toast('<i class="ti ti-refresh"></i> Updated from OneDrive');
     } catch(e) {
@@ -1384,8 +1442,18 @@ function mergeTasks(local, remote) {
   new Set([...Object.keys(localDeleted), ...Object.keys(remoteDeleted)]).forEach(id => {
     mergedDeleted[id] = Math.max(localDeleted[id] || 0, remoteDeleted[id] || 0);
   });
+  
+  // ← Merge skip lists for recurring tasks (union of both)
+  const localSkipped = local._skippedRecurring || {};
+  const remoteSkipped = remote._skippedRecurring || {};
+  const mergedSkipped = {};
+  new Set([...Object.keys(localSkipped), ...Object.keys(remoteSkipped)]).forEach(tmplId => {
+    const localDates = localSkipped[tmplId] || [];
+    const remoteDates = remoteSkipped[tmplId] || [];
+    mergedSkipped[tmplId] = [...new Set([...localDates, ...remoteDates])];
+  });
  
-  const merged = { principal: [], mandy: [], _deletedIds: mergedDeleted };
+  const merged = { principal: [], mandy: [], _deletedIds: mergedDeleted, _skippedRecurring: mergedSkipped };
  
   ['principal', 'mandy'].forEach(cal => {
     const lMap = new Map((local[cal]  || []).map(t => [t.id, t]));
@@ -1484,7 +1552,7 @@ function useDemoMode() {
   document.getElementById('app').style.display = 'grid';
   tasks = JSON.parse(JSON.stringify(SEED));
   carryForward(); 
-  // generateRecurring(); // DISABLED
+  generateRecurring(12); // ← Re-enabled
   setOdStatus('disconnected','Demo mode — not saving');
   loadViewState();
   applyViewState();
@@ -1495,7 +1563,8 @@ function useDemoMode() {
 //  RENDER
 // ════════════════════════════════════════════
 function render() {
-  generateRecurring(cursor);
+  // Note: We don't call generateRecurring here anymore — that's done on launch/save/sync only
+  // (Calling it every render was wasteful and could cause issues)
   updatePeriod(); updateStatus();
   document.getElementById('planningBadge').style.display = isFriday() ? 'flex' : 'none';
   view==='month' ? renderMonth() : renderWeek();
@@ -1550,7 +1619,13 @@ function renderMonth() {
       else if (t.type==='recurring')              tc='recurring';
       else if (t.type==='overdue')                tc='overdue';
       else                                         tc='active';
-      html+=`<div class="mpill ${tc}${t.recurring && t.recurPattern && t.recurPattern.startsWith('annual:') ? ' annual' : ''}">${esc(t.name)}</div>`;
+      // ← Check if instance has a template (new recurring architecture)
+      const _mTmpl = t.templateId ? tasks[currentCal].find(x => x.id === t.templateId) : null;
+      const _mIsAnnual = _mTmpl && _mTmpl.recurPattern && _mTmpl.recurPattern.startsWith('annual:');
+      const _mIsRec = !!_mTmpl;
+      // Add recurring class for visual indicator
+      if (_mIsRec && tc === 'active') tc = 'recurring';
+      html+=`<div class="mpill ${tc}${_mIsAnnual ? ' annual' : ''}">${esc(t.name)}</div>`;
     });
     if (dayTasks.length>3) html+=`<div class="month-more">+${dayTasks.length-3} more</div>`;
     html+='</div>';
@@ -1628,13 +1703,18 @@ function renderCard(t) {
     ? `ondblclick="event.stopPropagation()"`
     : `ondblclick="editTask(${t.id},event)"`;
 
-  return `<div class="task-card ${tc}${t.recurring && t.recurPattern && t.recurPattern.startsWith('annual:') ? ' annual' : ''}" id="tc-${t.id}" ${dragAttrs} ${dblClick}>
+  // ← Find template if this is a recurring instance, so we can show the badge
+  const _tmpl = t.templateId ? tasks[currentCal].find(x => x.id === t.templateId) : null;
+  const _isRecurring = !!_tmpl;
+  const _isAnnual = _tmpl && _tmpl.recurPattern && _tmpl.recurPattern.startsWith('annual:');
+  
+  return `<div class="task-card ${tc}${_isAnnual ? ' annual' : ''}" id="tc-${t.id}" ${dragAttrs} ${dblClick}>
     <div class="tc-top">
       <input type="checkbox" class="tc-check" ${checked} ${checkDisabled} onchange="completeTask(${t.id},event)" title="Mark complete" />
       <div class="tc-name">${esc(t.name)}</div>
     </div>
     <div class="tc-badges">
-      ${t.recurring ? (t.recurPattern && t.recurPattern.startsWith('annual:') 
+      ${_isRecurring ? (_isAnnual
         ? `<span class="badge badge-annual"><i class="ti ti-refresh" style="font-size:8px"></i> Annually</span>`
         : `<span class="badge badge-rec"><i class="ti ti-refresh" style="font-size:8px"></i> Monthly</span>`) 
         : ''}
@@ -1728,10 +1808,23 @@ function deleteTask(id, e) {
   e.stopPropagation();
   let idx = tasks[currentCal].findIndex(t => t.id === id);
   if (idx !== -1) {
+    const t = tasks[currentCal][idx];
+    
+    // ← If this is a recurring instance, track it in skip list so it doesn't regenerate
+    if (t.templateId && t.originalDate) {
+      if (!tasks._skippedRecurring) tasks._skippedRecurring = {};
+      if (!tasks._skippedRecurring[t.templateId]) tasks._skippedRecurring[t.templateId] = [];
+      if (!tasks._skippedRecurring[t.templateId].includes(t.originalDate)) {
+        tasks._skippedRecurring[t.templateId].push(t.originalDate);
+      }
+    }
+    
     if (!tasks._deletedIds) tasks._deletedIds = {};
     tasks._deletedIds[id] = Date.now();
     tasks[currentCal].splice(idx, 1);
-    saveToOneDrive(); toast('Task deleted'); render();
+    saveToOneDrive(); 
+    toast('Task deleted'); 
+    render();
   }
   } finally {
     deletingTask = false;
@@ -1742,43 +1835,91 @@ function editTask(id, e) {
   e.stopPropagation();
   let t = tasks[currentCal].find(t => t.id === id);
   if (!t) return;
-  document.getElementById('modalTitle').textContent = 'Edit task';
+  
+  const isInstance = t.templateId != null;
+  const isTemplate = t.type === 'template';
+  
+  // Find the template (if this is an instance) to display recurrence info
+  const template = isInstance 
+    ? tasks[currentCal].find(x => x.id === t.templateId)
+    : (isTemplate ? t : null);
+  
+  document.getElementById('modalTitle').textContent = isTemplate ? 'Edit recurring series' : 'Edit task';
   document.getElementById('editId').value = id;
   document.getElementById('fName').value  = t.name;
-  document.getElementById('fDate').value  = t.date;
+  document.getElementById('fDate').value  = isTemplate ? (t.recurOriginalDate || dk(TODAY)) : t.date;
   document.getElementById('fCal').value   = currentCal;
   document.getElementById('fInstr').value = t.instructions || '';
-  document.getElementById('fRecurring').checked = !!t.recurring;
   
-  // Determine recurrence type (monthly or annual) and restore pattern
-  let pat = t.recurPattern || 'date';
-  let recType = 'monthly';
+  // Show/hide the recurring instance notice
+  const notice = document.getElementById('recurringInstanceNotice');
+  notice.style.display = isInstance ? 'block' : 'none';
   
-  // Handle annual patterns
-  if (pat.startsWith('annual:')) {
-    recType = 'annually';
-    document.getElementById('fRecurType').value = 'annually';
-    const [month, day] = pat.split(':')[1].split('-');
-    document.getElementById('fAnnualDate').value = day + '-' + month;
+  // Show/hide Delete series button
+  const delSeriesBtn = document.getElementById('btnDeleteSeries');
+  if (isInstance || isTemplate) {
+    delSeriesBtn.style.display = 'inline-block';
+    delSeriesBtn.dataset.templateId = isTemplate ? t.id : t.templateId;
   } else {
-    document.getElementById('fRecurType').value = 'monthly';
-    // Restore specific:N pattern — set select to 'specific' and pre-fill the date picker
-    if (pat.startsWith('specific:')) {
-      document.getElementById('fRecurPattern').value = 'specific';
-      let day = parseInt(pat.split(':')[1]) || 1;
-      let now = new Date(TODAY);
-      let lastOfMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
-      let safeDay = Math.min(day, lastOfMonth);
-      document.getElementById('fSpecificDay').value =
-        now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(safeDay).padStart(2,'0');
-    } else {
-      document.getElementById('fRecurPattern').value = pat;
-      document.getElementById('fSpecificDay').value  = dk(TODAY);
-    }
+    delSeriesBtn.style.display = 'none';
   }
   
-  toggleRecurOpts();
+  // For instances, hide recurring controls (they edit just the instance)
+  // For templates, show recurring controls (they edit the pattern)
+  // For regular tasks, show recurring controls (allow converting to recurring)
+  const fRecurring = document.getElementById('fRecurring');
+  const recurSection = document.getElementById('recurSection');
+  const recurCheckLabel = fRecurring.closest('label');
+  
+  if (isInstance) {
+    // Instance: hide all recurring controls
+    fRecurring.checked = false;
+    recurCheckLabel.style.display = 'none';
+    recurSection.classList.remove('visible');
+  } else if (isTemplate) {
+    // Template: show as recurring and let them edit pattern
+    fRecurring.checked = true;
+    recurCheckLabel.style.display = '';
+    
+    let pat = template.recurPattern || 'date';
+    if (pat.startsWith('annual:')) {
+      document.getElementById('fRecurType').value = 'annually';
+      const [month, day] = pat.split(':')[1].split('-');
+      document.getElementById('fAnnualDate').value = day + '-' + month;
+    } else {
+      document.getElementById('fRecurType').value = 'monthly';
+      if (pat.startsWith('specific:')) {
+        document.getElementById('fRecurPattern').value = 'specific';
+        let day = parseInt(pat.split(':')[1]) || 1;
+        let now = new Date(TODAY);
+        let lastOfMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+        let safeDay = Math.min(day, lastOfMonth);
+        document.getElementById('fSpecificDay').value =
+          now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(safeDay).padStart(2,'0');
+      } else {
+        document.getElementById('fRecurPattern').value = pat;
+        document.getElementById('fSpecificDay').value = dk(TODAY);
+      }
+    }
+    toggleRecurOpts();
+  } else {
+    // Regular task: show recurring option (allow converting to recurring)
+    fRecurring.checked = false;
+    recurCheckLabel.style.display = '';
+    document.getElementById('fRecurType').value = 'monthly';
+    document.getElementById('fRecurPattern').value = 'date';
+    document.getElementById('fSpecificDay').value = dk(TODAY);
+    toggleRecurOpts();
+  }
+  
   document.getElementById('modalOverlay').classList.add('open');
+}
+
+function deleteSeriesFromModal() {
+  const templateId = parseInt(document.getElementById('btnDeleteSeries').dataset.templateId);
+  if (!templateId) return;
+  deleteRecurringSeries(templateId, currentCal);
+  closeModal();
 }
  
 function drillWeek(dkk) { cursor=parseD(dkk); saveViewState(); setView('week'); }
@@ -1853,10 +1994,17 @@ function openModal() {
   document.getElementById('fSpecificDay').value=dk(TODAY);
   let today = new Date(TODAY);
   document.getElementById('fAnnualDate').value = String(today.getDate()).padStart(2,'0') + '-' + String(today.getMonth()+1).padStart(2,'0');
+  
+  // ← Reset modal state for "Add task" mode
+  document.getElementById('recurringInstanceNotice').style.display = 'none';
+  document.getElementById('btnDeleteSeries').style.display = 'none';
+  const recurCheckLabel = document.getElementById('fRecurring').closest('label');
+  recurCheckLabel.style.display = '';
+  
   toggleRecurOpts();
   document.getElementById('modalOverlay').classList.add('open');
   
-  // ← NEW: Add Enter key support for quick task creation
+  // ← Add Enter key support for quick task creation
   const fNameInput = document.getElementById('fName');
   fNameInput.onkeydown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -1926,40 +2074,116 @@ function saveTask() {
   if (!name || !date) return;
  
   if (eid) {
+    // ─── EDITING EXISTING TASK ───
     let t = tasks[currentCal].find(t => t.id === parseInt(eid));
     if (t) {
-      let dateChanged = t.date !== date;
-      t.name = name; t.instructions = instr;
-      t.recurring = rec; t.recurPattern = rec ? pat : '';
-      t.lastModified = Date.now();
- 
-      // If a mandy-notify task has its date manually changed → turn green
-      if (dateChanged && (t.type==='mandy-notify' || t.type==='mandy-notify-overdue')) {
-        t.type = 'mandy-actioned';
-        t.originalDate = t.originalDate || t.date;
-      } else if (dateChanged && t.type==='mandy-actioned-overdue') {
-        t.type = 'mandy-actioned';
+      // If editing an instance and recurrence settings changed, handle carefully
+      const wasInstance = t.templateId != null;
+      const wasTemplate = t.type === 'template';
+      
+      if (wasTemplate && rec) {
+        // Editing a template — update it and regenerate future instances
+        t.name = name; 
+        t.instructions = instr;
+        t.recurPattern = pat;
+        t.recurOriginalDate = date;
+        t.lastModified = Date.now();
+        // Delete all future instances of this template, they'll regenerate
+        const todayDK = dk(TODAY);
+        tasks[currentCal] = tasks[currentCal].filter(x => 
+          !(x.templateId === t.id && x.date >= todayDK)
+        );
+      } else if (wasInstance) {
+        // Editing an instance — detach from template (so future regens don't affect it)
+        // Just update this single instance, no recurrence changes propagate
+        t.name = name; 
+        t.instructions = instr;
+        t.date = date;
+        t.lastModified = Date.now();
+        // If date changed for a mandy task, handle status
+        if (t.type === 'mandy-notify' || t.type === 'mandy-notify-overdue') {
+          t.type = 'mandy-actioned';
+          t.originalDate = t.originalDate || t.date;
+        }
+      } else {
+        // Editing a regular (non-recurring) task
+        let dateChanged = t.date !== date;
+        t.name = name; 
+        t.instructions = instr;
+        t.lastModified = Date.now();
+        
+        if (dateChanged && (t.type==='mandy-notify' || t.type==='mandy-notify-overdue')) {
+          t.type = 'mandy-actioned';
+          t.originalDate = t.originalDate || t.date;
+        } else if (dateChanged && t.type==='mandy-actioned-overdue') {
+          t.type = 'mandy-actioned';
+        }
+        
+        t.date = date;
+        
+        // If user is converting a regular task into a recurring one, create template
+        if (rec && !t.recurring) {
+          // Create a new template based on this task
+          const newTmpl = {
+            id: nextId++,
+            type: 'template',
+            recurring: true,
+            recurPattern: pat,
+            recurOriginalDate: date,
+            name: name,
+            instructions: instr,
+            cal: currentCal,
+            lastModified: Date.now()
+          };
+          tasks[currentCal].push(newTmpl);
+          // Link this existing task as the first instance
+          t.templateId = newTmpl.id;
+          t.originalDate = date;
+        }
       }
- 
-      t.date = date;
-      if (rec && !t.type.startsWith('mandy') && t.type !== 'archived') t.type = 'recurring';
     }
     toast('Task updated');
   } else {
-    tasks[cal].push({
-      id: nextId++, date, name,
-      type: rec ? 'recurring' : 'active',
-      recurring: rec, recurPattern: rec ? pat : '',
-      originalDate: '', instructions: instr, expanded: false,
-      lastModified: Date.now()
-    });
+    // ─── CREATING NEW TASK ───
+    if (rec) {
+      // Create a TEMPLATE (hidden from calendar)
+      const tmpl = {
+        id: nextId++,
+        type: 'template',
+        recurring: true,
+        recurPattern: pat,
+        recurOriginalDate: date,
+        name: name,
+        instructions: instr,
+        cal: cal,
+        lastModified: Date.now()
+      };
+      tasks[cal].push(tmpl);
+      toast('<i class="ti ti-refresh"></i> Recurring task added');
+    } else {
+      // Normal one-off task
+      tasks[cal].push({
+        id: nextId++, 
+        date, 
+        name,
+        type: 'active',
+        recurring: false, 
+        recurPattern: '',
+        originalDate: '', 
+        instructions: instr, 
+        expanded: false,
+        lastModified: Date.now()
+      });
+      toast('<i class="ti ti-circle-check"></i> Task added');
+    }
     if (cal !== currentCal) currentCal = cal;
-    toast('<i class="ti ti-circle-check"></i> Task added');
   }
  
+  // If we created/edited a recurring task, generate instances
   if (rec) {
-    // generateRecurring(); // DISABLED: Recurring feature temporarily removed
+    generateRecurring(12);
   }
+  
   saveToOneDrive(); closeModal(); render();
   } finally {
     savingTask = false;
