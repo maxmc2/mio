@@ -1283,16 +1283,14 @@ async function refreshTokenSilently() {
 }
 
 async function saveToOneDrive() {
-  if (demoMode || !odToken) return;
+  if (demoMode || !odToken || isSaving) {
+    console.log('⏭ Save skipped (already saving)');
+    return; // ← SKIP, don't wait
+  }
   
-  // ← NEW: Log where this is being called from
+  // ← Log where this is being called from
   const stack = new Error().stack.split('\n')[2].trim();
   console.log('💾 saveToOneDrive called from:', stack);
-  
-  // ← Lock: ensure only one save runs at a time
-  while (isSaving) {
-    await new Promise(r => setTimeout(r, 50));
-  }
   
   isSaving = true;
   setOdStatus('saving','Saving…');
