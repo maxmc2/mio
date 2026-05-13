@@ -461,6 +461,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
     </div>
     <div class="topbar-right">
       <button class="btn-add" onclick="openModal()"><i class="ti ti-plus" aria-hidden="true"></i> Add task</button>
+      <button class="btn-add" onclick="extendRecurring()" title="Generate recurring tasks for 12 more months" style="background:var(--green);"><i class="ti ti-refresh" aria-hidden="true"></i> Extend recurring</button>
       <label class="archive-toggle" onclick="toggleArchive()">
         <div class="toggle-track" id="archToggle"><div class="toggle-knob"></div></div>
         <span>Show archived</span>
@@ -645,7 +646,8 @@ function generateRecurring(baseDate = null) {
   let base = baseDate ? new Date(baseDate) : new Date(TODAY);
   ['principal','mandy'].forEach(cal => {
     tasks[cal].filter(t=>t.recurring).forEach(tmpl => {
-      for (let mo=-1; mo<=2; mo++) {
+      // ← UPDATED: Generate 12 months ahead (mo=0 to mo=11)
+      for (let mo=0; mo<=11; mo++) {
         let checkMonth = new Date(base); checkMonth.setMonth(checkMonth.getMonth()+mo);
         let td = resolveRecur(tmpl.recurPattern, checkMonth, parseD(tmpl.date));
         let dkk = dk(td);
@@ -659,6 +661,16 @@ function generateRecurring(baseDate = null) {
     });
   });
 }
+
+// ← NEW: Extend recurring tasks 12 more months
+function extendRecurring() {
+  const futureDate = new Date(TODAY);
+  futureDate.setMonth(futureDate.getMonth() + 12);
+  generateRecurring(futureDate);
+  saveToOneDrive();
+  toast('✓ Extended recurring tasks 12 more months');
+}
+
 function resolveRecur(pat, base, orig) {
   let y=base.getFullYear(), m=base.getMonth();
   if (pat==='date')          return new Date(y,m,orig.getDate());
