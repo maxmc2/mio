@@ -1715,7 +1715,16 @@ function saveInstructions(id, el) {
   toast('<i class="ti ti-device-floppy"></i> Notes saved');
 }
  
+let deletingTask = false; // ← NEW: Prevent deleteTask from running twice
+
 function deleteTask(id, e) {
+  if (deletingTask) {
+    console.log('⏭ deleteTask skipped (already deleting)');
+    return;
+  }
+  deletingTask = true;
+  
+  try {
   e.stopPropagation();
   let idx = tasks[currentCal].findIndex(t => t.id === id);
   if (idx !== -1) {
@@ -1723,6 +1732,9 @@ function deleteTask(id, e) {
     tasks._deletedIds[id] = Date.now();
     tasks[currentCal].splice(idx, 1);
     saveToOneDrive(); toast('Task deleted'); render();
+  }
+  } finally {
+    deletingTask = false;
   }
 }
  
