@@ -1212,27 +1212,28 @@ function startBackgroundSync(intervalSeconds) {
  
 async function loadFromOneDrive() {
   setOdStatus('connecting','Connecting…');
-  odEtag = null; // ← NEW: Clear any stale ETag to prevent 412 conflicts
+  odEtag = null; // ← Clear any stale ETag to prevent 412 conflicts
+  console.log('📥 loadFromOneDrive: odEtag cleared to null');
   try {
     const res = await fetch(`https://graph.microsoft.com/v1.0${OD_FILE_PATH}`, {
       headers: { Authorization: `Bearer ${odToken}` }
     });
     if (res.status === 404) {
-      // ← NEW: Only create seed if we have NO existing data
       if (Object.keys(tasks).length === 0) {
         tasks = JSON.parse(JSON.stringify(SEED));
       }
       odEtag = null;
+      console.log('📥 File not found (404), creating new');
       setOdStatus('connected','OneDrive — new');
       return;
     }
     if (res.status === 401) {
-      // ← NEW: Don't clear data on auth error
       setOdStatus('disconnected','❌ Not authenticated');
       return;
     }
     if (!res.ok) throw new Error('HTTP ' + res.status);
     odEtag = res.headers.get('ETag') || null;
+    console.log('📥 File loaded, ETag set to:', odEtag);
     const data = await res.json();
     if (data && data.principal && data.mandy) {
       tasks = data;
@@ -1315,14 +1316,17 @@ async function saveToOneDrive() {
       'Content-Type': 'application/json'
     };
     if (odEtag) headers['If-Match'] = odEtag;
+    console.log('💾 Saving to OneDrive, ETag being sent:', odEtag ? 'YES ('+odEtag.substring(0,20)+'...)' : 'NO (null)');
  
     const res = await fetch(`https://graph.microsoft.com/v1.0${OD_FILE_PATH}`, {
       method: 'PUT', headers, body: JSON.stringify(payload)
     });
+    
+    console.log('💾 Save response status:', res.status);
  
     if (res.status === 412) {
       // Conflict detected — clear ETag and retry without it (force overwrite)
-      console.warn('⚠️ ETag conflict (412) — retrying without ETag...');
+      console.warn('⚠️ Got 412 — clearing ETag and retrying...');
       odEtag = null; // Clear the stale ETag
       isSaving = false;
       // Retry the save immediately
