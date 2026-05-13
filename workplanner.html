@@ -573,7 +573,8 @@ let demoMode     = false;
 let odToken      = null;
 let isSaving     = false;
 let odEtag       = null;
-let saveQueue    = []; // ← NEW: Queue saves instead of throttling
+let saveQueue    = []; // ← Queue saves instead of throttling
+let allowEmptySave = false; // ← NEW: Allow empty saves after explicit user deletion
 cursor.setHours(0,0,0,0);
 const TODAY = new Date(cursor);
  
@@ -843,6 +844,7 @@ function deleteRecurringSeries(templateId, cal) {
     delete tasks._skippedRecurring[templateId];
   }
   
+  allowEmptySave = true; // ← User explicitly deleted, allow empty save
   saveToOneDrive();
   render();
   toast('Recurring series deleted');
@@ -1360,21 +1362,28 @@ async function saveToOneDrive() {
     }
     
     // ← Critical protection — never save if tasks are empty or invalid
-    const taskCount = Object.values(tasks).flat().length;
-    if (taskCount === 0) {
-      console.warn('⚠️ Blocked: Attempted to save empty task list');
+    // UNLESS the user explicitly deleted everything (allowEmptySave flag)
+    const taskCount = Object.values(tasks).flat().filter(v => typeof v === 'object').length;
+    if (taskCount === 0 && !allowEmptySave) {
+      console.warn('⚠️ Blocked: Attempted to save empty task list (use allowEmptySave for intentional deletes)');
       isSaving = false;
       return;
     }
     const payload = { ...tasks, _nextId: nextId };
     
-    // ← NEW: Final validation — check payload has data before sending
+    // ← Final validation — only block if accidental (not user-initiated)
     const payloadTaskCount = Object.values(payload).filter(v => Array.isArray(v)).flat().length;
-    if (payloadTaskCount === 0) {
-      console.error('❌ Validation failed: Payload would overwrite with empty data');
+    if (payloadTaskCount === 0 && !allowEmptySave) {
+      console.error('❌ Validation failed: Payload would overwrite with empty data (unintentional)');
       isSaving = false;
       setOdStatus('disconnected', '❌ Data validation failed — not saved');
       return;
+    }
+    
+    // Reset the flag after we've used it for one save
+    if (allowEmptySave) {
+      console.log('✓ Allowing empty save (user-initiated)');
+      allowEmptySave = false;
     }
     
     const headers = {
@@ -1822,6 +1831,7 @@ function deleteTask(id, e) {
     if (!tasks._deletedIds) tasks._deletedIds = {};
     tasks._deletedIds[id] = Date.now();
     tasks[currentCal].splice(idx, 1);
+    allowEmptySave = true; // ← User explicitly deleted, allow even if last task
     saveToOneDrive(); 
     toast('Task deleted'); 
     render();
