@@ -1717,6 +1717,9 @@ function renderCard(t) {
   const _isRecurring = !!_tmpl;
   const _isAnnual = _tmpl && _tmpl.recurPattern && _tmpl.recurPattern.startsWith('annual:');
   
+  // ← Apply blue 'recurring' class for monthly recurring instances (not annual, not overdue/mandy)
+  if (_isRecurring && !_isAnnual && tc === 'active') tc = 'recurring';
+  
   return `<div class="task-card ${tc}${_isAnnual ? ' annual' : ''}" id="tc-${t.id}" ${dragAttrs} ${dblClick}>
     <div class="tc-top">
       <input type="checkbox" class="tc-check" ${checked} ${checkDisabled} onchange="completeTask(${t.id},event)" title="Mark complete" />
