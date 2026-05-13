@@ -568,6 +568,7 @@ let demoMode     = false;
 let odToken      = null;
 let isSaving     = false;
 let odEtag       = null;
+let saveQueue    = []; // ← NEW: Queue saves instead of throttling
 cursor.setHours(0,0,0,0);
 const TODAY = new Date(cursor);
  
@@ -1160,7 +1161,7 @@ async function launchApp() {
   loadViewState();
   applyViewState();
   render();
-  startBackgroundSync(60);
+  startBackgroundSync(60); // ← RE-ENABLED with proper coordination
   startSessionExpiryTimer(); // Start 24-hour session countdown
   
   // ← NEW: Refresh access token every 30 minutes to prevent 1-hour expiry
@@ -1282,25 +1283,29 @@ async function refreshTokenSilently() {
 }
 
 async function saveToOneDrive() {
-  if (demoMode || !odToken || isSaving) return;
+  if (demoMode || !odToken) return;
   
-  // ← NEW: Critical protection — never save if tasks are empty or invalid
-  const taskCount = Object.values(tasks).flat().length;
-  if (taskCount === 0) {
-    console.warn('⚠️ Blocked: Attempted to save empty task list');
-    setOdStatus('disconnected', '❌ No tasks to save — not connected?');
-    return;
+  // ← NEW: Acquire lock to ensure only one save runs at a time
+  while (isSaving) {
+    await new Promise(r => setTimeout(r, 50)); // Wait for current save to finish
   }
   
   isSaving = true;
   setOdStatus('saving','Saving…');
   try {
-    // ← NEW: Try to refresh token before saving
+    // ← Try to refresh token before saving
     const refreshed = await refreshTokenSilently();
     if (!odToken) {
       throw new Error('No authentication token available');
     }
     
+    // ← Critical protection — never save if tasks are empty or invalid
+    const taskCount = Object.values(tasks).flat().length;
+    if (taskCount === 0) {
+      console.warn('⚠️ Blocked: Attempted to save empty task list');
+      isSaving = false;
+      return;
+    }
     const payload = { ...tasks, _nextId: nextId };
     
     // ← NEW: Final validation — check payload has data before sending
