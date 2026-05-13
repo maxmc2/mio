@@ -1134,9 +1134,14 @@ async function saveToOneDrive() {
     });
  
     if (res.status === 412) {
-      // Conflict — another machine saved since we last loaded; merge and retry
+      // Conflict — another machine saved since we last loaded
+      // Instead of merging (which can cause loops), reload page for fresh data
       isSaving = false;
-      await mergeAndSave();
+      console.warn('⚠️ Conflict detected (412) — reloading for fresh data...');
+      setOdStatus('disconnected','Refreshing…');
+      setTimeout(() => {
+        location.reload();
+      }, 1500);
       return;
     }
     if (res.status === 401) {
