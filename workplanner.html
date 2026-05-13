@@ -1321,14 +1321,12 @@ async function saveToOneDrive() {
     });
  
     if (res.status === 412) {
-      // Conflict — another machine saved since we last loaded
-      // Instead of merging (which can cause loops), reload page for fresh data
+      // Conflict detected — clear ETag and retry without it (force overwrite)
+      console.warn('⚠️ ETag conflict (412) — retrying without ETag...');
+      odEtag = null; // Clear the stale ETag
       isSaving = false;
-      console.warn('⚠️ Conflict detected (412) — reloading for fresh data...');
-      setOdStatus('disconnected','Refreshing…');
-      setTimeout(() => {
-        location.reload();
-      }, 1500);
+      // Retry the save immediately
+      await saveToOneDrive();
       return;
     }
     if (res.status === 401) {
