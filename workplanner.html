@@ -507,7 +507,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
       </div>
     </div>
     <div class="field"><label>Instructions / notes</label><textarea id="fInstr" placeholder="Step-by-step notes, links, reminders…"></textarea></div>
-    <label class="modal-check"><input type="checkbox" id="fRecurring" onchange="toggleRecurOpts()" /><span class="modal-check-label"><i class="ti ti-refresh"></i> Repeat task</span></label>
+    <label class="modal-check" style="display:none;"><input type="checkbox" id="fRecurring" onchange="toggleRecurOpts()" /><span class="modal-check-label"><i class="ti ti-refresh"></i> Repeat task</span></label>
     <div class="recur-section" id="recurSection">
       <div class="field"><label>Recurrence type</label>
         <select id="fRecurType" onchange="toggleRecurOptions()">
@@ -838,7 +838,7 @@ function extendRecurring() {
 function extendAnnual(templateId) {
   const promptKey = `annual_prompt_${templateId}`;
   localStorage.removeItem(promptKey);
-  generateRecurring();
+  // generateRecurring(); // DISABLED
   saveToOneDrive();
   toast('✓ Annual task will continue next year');
 }
@@ -1155,7 +1155,8 @@ async function launchApp() {
   document.getElementById('odSplash').classList.add('hidden');
   document.getElementById('app').style.display = 'grid';
   await loadFromOneDrive();
-  carryForward(); generateRecurring();
+  carryForward(); 
+  // generateRecurring(); // DISABLED: Recurring feature temporarily removed
   loadViewState();
   applyViewState();
   render();
@@ -1199,7 +1200,8 @@ function startBackgroundSync(intervalSeconds) {
       nextId = merged._nextId;
       odEtag = freshEtag;
  
-      carryForward(); generateRecurring();
+      carryForward(); 
+      // generateRecurring(); // DISABLED
       render();
       toast('<i class="ti ti-refresh"></i> Updated from OneDrive');
     } catch(e) {
@@ -1467,7 +1469,8 @@ function useDemoMode() {
   document.getElementById('odSplash').classList.add('hidden');
   document.getElementById('app').style.display = 'grid';
   tasks = JSON.parse(JSON.stringify(SEED));
-  carryForward(); generateRecurring();
+  carryForward(); 
+  // generateRecurring(); // DISABLED
   setOdStatus('disconnected','Demo mode — not saving');
   loadViewState();
   applyViewState();
@@ -1919,7 +1922,9 @@ function saveTask() {
     toast('<i class="ti ti-circle-check"></i> Task added');
   }
  
-  if (rec) generateRecurring();
+  if (rec) {
+    // generateRecurring(); // DISABLED: Recurring feature temporarily removed
+  }
   saveToOneDrive(); closeModal(); render();
 }
  
