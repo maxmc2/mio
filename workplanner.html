@@ -1285,9 +1285,13 @@ async function refreshTokenSilently() {
 async function saveToOneDrive() {
   if (demoMode || !odToken) return;
   
-  // ← NEW: Acquire lock to ensure only one save runs at a time
+  // ← NEW: Log where this is being called from
+  const stack = new Error().stack.split('\n')[2].trim();
+  console.log('💾 saveToOneDrive called from:', stack);
+  
+  // ← Lock: ensure only one save runs at a time
   while (isSaving) {
-    await new Promise(r => setTimeout(r, 50)); // Wait for current save to finish
+    await new Promise(r => setTimeout(r, 50));
   }
   
   isSaving = true;
