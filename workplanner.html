@@ -643,62 +643,205 @@ function carryForward() {
 // ─── Recurring generation ─────────────────────
 function generateRecurring(baseDate = null) {
   let base = baseDate ? new Date(baseDate) : new Date(TODAY);
+  
   ['principal','mandy'].forEach(cal => {
-    tasks[cal].filter(t=>t.recurring).forEach(tmpl => {
-      // ← UPDATED: Generate 12 months ahead (mo=0 to mo=11)
-      for (let mo=0; mo<=11; mo++) {
-        let checkMonth = new Date(base); checkMonth.setMonth(checkMonth.getMonth()+mo);
-        let td = resolveRecur(tmpl.recurPattern, checkMonth, parseD(tmpl.date));
-        let dkk = dk(td);
-        let ms = new Date(td.getFullYear(),td.getMonth(),1);
-        let me = new Date(td.getFullYear(),td.getMonth()+1,0);
-        let exists = tasks[cal].some(t=>t.name===tmpl.name&&t.date>=dk(ms)&&t.date<=dk(me)&&t.id!==tmpl.id);
-        if (!exists && dkk!==tmpl.date) {
-          tasks[cal].push({ id:nextId++, date:dkk, name:tmpl.name, type:'recurring', recurring:true, recurPattern:tmpl.recurPattern, originalDate:'', instructions:tmpl.instructions, expanded:false });
+    tasks[cal].filter(t => t.recurring).forEach(tmpl => {
+      const pattern = tmpl.recurPattern || 'date';
+      const origDate = parseD(tmpl.date);
+      
+      // MONTHLY RECURRENCE: Generate 12 months ahead only
+      if (pattern === 'date' || pattern === 'first-monday' || pattern === 'last-friday' || 
+          pattern === 'first-working' || pattern === 'last-day' || pattern?.startsWith('specific:')) {
+        
+        // Generate for current month + next 11 months (12 total)
+        for (let mo = 0; mo < 12; mo++) {
+          let checkMonth = new Date(base);
+          checkMonth.setMonth(checkMonth.getMonth() + mo);
+          
+          // Calculate the exact date for this month
+          let instanceDate = resolveRecur(pattern, checkMonth, origDate);
+          let dkk = dk(instanceDate);
+          
+          // Only generate if:
+          // 1. This instance doesn't already exist
+          // 2. The date is different from the template date (to avoid duplication)
+          let alreadyExists = tasks[cal].some(t => 
+            t.id !== tmpl.id && 
+            t.name === tmpl.name && 
+            t.date === dkk
+          );
+          
+          if (!alreadyExists && dkk !== tmpl.date) {
+            tasks[cal].push({
+              id: nextId++,
+              date: dkk,
+              name: tmpl.name,
+              type: 'recurring',
+              recurring: true,
+              recurPattern: pattern,
+              originalDate: '',
+              instructions: tmpl.instructions || '',
+              expanded: false
+            });
+          }
+        }
+      }
+      
+      // ANNUAL RECURRENCE: Generate ONE instance for upcoming date
+      if (pattern?.startsWith('annual:')) {
+        const [month, day] = pattern.split(':')[1].split('-').map(Number);
+        let nextOccurrence = new Date(base.getFullYear(), month - 1, day);
+        
+        // If this year's date has passed, jump to next year
+        if (nextOccurrence < base) {
+          nextOccurrence.setFullYear(base.getFullYear() + 1);
+        }
+        
+        let dkk = dk(nextOccurrence);
+        
+        // Only create if it doesn't exist
+        let alreadyExists = tasks[cal].some(t => 
+          t.id !== tmpl.id && 
+          t.name === tmpl.name && 
+          t.date === dkk
+        );
+        
+        if (!alreadyExists) {
+          tasks[cal].push({
+            id: nextId++,
+            date: dkk,
+            name: tmpl.name,
+            type: 'recurring',
+            recurring: true,
+            recurPattern: pattern,
+            originalDate: '',
+            instructions: tmpl.instructions || '',
+            expanded: false
+          });
         }
       }
     });
   });
 }
 
-// ← NEW: Check if we're running low on recurring tasks
+// ← REWRITTEN: Check if we need to prompt for extending recurring
 function checkRecurringWindow() {
-  const today = new Date(TODAY);
-  const maxFutureDate = new Date(today);
-  maxFutureDate.setMonth(maxFutureDate.getMonth() + 11); // 12 months from now
-  
-  let hasTasksInLastMonth = false;
   ['principal', 'mandy'].forEach(cal => {
-    tasks[cal].forEach(t => {
-      if (t.recurring && t.date >= dk(maxFutureDate)) {
-        hasTasksInLastMonth = true;
+    tasks[cal].forEach(tmpl => {
+      if (!tmpl.recurring) return;
+      
+      const pattern = tmpl.recurPattern || 'date';
+      const today = new Date(TODAY);
+      
+      // MONTHLY: Check if we're within 1 month of running out of instances
+      if (!pattern.startsWith('annual:')) {
+        const lastGenerated = new Date(today);
+        lastGenerated.setMonth(lastGenerated.getMonth() + 11); // 12 months ahead
+        
+        // Count instances in the last month of the window
+        const lastMonthStart = new Date(lastGenerated);
+        lastMonthStart.setDate(1);
+        const lastMonthEnd = new Date(lastGenerated.getFullYear(), lastGenerated.getMonth() + 1, 0);
+        
+        let hasInstanceInLastMonth = tasks[cal].some(t =>
+          t.recurring && t.name === tmpl.name && 
+          t.date >= dk(lastMonthStart) && t.date <= dk(lastMonthEnd)
+        );
+        
+        // If we're viewing the last month and there are instances, prompt to extend
+        const cursor = new Date(TODAY); // Use TODAY as reference
+        if (hasInstanceInLastMonth && 
+            cursor.getMonth() === lastGenerated.getMonth() && 
+            cursor.getFullYear() === lastGenerated.getFullYear()) {
+          showExtendPrompt(tmpl);
+        }
+      }
+      
+      // ANNUAL: Check if the date is approaching (within 1 month)
+      if (pattern.startsWith('annual:')) {
+        const [month, day] = pattern.split(':')[1].split('-').map(Number);
+        let nextDate = new Date(today.getFullYear(), month - 1, day);
+        
+        if (nextDate < today) {
+          nextDate.setFullYear(today.getFullYear() + 1);
+        }
+        
+        const daysUntil = Math.floor((nextDate - today) / (1000 * 60 * 60 * 24));
+        
+        // Prompt when within 30 days of the annual date
+        if (daysUntil <= 30 && daysUntil > 0) {
+          showAnnualExtendPrompt(tmpl, nextDate);
+        }
       }
     });
   });
-  
-  // If no recurring tasks in the final month, show prompt
-  if (!hasTasksInLastMonth && tasks.principal.some(t=>t.recurring) || tasks.mandy.some(t=>t.recurring)) {
-    showExtendPrompt();
-  }
 }
 
-function showExtendPrompt() {
+function showExtendPrompt(tmpl) {
+  // Check if we already showed this prompt recently
+  const promptKey = `prompt_${tmpl.id}`;
+  const lastPrompt = localStorage.getItem(promptKey);
+  if (lastPrompt && Date.now() - parseInt(lastPrompt) < 86400000) { // 24 hours
+    return; // Already prompted today
+  }
+  
   const modal = document.createElement('div');
   modal.className = 'session-modal-overlay';
   modal.innerHTML = `
     <div class="session-modal">
-      <div class="session-modal-header">📅 Extend Recurring Tasks?</div>
+      <div class="session-modal-header">📅 Extend Recurring Task?</div>
       <div class="session-modal-body">
-        <p>You're running out of recurring task instances.</p>
+        <p><strong>${esc(tmpl.name)}</strong></p>
+        <p>You're approaching the end of recurring instances (12 months).</p>
         <p>Generate another 12 months?</p>
       </div>
       <div class="session-modal-actions">
         <button class="session-modal-btn primary" onclick="extendRecurring(); this.closest('.session-modal-overlay').remove();">Yes, Extend</button>
-        <button class="session-modal-btn secondary" onclick="this.closest('.session-modal-overlay').remove();">Not now</button>
+        <button class="session-modal-btn secondary" onclick="localStorage.setItem('prompt_${tmpl.id}', Date.now()); this.closest('.session-modal-overlay').remove();">Not now</button>
       </div>
     </div>
   `;
   document.body.appendChild(modal);
+}
+
+function showAnnualExtendPrompt(tmpl, nextDate) {
+  const promptKey = `annual_prompt_${tmpl.id}`;
+  const lastPrompt = localStorage.getItem(promptKey);
+  if (lastPrompt) return; // Already prompted for this year
+  
+  const modal = document.createElement('div');
+  modal.className = 'session-modal-overlay';
+  modal.innerHTML = `
+    <div class="session-modal">
+      <div class="session-modal-header">📅 Annual Task Coming Up</div>
+      <div class="session-modal-body">
+        <p><strong>${esc(tmpl.name)}</strong></p>
+        <p>Due: ${fmtDate(dk(nextDate))}</p>
+        <p>Create instance for next year after this one?</p>
+      </div>
+      <div class="session-modal-actions">
+        <button class="session-modal-btn primary" onclick="extendAnnual('${tmpl.id}'); this.closest('.session-modal-overlay').remove();">Yes, Continue</button>
+        <button class="session-modal-btn secondary" onclick="localStorage.setItem('annual_prompt_${tmpl.id}', 'skip'); this.closest('.session-modal-overlay').remove();">Skip Next Year</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function extendRecurring() {
+  const futureDate = new Date(TODAY);
+  futureDate.setMonth(futureDate.getMonth() + 12);
+  generateRecurring(futureDate);
+  saveToOneDrive();
+  toast('✓ Extended recurring tasks 12 more months');
+}
+
+function extendAnnual(templateId) {
+  const promptKey = `annual_prompt_${templateId}`;
+  localStorage.removeItem(promptKey);
+  generateRecurring();
+  saveToOneDrive();
+  toast('✓ Annual task will continue next year');
 }
 
 function resolveRecur(pat, base, orig) {
