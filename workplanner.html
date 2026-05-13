@@ -649,29 +649,29 @@ function generateRecurring(baseDate = null) {
       const pattern = tmpl.recurPattern || 'date';
       const origDate = parseD(tmpl.date);
       
+      console.log(`🔄 Generating recurring: "${tmpl.name}" (pattern: ${pattern}, template date: ${tmpl.date})`);
+      
       // MONTHLY RECURRENCE: Generate 12 months ahead only
       if (pattern === 'date' || pattern === 'first-monday' || pattern === 'last-friday' || 
           pattern === 'first-working' || pattern === 'last-day' || pattern?.startsWith('specific:')) {
         
-        // Generate for current month + next 11 months (12 total)
         for (let mo = 0; mo < 12; mo++) {
           let checkMonth = new Date(base);
           checkMonth.setMonth(checkMonth.getMonth() + mo);
           
-          // Calculate the exact date for this month
           let instanceDate = resolveRecur(pattern, checkMonth, origDate);
           let dkk = dk(instanceDate);
           
-          // Only generate if:
-          // 1. This instance doesn't already exist
-          // 2. The date is different from the template date (to avoid duplication)
           let alreadyExists = tasks[cal].some(t => 
             t.id !== tmpl.id && 
             t.name === tmpl.name && 
             t.date === dkk
           );
           
+          console.log(`  mo=${mo}: dkk=${dkk}, template=${tmpl.date}, exists=${alreadyExists}, diff=${dkk !== tmpl.date}`);
+          
           if (!alreadyExists && dkk !== tmpl.date) {
+            console.log(`    ✓ Creating instance on ${dkk}`);
             tasks[cal].push({
               id: nextId++,
               date: dkk,
@@ -692,14 +692,13 @@ function generateRecurring(baseDate = null) {
         const [month, day] = pattern.split(':')[1].split('-').map(Number);
         let nextOccurrence = new Date(base.getFullYear(), month - 1, day);
         
-        // If this year's date has passed, jump to next year
         if (nextOccurrence < base) {
           nextOccurrence.setFullYear(base.getFullYear() + 1);
         }
         
         let dkk = dk(nextOccurrence);
+        console.log(`📅 Annual: "${tmpl.name}" on ${dkk}`);
         
-        // Only create if it doesn't exist
         let alreadyExists = tasks[cal].some(t => 
           t.id !== tmpl.id && 
           t.name === tmpl.name && 
