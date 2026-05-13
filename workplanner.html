@@ -1038,6 +1038,7 @@ function startBackgroundSync(intervalSeconds) {
  
 async function loadFromOneDrive() {
   setOdStatus('connecting','Connecting…');
+  odEtag = null; // ← NEW: Clear any stale ETag to prevent 412 conflicts
   try {
     const res = await fetch(`https://graph.microsoft.com/v1.0${OD_FILE_PATH}`, {
       headers: { Authorization: `Bearer ${odToken}` }
