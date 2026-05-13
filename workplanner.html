@@ -461,7 +461,6 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
     </div>
     <div class="topbar-right">
       <button class="btn-add" onclick="openModal()"><i class="ti ti-plus" aria-hidden="true"></i> Add task</button>
-      <button class="btn-add" onclick="extendRecurring()" title="Generate recurring tasks for 12 more months" style="background:var(--green);"><i class="ti ti-refresh" aria-hidden="true"></i> Extend recurring</button>
       <label class="archive-toggle" onclick="toggleArchive()">
         <div class="toggle-track" id="archToggle"><div class="toggle-knob"></div></div>
         <span>Show archived</span>
@@ -662,13 +661,44 @@ function generateRecurring(baseDate = null) {
   });
 }
 
-// ← NEW: Extend recurring tasks 12 more months
-function extendRecurring() {
-  const futureDate = new Date(TODAY);
-  futureDate.setMonth(futureDate.getMonth() + 12);
-  generateRecurring(futureDate);
-  saveToOneDrive();
-  toast('✓ Extended recurring tasks 12 more months');
+// ← NEW: Check if we're running low on recurring tasks
+function checkRecurringWindow() {
+  const today = new Date(TODAY);
+  const maxFutureDate = new Date(today);
+  maxFutureDate.setMonth(maxFutureDate.getMonth() + 11); // 12 months from now
+  
+  let hasTasksInLastMonth = false;
+  ['principal', 'mandy'].forEach(cal => {
+    tasks[cal].forEach(t => {
+      if (t.recurring && t.date >= dk(maxFutureDate)) {
+        hasTasksInLastMonth = true;
+      }
+    });
+  });
+  
+  // If no recurring tasks in the final month, show prompt
+  if (!hasTasksInLastMonth && tasks.principal.some(t=>t.recurring) || tasks.mandy.some(t=>t.recurring)) {
+    showExtendPrompt();
+  }
+}
+
+function showExtendPrompt() {
+  const modal = document.createElement('div');
+  modal.className = 'session-modal-overlay';
+  modal.innerHTML = `
+    <div class="session-modal">
+      <div class="session-modal-header">📅 Extend Recurring Tasks?</div>
+      <div class="session-modal-body">
+        <p>You're running out of recurring task instances.</p>
+        <p>Generate another 12 months?</p>
+      </div>
+      <div class="session-modal-actions">
+        <button class="session-modal-btn primary" onclick="extendRecurring(); this.closest('.session-modal-overlay').remove();">Yes, Extend</button>
+        <button class="session-modal-btn secondary" onclick="this.closest('.session-modal-overlay').remove();">Not now</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
 }
 
 function resolveRecur(pat, base, orig) {
@@ -1627,8 +1657,8 @@ function setView(v) {
   saveViewState();
   render();
 }
-function navBack() { if(view==='month')cursor.setMonth(cursor.getMonth()-1); else cursor.setDate(cursor.getDate()-7); saveViewState(); render(); }
-function navFwd()  { if(view==='month')cursor.setMonth(cursor.getMonth()+1); else cursor.setDate(cursor.getDate()+7); saveViewState(); render(); }
+function navBack() { if(view==='month')cursor.setMonth(cursor.getMonth()-1); else cursor.setDate(cursor.getDate()-7); saveViewState(); render(); checkRecurringWindow(); }
+function navFwd()  { if(view==='month')cursor.setMonth(cursor.getMonth()+1); else cursor.setDate(cursor.getDate()+7); saveViewState(); render(); checkRecurringWindow(); }
 function goToday() { cursor=new Date(TODAY); saveViewState(); render(); }
 function toggleArchive() { showArchived=!showArchived; document.getElementById('archToggle').classList.toggle('on',showArchived); saveViewState(); render(); }
 function switchCal(cal) {
