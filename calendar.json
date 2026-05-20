@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-20T14:35:22.597431+00:00",
+  "updated": "2026-05-20T14:40:29.238671+00:00",
   "events": [
     {
       "summary": "Matthew Staff",
@@ -166,6 +166,13 @@
       "summary": "Jobs of Oxted",
       "dtstart": "20260603T100000",
       "dtend": "20260603T110000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Kyoko",
+      "dtstart": "20260521T100000",
+      "dtend": "20260521T110000",
       "location": "",
       "description": ""
     },
