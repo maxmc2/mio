@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-22T06:55:11.852402+00:00",
+  "updated": "2026-05-22T07:00:35.374696+00:00",
   "events": [
     {
       "summary": "Matthew Staff",
@@ -26,6 +26,13 @@
       "summary": "John Perkins",
       "dtstart": "20260421T110000",
       "dtend": "20260421T120000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Stacey",
+      "dtstart": "20260603T160000",
+      "dtend": "20260603T170000",
       "location": "",
       "description": ""
     },
