@@ -612,7 +612,9 @@ function dk(d) { return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDat
 function pad(n) { return String(n).padStart(2,'0'); }
 function parseD(s) { return new Date(s+'T00:00:00'); }
 function isWknd(d) { let day = d.getDay(); return day===0||day===6; }
-function nextWorkDay(d) { let n=new Date(d); n.setDate(n.getDate()+1); while(isWknd(n)) n.setDate(n.getDate()+1); return n; }
+function isBankHoliday(d) { return BANK_HOLIDAYS && BANK_HOLIDAYS[dk(d)] !== undefined; }
+function isNonWorkDay(d) { return isWknd(d) || isBankHoliday(d); }
+function nextWorkDay(d) { let n=new Date(d); n.setDate(n.getDate()+1); while(isNonWorkDay(n)) n.setDate(n.getDate()+1); return n; }
 function weekStart(d) { let dd=new Date(d); let day=dd.getDay(); dd.setDate(dd.getDate()+(day===0?-6:1-day)); dd.setHours(0,0,0,0); return dd; }
 function isFriday() { return TODAY.getDay()===5; }
 function findTask(id) {
@@ -630,16 +632,23 @@ function fmtDate(s) { let d=parseD(s); return d.getDate()+' '+MONTHS[d.getMonth(
 // ─── Carry-forward ───────────────────────────
 function carryForward() {
   const todayDK = dk(TODAY);
+  
+  // ← Determine target date: today, or next work day if today is weekend/holiday
+  let targetDate = new Date(TODAY);
+  while (isNonWorkDay(targetDate)) {
+    targetDate.setDate(targetDate.getDate() + 1);
+  }
+  const targetDK = dk(targetDate);
+  
   const carryTypes = new Set(['active','overdue','recurring','mandy-notify','mandy-notify-overdue','mandy-actioned','mandy-actioned-overdue']);
   ['principal','mandy'].forEach(cal => {
     tasks[cal].forEach(t => {
       // ← Never carry forward templates (they have no specific date)
       if (t.type === 'template') return;
       if (carryTypes.has(t.type) && t.date < todayDK) {
-        let d = parseD(t.date);
-        let nwd = nextWorkDay(d);
         if (!t.originalDate) t.originalDate = t.date;
-        t.date = dk(nwd);
+        // ← Jump straight to target (today or next work day), not one step at a time
+        t.date = targetDK;
         // Preserve colour family — just mark as overdue variant
         if      (t.type==='mandy-notify'   || t.type==='mandy-notify-overdue')   t.type = 'mandy-notify-overdue';
         else if (t.type==='mandy-actioned' || t.type==='mandy-actioned-overdue') t.type = 'mandy-actioned-overdue';
@@ -753,14 +762,27 @@ function checkRecurringWindow() {
       if (lastPrompt && Date.now() - parseInt(lastPrompt) < 86400000) return; // 24h cooldown
       
       if (pattern.startsWith('annual:')) {
-        // Annual: prompt if upcoming date is within 30 days
+        // Annual: only prompt if no instance exists for the year AFTER the latest one
         const instances = tasks[cal].filter(t => t.templateId === tmpl.id);
         if (instances.length === 0) {
           needsExtension.push({ tmpl, cal, type: 'annual' });
         } else {
-          const latestDate = instances.map(t => t.date).sort().pop();
+          const sortedDates = instances.map(t => t.date).sort();
+          const latestDate = sortedDates[sortedDates.length - 1];
+          const latestYear = parseD(latestDate).getFullYear();
           const daysUntil = Math.floor((parseD(latestDate) - today) / 86400000);
-          if (daysUntil <= 30 && daysUntil >= -7) {
+          
+          // Check if year-after instance already exists
+          const [month, day] = pattern.split(':')[1].split('-').map(Number);
+          const nextYearDate = dk(new Date(latestYear + 1, month - 1, day));
+          const nextYearExists = instances.some(t => 
+            t.originalDate === nextYearDate || t.date === nextYearDate
+          );
+          
+          // Only prompt if:
+          // - Latest instance is upcoming (within 30 days) OR past
+          // - AND no instance scheduled for the year after
+          if (daysUntil <= 30 && !nextYearExists) {
             needsExtension.push({ tmpl, cal, type: 'annual', latestDate });
           }
         }
@@ -811,18 +833,74 @@ function showExtendPrompt(info) {
   document.body.appendChild(modal);
   
   document.getElementById('extendYesBtn').onclick = () => {
-    generateRecurring(12);
-    saveToOneDrive();
-    render();
+    let didExtend = false;
+    if (type === 'annual') {
+      didExtend = extendAnnualForNextYear(tmpl.id, info.cal);
+    } else {
+      generateRecurring(12);
+      didExtend = true;
+    }
+    if (didExtend) {
+      saveToOneDrive();
+      render();
+      toast('✓ Extended recurring task');
+    }
     localStorage.setItem(promptKey, Date.now().toString());
     modal.remove();
-    toast('✓ Extended recurring task');
   };
   
   document.getElementById('extendNoBtn').onclick = () => {
     localStorage.setItem(promptKey, Date.now().toString());
     modal.remove();
   };
+}
+
+// ← Extend an annual recurring task to next year
+function extendAnnualForNextYear(templateId, cal) {
+  const tmpl = tasks[cal].find(t => t.id === templateId);
+  if (!tmpl || !tmpl.recurPattern || !tmpl.recurPattern.startsWith('annual:')) return false;
+  
+  // Find the latest existing instance for this template
+  const instances = tasks[cal].filter(t => t.templateId === templateId);
+  let baseYear;
+  if (instances.length > 0) {
+    const latestDate = instances.map(t => t.date).sort().pop();
+    baseYear = parseD(latestDate).getFullYear();
+  } else {
+    baseYear = new Date(TODAY).getFullYear();
+  }
+  
+  // Parse pattern (annual:MM-DD)
+  const [month, day] = tmpl.recurPattern.split(':')[1].split('-').map(Number);
+  
+  // Create instance for baseYear + 1
+  const nextOccurrence = new Date(baseYear + 1, month - 1, day);
+  const targetDate = dk(nextOccurrence);
+  
+  // Check if it already exists
+  const exists = tasks[cal].some(t => 
+    t.templateId === templateId && (t.originalDate === targetDate || t.date === targetDate)
+  );
+  if (exists) return false;
+  
+  // Check skip list
+  if (tasks._skippedRecurring && tasks._skippedRecurring[templateId] && 
+      tasks._skippedRecurring[templateId].includes(targetDate)) return false;
+  
+  tasks[cal].push({
+    id: nextId++,
+    templateId: templateId,
+    date: targetDate,
+    originalDate: targetDate,
+    name: tmpl.name,
+    type: 'active',
+    recurring: false,
+    recurPattern: '',
+    instructions: tmpl.instructions || '',
+    expanded: false,
+    lastModified: Date.now()
+  });
+  return true;
 }
 
 // ← Delete a recurring template + all its future instances
