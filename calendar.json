@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-26T15:05:17.756542+00:00",
+  "updated": "2026-05-26T15:10:20.767280+00:00",
   "events": [
     {
       "summary": "Matthew Staff",
@@ -47,6 +47,13 @@
       "summary": "Delphine\u2019s birthday",
       "dtstart": "20250823",
       "dtend": "20250824",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Robin",
+      "dtstart": "20260610T103000",
+      "dtend": "20260610T113000",
       "location": "",
       "description": ""
     },
