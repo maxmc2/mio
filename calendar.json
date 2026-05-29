@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-29T17:10:17.432766+00:00",
+  "updated": "2026-05-29T17:15:21.415925+00:00",
   "events": [
     {
       "summary": "Matthew Staff",
@@ -131,6 +131,13 @@
       "summary": "Carl Denham",
       "dtstart": "20260520T130000",
       "dtend": "20260520T140000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Bob - Bespoke",
+      "dtstart": "20260608T100000",
+      "dtend": "20260608T103000",
       "location": "",
       "description": ""
     },
