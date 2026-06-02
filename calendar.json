@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-02T11:00:49.017296+00:00",
+  "updated": "2026-06-02T11:02:02.018979+00:00",
   "events": [
     {
       "summary": "Matthew Staff",
@@ -180,6 +180,13 @@
       "summary": "Mands",
       "dtstart": "20260422T090000",
       "dtend": "20260422T100000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Alan & Bev Turner - CGT",
+      "dtstart": "20260609T110000",
+      "dtend": "20260609T120000",
       "location": "",
       "description": ""
     },
