@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-08T13:50:18.401562+00:00",
+  "updated": "2026-06-08T13:55:14.308414+00:00",
   "events": [
     {
       "summary": "Matthew Staff",
@@ -145,6 +145,13 @@
       "summary": "Peter Jordan",
       "dtstart": "20260415T150000",
       "dtend": "20260415T153000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Paul ATKINS",
+      "dtstart": "20260617T170000",
+      "dtend": "20260617T180000",
       "location": "",
       "description": ""
     },
