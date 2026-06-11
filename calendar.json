@@ -1,6 +1,13 @@
 {
-  "updated": "2026-06-11T18:10:24.186293+00:00",
+  "updated": "2026-06-11T18:15:27.428781+00:00",
   "events": [
+    {
+      "summary": "Mands",
+      "dtstart": "20260619T090000",
+      "dtend": "20260619T100000",
+      "location": "",
+      "description": ""
+    },
     {
       "summary": "Matthew Staff",
       "dtstart": "20260429T140000",
