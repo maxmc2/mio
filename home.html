@@ -186,10 +186,52 @@ setInterval(function() {
   var SCOPES    = ['Files.ReadWrite', 'User.Read'];
   var AML_FILE  = 'aml_data.json';
 
+  // Compute status live from the expiry dates — mirrors computeStatus() in aml.html
+  // so the dashboard never relies on a stale saved _status snapshot.
+  function computeStatus(c) {
+    if (!c.docOption) return c.status || 'Pending';
+
+    var incomplete = false;
+    if (c.docOption === 'A') {
+      if (!c.passportExpiry || !c.dlExpiryA) incomplete = true;
+    } else if (c.docOption === 'B') {
+      if (!c.passportExpiryB || (!c.addrDateB && !c.addrTypeB)) incomplete = true;
+    } else if (c.docOption === 'C') {
+      if (!c.dlExpiryC || (!c.addrDateC && !c.addrTypeC && !c.utilDateC)) incomplete = true;
+    }
+
+    var now = new Date();
+    var today_d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var soon = new Date(today_d); soon.setDate(today_d.getDate() + 30);
+
+    var expired = false, expiringSoon = false;
+    function checkExpiry(dateStr) {
+      if (!dateStr) return;
+      var parts = dateStr.split('-');
+      var d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+      if (d < today_d) expired = true;
+      else if (d <= soon) expiringSoon = true;
+    }
+
+    if (c.docOption === 'A') {
+      checkExpiry(c.passportExpiry);
+      checkExpiry(c.dlExpiryA);
+    } else if (c.docOption === 'B') {
+      checkExpiry(c.passportExpiryB);
+    } else if (c.docOption === 'C') {
+      checkExpiry(c.dlExpiryC);
+    }
+
+    if (expired) return 'Expired';
+    if (expiringSoon) return 'Expiring soon';
+    if (incomplete) return 'Incomplete';
+    return 'Verified';
+  }
+
   function showBadges(clients) {
     var nExpired = 0, nExpiring = 0;
     clients.forEach(function(c) {
-      var s = c._status || '';
+      var s = computeStatus(c);
       if (s === 'Expired')            nExpired++;
       else if (s === 'Expiring soon') nExpiring++;
     });
