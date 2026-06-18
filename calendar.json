@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-18T09:55:19.186498+00:00",
+  "updated": "2026-06-18T10:00:42.618087+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -138,6 +138,13 @@
       "summary": "Carl Denham",
       "dtstart": "20260520T130000",
       "dtend": "20260520T140000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Massage - R 3",
+      "dtstart": "20260716T101500",
+      "dtend": "20260716T104500",
       "location": "",
       "description": ""
     },
