@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-19T16:20:19.358547+00:00",
+  "updated": "2026-06-19T16:25:16.735909+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -19,6 +19,13 @@
       "summary": "Ben Barter",
       "dtstart": "20260506T150000",
       "dtend": "20260506T160000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Mands",
+      "dtstart": "20260623T090000",
+      "dtend": "20260623T100000",
       "location": "",
       "description": ""
     },
