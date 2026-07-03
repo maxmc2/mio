@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-03T09:35:12.853434+00:00",
+  "updated": "2026-07-03T09:40:22.240853+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -215,6 +215,13 @@
       "summary": "Mands",
       "dtstart": "20260422T090000",
       "dtend": "20260422T100000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Dan Jordan",
+      "dtstart": "20260706T120000",
+      "dtend": "20260706T130000",
       "location": "",
       "description": ""
     },
