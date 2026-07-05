@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-05T21:55:13.671032+00:00",
+  "updated": "2026-07-05T22:00:49.999703+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -54,6 +54,13 @@
       "summary": "Mands",
       "dtstart": "20260416T090000",
       "dtend": "20260416T100000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Paul & Tina",
+      "dtstart": "20260708T170000",
+      "dtend": "20260708T180000",
       "location": "",
       "description": ""
     },
