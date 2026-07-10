@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-10T20:50:41.017944+00:00",
+  "updated": "2026-07-10T20:55:16.873034+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -110,6 +110,13 @@
       "summary": "Lee Nockels",
       "dtstart": "20260415T110000",
       "dtend": "20260415T120000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Mands",
+      "dtstart": "20260715T090000",
+      "dtend": "20260715T100000",
       "location": "",
       "description": ""
     },
