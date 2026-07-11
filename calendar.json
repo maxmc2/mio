@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-11T11:25:12.364030+00:00",
+  "updated": "2026-07-11T11:30:47.557582+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -194,6 +194,13 @@
       "summary": "Sarah Bater",
       "dtstart": "20260616T160000",
       "dtend": "20260616T170000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "John",
+      "dtstart": "20260714T180000",
+      "dtend": "20260714T190000",
       "location": "",
       "description": ""
     },
