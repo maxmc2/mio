@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-14T11:20:42.999566+00:00",
+  "updated": "2026-07-14T11:25:15.808846+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -145,13 +145,6 @@
       "summary": "Massage room 3",
       "dtstart": "20260514T100000",
       "dtend": "20260514T110000",
-      "location": "",
-      "description": ""
-    },
-    {
-      "summary": "Sam Woodhouse",
-      "dtstart": "20260715T140000",
-      "dtend": "20260715T150000",
       "location": "",
       "description": ""
     },
