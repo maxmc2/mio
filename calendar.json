@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-17T12:35:13.839083+00:00",
+  "updated": "2026-07-17T12:40:19.437862+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -26,6 +26,13 @@
       "summary": "Mands",
       "dtstart": "20260623T090000",
       "dtend": "20260623T100000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Mands",
+      "dtstart": "20260721T090000",
+      "dtend": "20260721T100000",
       "location": "",
       "description": ""
     },
