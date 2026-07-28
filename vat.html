@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VAT & MTD ITSA Returns – Mark It Off</title>
+<title>VAT Returns – Mark It Off</title>
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="icon" type="image/png" sizes="512x512" href="favicon-512.png">
 <link rel="icon" type="image/png" sizes="512x512" href="favicon-512.png">
@@ -88,7 +88,7 @@
   .s-received{background:#E6F1FB;color:#0C447C} .s-ready{background:#FBEAF0;color:#72243E}
   .s-bookkeeping{background:#D4E8F7;color:#0C447C} .s-processed{background:#EAF3DE;color:#27500A}
   .s-signing{background:#EEEDFE;color:#533AB7} .s-filed{background:#E1F5EE;color:#085041}
-  .pay-dd{background:#E6F1FB;color:#0C447C} .pay-manual{background:#F1EFE8;color:#444441}
+  .pay-dd{background:#E6F1FB;color:#0C447C} .pay-manual{background:#F1EFE8;color:#444441} .pay-na{background:#EDEDEA;color:#8C8C87}
   .scheme-std{background:#EEEDFE;color:#3C3489} .scheme-flat{background:#FAEEDA;color:#633806} .scheme-cash{background:#EAF3DE;color:#27500A}
   .status-wrap { position:relative; display:inline-block; }
   .status-wrap .badge { cursor:pointer; user-select:none; }
@@ -152,12 +152,12 @@
 
 <div class="top-bar">
   <div class="top-bar-left" style="display:flex;align-items:center;gap:16px;">
-    <div class="top-bar-title">VAT & MTD ITSA Returns</div>
+    <div class="top-bar-title">VAT Returns</div>
     <nav class="top-bar-nav">
       <a href="home.html">Dashboard</a>
       <a href="aml.html">AML</a>
       <a href="tax.html">Tax</a>
-      <a href="vat.html" class="nav-active">VAT & MTD ITSA</a>
+      <a href="vat.html" class="nav-active">VAT</a>
       <a href="payroll.html">Payroll</a>
       <a href="cis.html">CIS</a>
       <a href="pension.html">Pension</a>
@@ -256,7 +256,7 @@
         <select id="f-scheme"><option>Standard</option><option>Flat rate</option><option>Cash accounting</option></select>
       </div>
       <div><label>Payment method</label>
-        <select id="f-payment"><option>Direct debit</option><option>Manual payment</option></select>
+        <select id="f-payment"><option>Direct debit</option><option>Manual payment</option><option>N/A</option></select>
       </div>
       <div><label>Assigned to</label>
         <select id="f-assigned"><option>Me</option><option>Bookkeeper</option></select>
@@ -398,6 +398,8 @@ const STATUS_CLASS = {
   'Sent for signing':'s-signing','Filed':'s-filed'
 };
 const SCHEME_CLASS = {'Standard':'scheme-std','Flat rate':'scheme-flat','Cash accounting':'scheme-cash'};
+const PAYMENT_CLASS = {'Direct debit':'pay-dd','Manual payment':'pay-manual','N/A':'pay-na'};
+const PAYMENT_LABEL = {'Direct debit':'DD','Manual payment':'Manual','N/A':'N/A'};
 const STATUSES = ['New','Chasing info','Bookkeeping','Processed','Sent for signing','Filed'];
 
 let clients = [];
@@ -844,7 +846,7 @@ function render() {
       </td>
       <td style="font-size:12px">${fmtDate(c.lastContact)}</td>
       <td><span class="badge ${SCHEME_CLASS[c.scheme]||'scheme-std'}">${c.scheme||'Standard'}</span></td>
-      <td><span class="badge ${c.payment==='Direct debit'?'pay-dd':'pay-manual'}">${c.payment==='Direct debit'?'DD':'Manual'}</span></td>
+      <td><span class="badge ${PAYMENT_CLASS[c.payment]||'pay-manual'}">${PAYMENT_LABEL[c.payment]||'Manual'}</span></td>
       <td style="font-size:12px;color:#666;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.notes||'—'}</td>
       <td style="white-space:nowrap">
         <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();quickChase(${c.id})" style="margin-right:4px">Chase</button>
