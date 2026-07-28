@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-28T08:30:30.717616+00:00",
+  "updated": "2026-07-28T08:35:20.061833+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -47,6 +47,13 @@
       "summary": "John Perkins",
       "dtstart": "20260421T110000",
       "dtend": "20260421T120000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Money for barclaycard",
+      "dtstart": "20260807T130000",
+      "dtend": "20260807T140000",
       "location": "",
       "description": ""
     },
