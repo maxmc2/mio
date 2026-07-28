@@ -822,10 +822,13 @@ function render() {
     if (fScheme && c.scheme!==fScheme) return false;
     return true;
   }).sort((a,b) => {
-    // Filed returns go to bottom
-    if (a.status === 'Filed' && b.status !== 'Filed') return 1;
-    if (a.status !== 'Filed' && b.status === 'Filed') return -1;
-    // Otherwise sort by name
+    // Group by status in workflow order (New → Chasing info → Bookkeeping
+    // → Processed → Sent for signing → Filed). Unknown statuses go last.
+    const ai = STATUSES.indexOf(a.status), bi = STATUSES.indexOf(b.status);
+    const aRank = ai === -1 ? STATUSES.length : ai;
+    const bRank = bi === -1 ? STATUSES.length : bi;
+    if (aRank !== bRank) return aRank - bRank;
+    // Alphabetical within each status group
     return a.name.localeCompare(b.name);
   });
 
