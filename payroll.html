@@ -163,6 +163,18 @@
   .p30-na   { background: #e8e8e4; color: #777; }
   .p30-sent { background: #2980b9; color: #fff; }
   .p30-blank{ background: #e8e8e4; color: #bbb; }
+  /* ── Focus mode: dull every month column except the selected one ── */
+  /* Selected column keeps full colour; click another month to bring its colours back. */
+  tbody td:not(.col-selected):not(.col-name) .pay-cell,
+  tbody td:not(.col-selected):not(.col-name) .p30-cell {
+    filter: saturate(0.3) opacity(0.55);
+    transition: filter 0.15s;
+  }
+  /* Hovering a dulled cell restores its true colour so it stays readable while working. */
+  tbody td:not(.col-selected):not(.col-name) .pay-cell:hover,
+  tbody td:not(.col-selected):not(.col-name) .p30-cell:hover {
+    filter: none;
+  }
   .corner-logo { position: fixed; bottom: 14px; left: 18px; z-index: 50; }
   .corner-logo img { height: 46px; display: block; mix-blend-mode: multiply; opacity: 0.88; filter: contrast(1.05); }
 
