@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-31T12:35:13.497543+00:00",
+  "updated": "2026-07-31T12:40:24.750252+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -19,6 +19,13 @@
       "summary": "Ben Barter",
       "dtstart": "20260506T150000",
       "dtend": "20260506T160000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Chiropractor",
+      "dtstart": "20260903T093000",
+      "dtend": "20260903T103000",
       "location": "",
       "description": ""
     },
