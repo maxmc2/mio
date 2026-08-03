@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-03T08:25:14.955932+00:00",
+  "updated": "2026-08-03T08:30:30.765754+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -166,6 +166,13 @@
       "summary": "Caterham Thai",
       "dtstart": "20260416T120000",
       "dtend": "20260416T130000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Ben Bater",
+      "dtstart": "20260803T103000",
+      "dtend": "20260803T113000",
       "location": "",
       "description": ""
     },
