@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-04T14:15:27.144979+00:00",
+  "updated": "2026-08-04T14:20:21.573992+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -61,6 +61,13 @@
       "summary": "Money for barclaycard",
       "dtstart": "20260807T130000",
       "dtend": "20260807T140000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Podiatrist",
+      "dtstart": "20260806T140000",
+      "dtend": "20260806T150000",
       "location": "",
       "description": ""
     },
