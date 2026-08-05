@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-05T12:15:27.653134+00:00",
+  "updated": "2026-08-05T12:20:18.552958+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -180,6 +180,13 @@
       "summary": "Ben Bater",
       "dtstart": "20260803T103000",
       "dtend": "20260803T113000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Xana - new client",
+      "dtstart": "20260813T133000",
+      "dtend": "20260813T143000",
       "location": "",
       "description": ""
     },
