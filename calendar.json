@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-05T11:30:32.229408+00:00",
+  "updated": "2026-08-05T11:35:14.307082+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -180,6 +180,13 @@
       "summary": "Ben Bater",
       "dtstart": "20260803T103000",
       "dtend": "20260803T113000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Air con install",
+      "dtstart": "20260901T120000",
+      "dtend": "20260901T130000",
       "location": "",
       "description": ""
     },
