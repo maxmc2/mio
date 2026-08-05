@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-05T10:30:33.327287+00:00",
+  "updated": "2026-08-05T10:35:22.709433+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -66,8 +66,8 @@
     },
     {
       "summary": "Podiatrist",
-      "dtstart": "20260806T140000",
-      "dtend": "20260806T150000",
+      "dtstart": "20260806T130000",
+      "dtend": "20260806T140000",
       "location": "",
       "description": ""
     },
