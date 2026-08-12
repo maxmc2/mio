@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-12T11:50:18.524424+00:00",
+  "updated": "2026-08-12T11:55:13.834811+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -257,6 +257,13 @@
       "summary": "Bob - Bespoke",
       "dtstart": "20260608T100000",
       "dtend": "20260608T103000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Monaro at Neil\u2019s",
+      "dtstart": "20260826T103000",
+      "dtend": "20260826T113000",
       "location": "",
       "description": ""
     },
