@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-13T10:55:14.576959+00:00",
+  "updated": "2026-08-13T11:00:42.354861+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -376,6 +376,13 @@
       "summary": "Chiropractor",
       "dtstart": "20260416T104000",
       "dtend": "20260416T114000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Giedre",
+      "dtstart": "20260813T151500",
+      "dtend": "20260813T161500",
       "location": "Europe/London",
       "description": ""
     }
