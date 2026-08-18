@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-18T17:45:21.596990+00:00",
+  "updated": "2026-08-18T17:50:19.806967+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -285,6 +285,13 @@
       "summary": "John",
       "dtstart": "20260722T180000",
       "dtend": "20260722T190000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Kevin Hewitt",
+      "dtstart": "20260819T161500",
+      "dtend": "20260819T171500",
       "location": "",
       "description": ""
     },
