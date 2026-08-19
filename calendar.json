@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-19T14:40:21.228812+00:00",
+  "updated": "2026-08-19T14:45:23.202767+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -19,6 +19,13 @@
       "summary": "Ben Barter",
       "dtstart": "20260506T150000",
       "dtend": "20260506T160000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Jobs of Oxted",
+      "dtstart": "20260824T110000",
+      "dtend": "20260824T120000",
       "location": "",
       "description": ""
     },
