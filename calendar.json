@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-20T16:35:16.969723+00:00",
+  "updated": "2026-08-20T16:40:19.107556+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -61,6 +61,13 @@
       "summary": "John Perkins",
       "dtstart": "20260421T110000",
       "dtend": "20260421T120000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Nina job offer",
+      "dtstart": "20260824T150000",
+      "dtend": "20260824T160000",
       "location": "",
       "description": ""
     },
