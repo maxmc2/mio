@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-20T10:45:23.274597+00:00",
+  "updated": "2026-08-20T10:50:19.677249+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -187,6 +187,13 @@
       "summary": "Ben Bater",
       "dtstart": "20260803T103000",
       "dtend": "20260803T113000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Massage - R 3",
+      "dtstart": "20260910T110000",
+      "dtend": "20260910T113000",
       "location": "",
       "description": ""
     },
