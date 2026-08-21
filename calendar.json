@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-21T13:20:20.223515+00:00",
+  "updated": "2026-08-21T13:25:16.270758+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -24,8 +24,8 @@
     },
     {
       "summary": "Jobs of Oxted",
-      "dtstart": "20260824T110000",
-      "dtend": "20260824T120000",
+      "dtstart": "20260902T110000",
+      "dtend": "20260902T120000",
       "location": "",
       "description": ""
     },
