@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-24T13:20:19.665226+00:00",
+  "updated": "2026-08-24T13:25:17.296688+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -257,6 +257,13 @@
       "summary": "Massage - R 3",
       "dtstart": "20260820T110000",
       "dtend": "20260820T113000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "QuickBooks",
+      "dtstart": "20260903T160000",
+      "dtend": "20260903T170000",
       "location": "",
       "description": ""
     },
