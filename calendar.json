@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-28T13:50:18.489202+00:00",
+  "updated": "2026-08-28T13:55:16.607913+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -362,6 +362,13 @@
       "summary": "Mands",
       "dtstart": "20260422T090000",
       "dtend": "20260422T100000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Giedre",
+      "dtstart": "20260902T171500",
+      "dtend": "20260902T181500",
       "location": "",
       "description": ""
     },
