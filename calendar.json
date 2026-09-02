@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-02T20:20:17.140084+00:00",
+  "updated": "2026-09-02T20:25:13.008093+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -31,8 +31,8 @@
     },
     {
       "summary": "Chiropractor",
-      "dtstart": "20260903T093000",
-      "dtend": "20260903T103000",
+      "dtstart": "20260903T090000",
+      "dtend": "20260903T100000",
       "location": "",
       "description": ""
     },
