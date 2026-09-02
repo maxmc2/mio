@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-02T22:00:42.400500+00:00",
+  "updated": "2026-09-02T22:05:14.599830+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -262,8 +262,8 @@
     },
     {
       "summary": "QuickBooks",
-      "dtstart": "20260903T160000",
-      "dtend": "20260903T170000",
+      "dtstart": "20260910T160000",
+      "dtend": "20260910T170000",
       "location": "",
       "description": ""
     },
