@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-03T08:15:20.746162+00:00",
+  "updated": "2026-09-03T08:20:17.863730+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -215,6 +215,13 @@
       "summary": "Air con install",
       "dtstart": "20260901T120000",
       "dtend": "20260901T130000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Chiropractor",
+      "dtstart": "20261008T092000",
+      "dtend": "20261008T102000",
       "location": "",
       "description": ""
     },
