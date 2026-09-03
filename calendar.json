@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-03T12:15:26.275172+00:00",
+  "updated": "2026-09-03T12:20:22.024326+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -194,6 +194,13 @@
       "summary": "Ben Bater",
       "dtstart": "20260803T103000",
       "dtend": "20260803T113000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Robin",
+      "dtstart": "20260907T103000",
+      "dtend": "20260907T113000",
       "location": "",
       "description": ""
     },
