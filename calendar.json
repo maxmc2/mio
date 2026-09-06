@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-06T20:00:35.024012+00:00",
+  "updated": "2026-09-06T20:05:12.895571+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -467,6 +467,13 @@
       "summary": "Gill Willis",
       "dtstart": "20260512T100000",
       "dtend": "20260512T110000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Send Nina money",
+      "dtstart": "20260928T190000",
+      "dtend": "20260928T200000",
       "location": "",
       "description": ""
     },
