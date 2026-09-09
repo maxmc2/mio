@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-09T07:45:20.708443+00:00",
+  "updated": "2026-09-09T07:50:18.330939+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -143,8 +143,8 @@
     },
     {
       "summary": "John Kreis",
-      "dtstart": "20260909T120000",
-      "dtend": "20260909T130000",
+      "dtstart": "20260909T150000",
+      "dtend": "20260909T160000",
       "location": "",
       "description": ""
     },
