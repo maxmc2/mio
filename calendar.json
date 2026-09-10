@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-10T10:50:16.856436+00:00",
+  "updated": "2026-09-10T10:55:12.939811+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -271,6 +271,13 @@
       "summary": "Mark poker birthday",
       "dtstart": "20211004T110000",
       "dtend": "20211004T120000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Massage - R 3",
+      "dtstart": "20260924T111500",
+      "dtend": "20260924T114500",
       "location": "",
       "description": ""
     },
