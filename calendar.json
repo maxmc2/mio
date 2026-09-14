@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-14T14:05:15.223506+00:00",
+  "updated": "2026-09-14T14:10:19.549844+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -278,6 +278,13 @@
       "summary": "Massage - R 3",
       "dtstart": "20260924T091500",
       "dtend": "20260924T094500",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "QuickBooks - Tafana",
+      "dtstart": "20260923T110000",
+      "dtend": "20260923T120000",
       "location": "",
       "description": ""
     },
