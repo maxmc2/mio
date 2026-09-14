@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-14T09:00:51.027744+00:00",
+  "updated": "2026-09-14T09:05:14.858759+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -355,6 +355,13 @@
       "summary": "Monaro at Neil\u2019s",
       "dtstart": "20260826T103000",
       "dtend": "20260826T113000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Mands",
+      "dtstart": "20260921T090000",
+      "dtend": "20260921T100000",
       "location": "",
       "description": ""
     },
