@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-24T09:00:43.769967+00:00",
+  "updated": "2026-09-24T09:05:13.202287+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -131,6 +131,13 @@
       "summary": "Delphine\u2019s birthday",
       "dtstart": "20250823",
       "dtend": "20250824",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Massage - R 3",
+      "dtstart": "20261015T110000",
+      "dtend": "20261015T113000",
       "location": "",
       "description": ""
     },
