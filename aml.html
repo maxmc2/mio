@@ -74,6 +74,10 @@
   tbody tr:hover { background: #fafaf8; }
   tbody tr.row-expired { background: #fff5f5; }
   tbody tr.row-expiring { background: #fffbf0; }
+  tbody tr.row-archived { background: #fafaf8; color: #a8a8a1; }
+  tbody tr.row-archived .client-name { color: #a8a8a1; font-weight: 400; }
+  tbody tr.row-archived .badge { background: #EDEDEA !important; color: #8C8C87 !important; }
+  tbody tr.row-archived td { opacity: 0.75; }
   tbody td { padding: 9px 12px; vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .client-name { font-weight: 500; }
   .sub-text { font-size: 11px; color: #888; margin-top: 1px; }
@@ -341,6 +345,7 @@
     </div>
     <div class="modal-actions">
       <button class="btn btn-danger" id="deleteBtn" onclick="deleteClient()" style="display:none;margin-right:auto">Delete</button>
+      <button class="btn btn-secondary" id="archiveBtn" onclick="toggleArchive()" style="display:none">Archive</button>
       <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
       <button class="btn btn-primary" onclick="saveClient()">Save</button>
     </div>
@@ -552,7 +557,12 @@ function render() {
   // Compute live status for each client
   clients.forEach(function(c){ c._status = computeStatus(c); });
 
+  var searching = !!(search || fStatus || fType);
+
   var filtered = clients.filter(function(c){
+    // Archived clients sit out of every search and filter — they only appear
+    // at the bottom of the unfiltered list.
+    if (c.archived) return !searching;
     var fullName = c.surname + ' ' + c.firstname;
     if (search && !fullName.toLowerCase().includes(search) && !(c.company||'').toLowerCase().includes(search)) return false;
     if (fStatus && c._status !== fStatus) return false;
@@ -563,6 +573,12 @@ function render() {
   // Sort: Expired → Incomplete → Expiring soon → Pending → Verified — each group A-Z by surname
   var order = {'Expired':0,'Expiring soon':1,'Incomplete':2,'Pending':3,'Verified':4};
   filtered.sort(function(a,b){
+    // Archived always drop below everything else, A-Z among themselves
+    if (!!a.archived !== !!b.archived) return a.archived ? 1 : -1;
+    if (a.archived) {
+      var as = a.surname.localeCompare(b.surname);
+      return as !== 0 ? as : a.firstname.localeCompare(b.firstname);
+    }
     var ao = order[a._status] !== undefined ? order[a._status] : 5;
     var bo = order[b._status] !== undefined ? order[b._status] : 5;
     if (ao !== bo) return ao - bo;
@@ -588,14 +604,15 @@ function render() {
     tb.innerHTML = '<tr class="empty-row"><td colspan="8">No clients — click "+ Add client" to get started</td></tr>';
   } else {
     tb.innerHTML = filtered.map(function(c){
-      var rowClass = c._status==='Expired' ? 'row-expired' : (c._status==='Expiring soon' ? 'row-expiring' : '');
+      var rowClass = c.archived ? 'row-archived'
+                   : (c._status==='Expired' ? 'row-expired' : (c._status==='Expiring soon' ? 'row-expiring' : ''));
       var exp = nextExpiry(c);
       var expDisplay = '—';
       if (exp) {
         var d = new Date(exp);
         var today_d = new Date();
         var soon = new Date(); soon.setDate(soon.getDate()+30);
-        var cls = d < today_d ? 'expiry-warn' : (d <= soon ? 'expiry-soon' : '');
+        var cls = c.archived ? '' : (d < today_d ? 'expiry-warn' : (d <= soon ? 'expiry-soon' : ''));
         expDisplay = '<span class="'+cls+'">'+fmtDate(exp)+'</span>';
       }
       var idDoc = '—', addrDoc = '—';
@@ -614,7 +631,9 @@ function render() {
         if (!addrDoc) addrDoc = '—';
       }
       return '<tr class="'+rowClass+'" onclick="openModal('+c.id+')">'
-        +'<td><div class="client-name">'+c.surname+', '+c.firstname+'</div></td>'
+        +'<td><div class="client-name">'+c.surname+', '+c.firstname
+          +(c.archived ? ' <span style="font-size:10px;font-weight:500;color:#8C8C87;">(archived)</span>' : '')
+          +'</div></td>'
         +'<td style="font-size:12px">'+(c.company||'—')+'</td>'
         +'<td style="font-size:12px">'+(c.type==='limited'?'Limited':'Individual')+'</td>'
         +'<td><span class="badge '+(STATUS_CLASS[c._status]||'s-pending')+'">'+c._status+'</span></td>'
@@ -623,19 +642,20 @@ function render() {
         +'<td style="font-size:12px">'+expDisplay+'</td>'
         +'<td style="font-size:12px">'+(c.chcode || '—')+'</td>'
         +'<td style="font-size:12px">'+(c.dateRequested ? fmtDate(c.dateRequested) : '—')+'</td>'
-        +'<td><button class="btn btn-sm" onclick="event.stopPropagation();openEmailModal('+c.id+')" style="background:#FEF9C3;color:#854D0E;border:1px solid #FDE047;padding:2px 7px;font-size:11px;" title="Send renewal request">✉</button></td>'
+        +'<td>'+(c.archived ? '' : '<button class="btn btn-sm" onclick="event.stopPropagation();openEmailModal('+c.id+')" style="background:#FEF9C3;color:#854D0E;border:1px solid #FDE047;padding:2px 7px;font-size:11px;" title="Send renewal request">✉</button>')+'</td>'
         +'</tr>';
     }).join('');
   }
 
-  // Stats
+  // Stats — archived clients are excluded from every count
+  var active = clients.filter(function(c){ return !c.archived; });
   var counts = {};
   ALL_STATUSES.forEach(function(s){counts[s]=0;});
-  clients.forEach(function(c){ var s = computeStatus(c); if(counts[s]!==undefined) counts[s]++; });
+  active.forEach(function(c){ var s = computeStatus(c); if(counts[s]!==undefined) counts[s]++; });
   var af = activeFilter;
   document.getElementById('statsBar').innerHTML =
     '<div class="stat-card" onclick="clickStat(null)" style="background:#fff;border-color:#e5e5e0">'
-    +'<div class="stat-label">Total</div><div class="stat-val">'+clients.length+'</div></div>'
+    +'<div class="stat-label">Total</div><div class="stat-val">'+active.length+'</div></div>'
     + ALL_STATUSES.map(function(s){
       return '<div class="stat-card'+(af===s?' active-filter':'')+'" onclick="clickStat(\''+s+'\')" style="background:'+STAT_BG[s]+';border-color:'+STAT_BORDER[s]+'">'
         +'<div class="stat-label">'+s+'</div><div class="stat-val">'+counts[s]+'</div></div>';
@@ -684,6 +704,7 @@ function toggleCompanyFields() {
 function openModal(id) {
   editingId = id;
   var deleteBtn = document.getElementById('deleteBtn');
+  var archiveBtn = document.getElementById('archiveBtn');
 
   // Reset
   docOption = null;
@@ -706,9 +727,10 @@ function openModal(id) {
     clearDocFields();
     document.getElementById('historySection').style.display = 'none';
     deleteBtn.style.display = 'none';
+    archiveBtn.style.display = 'none';
   } else {
     var c = clients.find(function(x){return x.id===id;});
-    document.getElementById('modalTitle').textContent = c.surname+', '+c.firstname;
+    document.getElementById('modalTitle').textContent = c.surname+', '+c.firstname+(c.archived ? '  (archived)' : '');
     document.getElementById('f-surname').value = c.surname||'';
     document.getElementById('f-firstname').value = c.firstname||'';
     document.getElementById('f-email').value = c.email||'';
@@ -736,6 +758,8 @@ function openModal(id) {
       }
     }
     deleteBtn.style.display = 'block';
+    archiveBtn.style.display = 'block';
+    archiveBtn.textContent = c.archived ? 'Restore' : 'Archive';
     var log = c.log || [];
     document.getElementById('historySection').style.display = 'block';
     document.getElementById('historyList').innerHTML = log.length
@@ -790,6 +814,22 @@ function saveClient() {
   closeModal(); triggerSave(); render(); showToast('Saved');
 }
 
+function toggleArchive() {
+  var c = clients.find(function(x){return x.id===editingId;});
+  if (!c) return;
+  if (c.archived) {
+    c.archived = false;
+    c.log = [todayLabel()+': Restored from archive', ...(c.log||[])];
+    showToast('Client restored');
+  } else {
+    if (!confirm('Archive this client? They will drop to the bottom of the list and be left out of searches, filters and the totals. You can restore them at any time.')) return;
+    c.archived = true;
+    c.log = [todayLabel()+': Archived', ...(c.log||[])];
+    showToast('Client archived');
+  }
+  closeModal(); triggerSave(); render();
+}
+
 function deleteClient() {
   if (!confirm('Delete this client? This cannot be undone.')) return;
   clients = clients.filter(function(x){return x.id!==editingId;});
@@ -799,7 +839,10 @@ function deleteClient() {
 // ── EXCEL EXPORT ───────────────────────────────────────────────────────────
 function exportToExcel() {
   var wb = XLSX.utils.book_new();
-  var rows = clients.slice().sort(function(a,b){return a.surname.localeCompare(b.surname);}).map(function(c){
+  var rows = clients.slice().sort(function(a,b){
+    if (!!a.archived !== !!b.archived) return a.archived ? 1 : -1;
+    return a.surname.localeCompare(b.surname);
+  }).map(function(c){
     var s = computeStatus(c);
     var row = {
       'Surname': c.surname||'',
@@ -808,6 +851,7 @@ function exportToExcel() {
       'Email': c.email||'',
       'CH Personal code': c.chcode||'',
       'Status': s,
+      'Archived': c.archived ? 'Yes' : '',
       'Date requested': c.dateRequested ? fmtDate(c.dateRequested) : '',
       'Doc option': c.docOption ? 'Option '+c.docOption : ''
     };
@@ -827,7 +871,7 @@ function exportToExcel() {
     return row;
   });
   var ws = XLSX.utils.json_to_sheet(rows);
-  ws['!cols'] = [{wch:14},{wch:14},{wch:16},{wch:20},{wch:18},{wch:14},{wch:10},{wch:14},{wch:14},{wch:18},{wch:18},{wch:18}];
+  ws['!cols'] = [{wch:14},{wch:14},{wch:16},{wch:20},{wch:18},{wch:14},{wch:10},{wch:10},{wch:14},{wch:14},{wch:18},{wch:18},{wch:18}];
   XLSX.utils.book_append_sheet(wb, ws, 'AML Register');
   XLSX.writeFile(wb, 'AML_Register.xlsx');
   showToast('Exported to Excel');
