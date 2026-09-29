@@ -47,6 +47,13 @@
     padding: 6px 10px; background: #fff; color: #1a1a18; outline: none; transition: border 0.15s;
   }
   input:focus, select:focus, textarea:focus { border-color: #888; }
+  .search-wrap { position: relative; display: inline-flex; align-items: center; }
+  .search-wrap input { padding-right: 28px; }
+  .search-clear { position: absolute; right: 7px; display: none; align-items: center; justify-content: center;
+    width: 16px; height: 16px; padding: 0; border: none; border-radius: 50%;
+    background: #d5d5cf; color: #fff; font-family: inherit; font-size: 12px; line-height: 1; cursor: pointer; }
+  .search-clear:hover { background: #a8a8a1; }
+  .search-clear.show { display: inline-flex; }
   .btn { font-family: inherit; font-size: 13px; padding: 7px 14px; border-radius: 6px; cursor: pointer; transition: opacity 0.15s; }
   .btn-primary { background: #1e2a4a; color: #fff; border: none; font-weight: 500; }
   .btn-primary:hover { opacity: 0.85; }
@@ -164,7 +171,10 @@
 
 <div class="toolbar-bar">
   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-    <input type="text" id="searchBox" placeholder="Search name or company..." style="width:220px" oninput="render()">
+    <span class="search-wrap">
+      <input type="text" id="searchBox" placeholder="Search name or company..." style="width:220px" oninput="onSearchInput()">
+      <button type="button" class="search-clear" id="searchClear" onclick="clearSearch()" title="Clear search" aria-label="Clear search">&times;</button>
+    </span>
     <select id="filterStatus" onchange="onFilterChange()">
       <option value="">All statuses</option>
       <option>Verified</option>
@@ -240,10 +250,13 @@
       </div>
       <div><label>Status</label>
         <select id="f-status">
-          <option>Pending</option>
-          <option>Incomplete</option>
           <option>Verified</option>
+          <option>Expiring soon</option>
+          <option>Expired</option>
+          <option>Incomplete</option>
+          <option>Pending</option>
         </select>
+        <div id="statusHint" style="display:none;font-size:11px;color:#8C8C87;margin-top:4px;">Set automatically from the ID documents below</div>
       </div>
     </div>
 
@@ -510,6 +523,26 @@ function toggleExpirySort() {
   return false;
 }
 
+// ── SEARCH ─────────────────────────────────────────────────────────────────
+function updateSearchClear() {
+  var box = document.getElementById('searchBox');
+  var btn = document.getElementById('searchClear');
+  if (box && btn) btn.classList.toggle('show', box.value.length > 0);
+}
+
+function onSearchInput() {
+  updateSearchClear();
+  render();
+}
+
+function clearSearch() {
+  var box = document.getElementById('searchBox');
+  box.value = '';
+  updateSearchClear();
+  render();
+  box.focus();
+}
+
 // ── RENDER ─────────────────────────────────────────────────────────────────
 function render() {
   var search = document.getElementById('searchBox').value.toLowerCase();
@@ -627,6 +660,19 @@ function selectDocOption(opt) {
     document.getElementById('opt-'+o.toLowerCase()).classList.toggle('active', o===opt);
     document.getElementById('fields-'+o).classList.toggle('show', o===opt);
   });
+  setStatusFieldMode();
+}
+
+// Once an ID option is chosen the status is derived from the document dates,
+// so lock the dropdown rather than let it be edited and silently ignored.
+function setStatusFieldMode() {
+  var sel  = document.getElementById('f-status');
+  var hint = document.getElementById('statusHint');
+  var derived = !!docOption;
+  sel.disabled = derived;
+  sel.style.background = derived ? '#f5f5f3' : '#fff';
+  sel.style.color      = derived ? '#666'    : '#1a1a18';
+  hint.style.display   = derived ? 'block'   : 'none';
 }
 
 function toggleCompanyFields() {
@@ -645,6 +691,7 @@ function openModal(id) {
     document.getElementById('opt-'+o.toLowerCase()).classList.remove('active');
     document.getElementById('fields-'+o).classList.remove('show');
   });
+  setStatusFieldMode();
 
   if (id === null) {
     document.getElementById('modalTitle').textContent = 'Add client';
@@ -666,7 +713,8 @@ function openModal(id) {
     document.getElementById('f-firstname').value = c.firstname||'';
     document.getElementById('f-email').value = c.email||'';
     document.getElementById('f-type').value = c.type||'individual';
-    document.getElementById('f-status').value = c.status||'Pending';
+    // Show the same live status the main list shows, not the stored manual one
+    document.getElementById('f-status').value = computeStatus(c);
     document.getElementById('f-company').value = c.company||'';
     document.getElementById('f-chcode').value = c.chcode||'';
     document.getElementById('companyFields').style.display = c.type==='limited' ? 'block' : 'none';
