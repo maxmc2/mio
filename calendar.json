@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-05T13:35:17.086803+00:00",
+  "updated": "2026-10-05T13:40:20.268962+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -271,6 +271,13 @@
       "summary": "Air con install",
       "dtstart": "20260901T120000",
       "dtend": "20260901T130000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "The Ambient Heating Company Ltd - call",
+      "dtstart": "20261007T120000",
+      "dtend": "20261007T130000",
       "location": "",
       "description": ""
     },
