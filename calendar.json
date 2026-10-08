@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-08T08:40:19.204983+00:00",
+  "updated": "2026-10-08T08:45:20.432451+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -418,6 +418,13 @@
       "summary": "Peter Jordan",
       "dtstart": "20260415T150000",
       "dtend": "20260415T153000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Chiropractor",
+      "dtstart": "20261105T110000",
+      "dtend": "20261105T120000",
       "location": "",
       "description": ""
     },
