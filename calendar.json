@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-09T13:30:41.576342+00:00",
+  "updated": "2026-10-09T13:35:15.419046+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -383,6 +383,13 @@
       "summary": "Opticians",
       "dtstart": "20260814T153000",
       "dtend": "20260814T163000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Mands",
+      "dtstart": "20261021T093000",
+      "dtend": "20261021T103000",
       "location": "",
       "description": ""
     },
