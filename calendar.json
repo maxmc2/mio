@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-09T13:40:21.299330+00:00",
+  "updated": "2026-10-09T13:45:24.689695+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -75,6 +75,13 @@
       "summary": "Nina job offer",
       "dtstart": "20260824T150000",
       "dtend": "20260824T160000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Jamie birthday",
+      "dtstart": "20261027",
+      "dtend": "20261028",
       "location": "",
       "description": ""
     },
