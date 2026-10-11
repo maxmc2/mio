@@ -495,6 +495,8 @@ let editingId = null;
 let activeStatFilter = null;
 let chaseTargetId = null;
 let chaseTargetKind = 'vat';   // which return the chase modal is acting on
+let emailTargetId = null;
+let emailTargetKind = 'vat';   // which return the email modal is acting on
 
 // State: which stagger and which period index (0-3) we're viewing
 // Each stagger has its own currentPeriodIndex stored in state
@@ -1153,6 +1155,8 @@ function deleteClient() {
 
 function openEmailModal(id, kind) {
   kind = kind || 'vat';
+  emailTargetId = id;
+  emailTargetKind = kind;
   const c = clients.find(x=>x.id===id);
   const r = rec(c, kind);
   const label = kindLabel(kind);
@@ -1163,7 +1167,7 @@ function openEmailModal(id, kind) {
   document.getElementById('emailTo').value = c.email || '';
   document.getElementById('emailSubject').value = `${kind==='mtd'?'MTD Return':'VAT Return'} – ${period} – Action Required`;
   document.getElementById('emailBody').value =
-`Dear ${greeting},
+`Hi ${greeting},
 
 I hope you are well.
 
@@ -1176,10 +1180,7 @@ To enable us to prepare and submit your return on time, could you please send ov
   • Bank statements covering the period
   • Any other relevant documentation
 
-If you have any questions or need any assistance, please do not hesitate to get in touch.
-
-Kind regards,
-Mark It Off`;
+If you have any questions or need any assistance, please do not hesitate to get in touch.`;
   document.getElementById('emailOverlay').classList.add('open');
 }
 
@@ -1188,6 +1189,20 @@ function sendEmail() {
   const subject = encodeURIComponent(document.getElementById('emailSubject').value.trim());
   const body = encodeURIComponent(document.getElementById('emailBody').value.trim());
   window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
+
+  // Handing the draft to the email client counts as chasing, so record it
+  const c = clients.find(x=>x.id===emailTargetId);
+  if (c) {
+    const r = rec(c, emailTargetKind);
+    r.status = 'Chasing info';
+    r.notes = 'Email sent';
+    r.lastContact = today();
+    addLog(c, emailTargetKind, 'Reminder email sent');
+    triggerSave();
+    render();
+    showToast(c.name + (emailTargetKind==='mtd' ? ' (MTD)' : '') + ' marked as chasing');
+  }
+  document.getElementById('emailOverlay').classList.remove('open');
 }
 
 document.getElementById('emailOverlay').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
