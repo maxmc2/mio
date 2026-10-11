@@ -94,6 +94,22 @@
   .status-wrap .badge:hover { opacity:0.85; }
   .empty-row td { text-align:center; color:#888; padding:2.5rem; }
 
+  /* Period 1 return-type sections */
+  .section-row td { background:#f0f0ec; border-top:1px solid #d8d8d2; border-bottom:1px solid #d8d8d2;
+    padding:7px 14px; font-size:11px; font-weight:600; color:#1e2a4a; text-transform:uppercase; letter-spacing:0.07em; position:sticky; top:0; z-index:4; }
+  .section-row td .sec-count { font-weight:500; color:#888; text-transform:none; letter-spacing:0; margin-left:6px; }
+  .section-empty td { text-align:center; color:#999; font-size:12px; padding:1.1rem; font-style:italic; }
+  .tag-mtd { display:inline-block; font-size:9px; font-weight:700; letter-spacing:0.04em; padding:1px 5px; border-radius:3px;
+    background:#EEEDFE; color:#3C3489; margin-left:6px; vertical-align:middle; }
+
+  /* Return-type checkboxes + per-return blocks in the client card */
+  .check-row { display:flex; gap:18px; align-items:center; padding:7px 0 2px; }
+  .check-row label { display:flex; align-items:center; gap:6px; font-size:13px; color:#333; cursor:pointer; margin:0; }
+  .check-row input[type="checkbox"] { width:15px; height:15px; cursor:pointer; accent-color:#1e2a4a; }
+  .ret-block { border:1px solid #e5e5e0; border-left:3px solid #B5D4F4; border-radius:8px; padding:12px 14px 4px; margin-bottom:12px; background:#fcfcfa; }
+  .ret-block.mtd { border-left-color:#AFA9EC; }
+  .ret-block-title { font-size:11px; font-weight:600; color:#1e2a4a; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px; }
+
   /* MODAL */
   .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:100; align-items:flex-start; justify-content:center; padding-top:48px; overflow-y:auto; }
   .overlay.open { display:flex; }
@@ -234,6 +250,15 @@
       <div><label>Contact name <span style="font-size:11px;color:#aaa;font-weight:400">(for emails)</span></label><input id="f-contact" type="text" placeholder="e.g. Sarah"></div>
       <div><label>Email</label><input id="f-email" type="email" placeholder="client@example.com"></div>
     </div>
+    <div class="form-row one">
+      <div>
+        <label>Returns to complete</label>
+        <div class="check-row">
+          <label><input type="checkbox" id="f-does-vat" onchange="updateReturnBlocks()"> VAT return</label>
+          <label><input type="checkbox" id="f-does-mtd" onchange="updateReturnBlocks()"> MTD return</label>
+        </div>
+      </div>
+    </div>
     <div class="form-row two">
       <div><label>VAT period</label>
         <select id="f-stagger">
@@ -242,34 +267,62 @@
           <option value="2">Period 3 — May/Aug/Nov/Feb</option>
         </select>
       </div>
-      <div><label>Status</label>
-        <select id="f-status">
-          <option>New</option><option>Chasing info</option><option>Bookkeeping</option>
-          <option>Processed</option><option>Sent for signing</option><option>Filed</option>
-        </select>
+      <div><label>Assigned to</label>
+        <select id="f-assigned"><option>Me</option><option>Bookkeeper</option></select>
       </div>
     </div>
-    <div class="form-row three">
+    <div class="form-row two">
       <div><label>VAT scheme</label>
         <select id="f-scheme"><option>Standard</option><option>Flat rate</option><option>Cash accounting</option></select>
       </div>
       <div><label>Payment method</label>
         <select id="f-payment"><option>Direct debit</option><option>Manual payment</option><option>N/A</option></select>
       </div>
-      <div><label>Assigned to</label>
-        <select id="f-assigned"><option>Me</option><option>Bookkeeper</option></select>
+    </div>
+    <!-- Progress is tracked per return, so each gets its own block -->
+    <div class="ret-block" id="block-vat">
+      <div class="ret-block-title">VAT return &mdash; progress</div>
+      <div class="form-row two">
+        <div><label>Status</label>
+          <select id="f-status">
+            <option>New</option><option>Chasing info</option><option>Bookkeeping</option>
+            <option>Processed</option><option>Sent for signing</option><option>Filed</option>
+          </select>
+        </div>
+        <div><label>Last contact</label><input id="f-lastcontact" type="date"></div>
+      </div>
+      <div class="form-row one">
+        <div>
+          <label>Deadline <span id="f-deadline-auto" style="font-size:10px;color:#888;font-weight:400;"></span></label>
+          <input id="f-deadline" type="date" oninput="document.getElementById('f-deadline-auto').textContent='(overridden)'">
+          <button type="button" onclick="resetDeadline('vat')" style="font-size:11px;color:#1e2a4a;background:none;border:none;cursor:pointer;padding:0;margin-left:4px;text-decoration:underline;">Reset to auto</button>
+        </div>
+      </div>
+      <div class="form-row one">
+        <div><label>Notes</label><textarea id="f-notes" placeholder="e.g. Awaiting bank statements..."></textarea></div>
       </div>
     </div>
-    <div class="form-row two">
-      <div>
-        <label>Deadline <span id="f-deadline-auto" style="font-size:10px;color:#888;font-weight:400;"></span></label>
-        <input id="f-deadline" type="date" oninput="document.getElementById('f-deadline-auto').textContent='(overridden)'">
-        <button type="button" onclick="resetDeadline()" style="font-size:11px;color:#1e2a4a;background:none;border:none;cursor:pointer;padding:0;margin-left:4px;text-decoration:underline;">Reset to auto</button>
+    <div class="ret-block mtd" id="block-mtd">
+      <div class="ret-block-title">MTD return &mdash; progress</div>
+      <div class="form-row two">
+        <div><label>Status</label>
+          <select id="f-mtd-status">
+            <option>New</option><option>Chasing info</option><option>Bookkeeping</option>
+            <option>Processed</option><option>Sent for signing</option><option>Filed</option>
+          </select>
+        </div>
+        <div><label>Last contact</label><input id="f-mtd-lastcontact" type="date"></div>
       </div>
-      <div><label>Last contact</label><input id="f-lastcontact" type="date"></div>
-    </div>
-    <div class="form-row one">
-      <div><label>Notes</label><textarea id="f-notes" placeholder="e.g. Awaiting bank statements..."></textarea></div>
+      <div class="form-row one">
+        <div>
+          <label>Deadline <span id="f-mtd-deadline-auto" style="font-size:10px;color:#888;font-weight:400;"></span></label>
+          <input id="f-mtd-deadline" type="date" oninput="document.getElementById('f-mtd-deadline-auto').textContent='(overridden)'">
+          <button type="button" onclick="resetDeadline('mtd')" style="font-size:11px;color:#1e2a4a;background:none;border:none;cursor:pointer;padding:0;margin-left:4px;text-decoration:underline;">Reset to auto</button>
+        </div>
+      </div>
+      <div class="form-row one">
+        <div><label>Notes</label><textarea id="f-mtd-notes" placeholder="e.g. Awaiting bridging spreadsheet..."></textarea></div>
+      </div>
     </div>
     <div class="section-divider">&#128274; HMRC credentials <span style="font-size:10px;font-weight:400;color:#aaa;text-transform:none;letter-spacing:0">(stored locally on this device only)</span></div>
     <div class="form-row two">
@@ -400,10 +453,48 @@ const PAYMENT_CLASS = {'Direct debit':'pay-dd','Manual payment':'pay-manual','N/
 const PAYMENT_LABEL = {'Direct debit':'DD','Manual payment':'Manual','N/A':'N/A'};
 const STATUSES = ['New','Chasing info','Bookkeeping','Processed','Sent for signing','Filed'];
 
+// ── RETURN TYPES (VAT / MTD) ───────────────────────────────────────────────
+// Period 1 is the only tab that splits into VAT and MTD sections. A client can
+// do either or both; each return is tracked independently.
+//
+// Storage: the VAT return's progress stays on the client object itself, exactly
+// where it has always lived, so every existing record keeps working untouched.
+// The MTD return's progress lives in c.mtd. Every client counts as doing VAT
+// unless explicitly unticked; MTD is opt-in.
+const SPLIT_STAGGER = 0;
+function isSplitView() { return activePeriodGroup === SPLIT_STAGGER; }
+function doesVat(c) { return c.doesVat !== false; }
+function doesMtd(c) { return c.doesMtd === true; }
+
+// The progress record for one return. Creates the MTD side on first use.
+function rec(c, kind) {
+  if (kind !== 'mtd') return c;
+  if (!c.mtd) c.mtd = { status:'New', deadline:c.deadline||'', deadlineOverridden:false, lastContact:'', notes:'' };
+  return c.mtd;
+}
+
+// One shared history log per client; MTD entries are prefixed so they're clear.
+function addLog(c, kind, msg) {
+  c.log = [`${todayLabel()}: ${kind==='mtd' ? 'MTD — ' : ''}${msg}`, ...(c.log||[])];
+}
+
+function kindLabel(kind) { return kind==='mtd' ? 'MTD return' : 'VAT return'; }
+
+// Every return to show for the clients in the current period.
+function buildEntries(periodClients) {
+  if (!isSplitView()) return periodClients.map(c => ({ c, kind:'vat' }));
+  const out = [];
+  periodClients.forEach(c => { if (doesVat(c)) out.push({ c, kind:'vat' }); });
+  periodClients.forEach(c => { if (doesMtd(c)) out.push({ c, kind:'mtd' }); });
+  return out;
+}
+
 let clients = [];
 let nextId = 1;
 let editingId = null;
 let activeStatFilter = null;
+let chaseTargetId = null;
+let chaseTargetKind = 'vat';   // which return the chase modal is acting on
 
 // State: which stagger and which period index (0-3) we're viewing
 // Each stagger has its own currentPeriodIndex stored in state
@@ -744,6 +835,9 @@ function doRollover() {
       hmrcPass: c.hmrcPass || '',
       lastContact: '',
       notes: '',
+      doesVat: doesVat(c),
+      doesMtd: doesMtd(c),
+      mtd: { status:'New', deadline:newDeadline, deadlineOverridden:false, lastContact:'', notes:'' },
       log: [`${todayLabel()}: Rolled over from ${oldPeriod}`]
     });
   });
@@ -767,6 +861,8 @@ function applyBulkDeadline() {
   clients.filter(c => c.stagger===activePeriodGroup && !c._historyOnly).forEach(c => {
     c.deadline = newDate;
     c.deadlineOverridden = true;
+    // Both returns share a filing deadline, so move the MTD one too
+    if (doesMtd(c)) { const m = rec(c,'mtd'); m.deadline = newDate; m.deadlineOverridden = true; }
   });
   document.getElementById('changeDeadlineOverlay').classList.remove('open');
   renderAll(); triggerSave();
@@ -814,53 +910,82 @@ function render() {
   // Clients for current stagger (all periods, but we track status per period via rollover)
   const curPeriodIdx = periodGroupState[activePeriodGroup];
   const periodClients = clients.filter(c => c.stagger===activePeriodGroup && c._periodIdx===curPeriodIdx);
-  const filtered = periodClients.filter(c => {
+
+  // One entry per return. On Period 1 a client doing both contributes two.
+  const allEntries = buildEntries(periodClients);
+
+  const filtered = allEntries.filter(({c, kind}) => {
+    const r = rec(c, kind);
     if (search && !c.name.toLowerCase().includes(search) && !(c.vat||'').toLowerCase().includes(search)) return false;
-    if (fStatus && c.status!==fStatus) return false;
+    if (fStatus && r.status!==fStatus) return false;
     if (fScheme && c.scheme!==fScheme) return false;
     return true;
-  }).sort((a,b) => {
-    // Group by status in workflow order (New → Chasing info → Bookkeeping
-    // → Processed → Sent for signing → Filed). Unknown statuses go last.
-    const ai = STATUSES.indexOf(a.status), bi = STATUSES.indexOf(b.status);
+  });
+
+  // Group by status in workflow order (New -> Chasing info -> Bookkeeping
+  // -> Processed -> Sent for signing -> Filed), alphabetical within each group.
+  // Unknown statuses go last. Sorting runs inside each section, so the VAT and
+  // MTD lists order independently.
+  const sortEntries = arr => arr.slice().sort((a, b) => {
+    const ai = STATUSES.indexOf(rec(a.c,a.kind).status), bi = STATUSES.indexOf(rec(b.c,b.kind).status);
     const aRank = ai === -1 ? STATUSES.length : ai;
     const bRank = bi === -1 ? STATUSES.length : bi;
     if (aRank !== bRank) return aRank - bRank;
-    // Alphabetical within each status group
-    return a.name.localeCompare(b.name);
+    return a.c.name.localeCompare(b.c.name);
   });
 
-  const tb = document.getElementById('clientTable');
-  tb.innerHTML = filtered.length ? filtered.map(c=>`
-    <tr onclick="openModal(${c.id})">
-      <td><div class="client-name">${c.name}</div><div class="sub-text">${c.vat||''}</div></td>
+  const rowHtml = ({c, kind}) => {
+    const r = rec(c, kind);
+    const auto = calcDeadline(c.stagger||0, periodGroupState[c.stagger||0]);
+    return `
+    <tr onclick="openModal(${c.id},'${kind}')">
+      <td><div class="client-name">${c.name}${kind==='mtd'?'<span class="tag-mtd">MTD</span>':''}</div><div class="sub-text">${c.vat||''}</div></td>
       <td style="font-size:12px">${STAGGERS[c.stagger].periods[periodGroupState[c.stagger]].label}</td>
-      <td><span class="status-wrap"><span class="badge ${STATUS_CLASS[c.status]||'s-new'}" onclick="event.stopPropagation();openStatusDropdown(event,${c.id})">${c.status} ▾</span></span></td>
-      <td class="${deadlineClass(c.deadline)}" style="font-size:12px">
-        ${fmtDate(c.deadline)}
-        ${(()=>{const auto=calcDeadline(c.stagger||0,periodGroupState[c.stagger||0]);return c.deadline&&c.deadline!==auto?'<span title="Manually overridden" style="font-size:10px;color:#e07070;margin-left:3px;">✎</span>':''})()}
+      <td><span class="status-wrap"><span class="badge ${STATUS_CLASS[r.status]||'s-new'}" onclick="event.stopPropagation();openStatusDropdown(event,${c.id},'${kind}')">${r.status} &#9662;</span></span></td>
+      <td class="${deadlineClass(r.deadline)}" style="font-size:12px">
+        ${fmtDate(r.deadline)}
+        ${r.deadline&&r.deadline!==auto?'<span title="Manually overridden" style="font-size:10px;color:#e07070;margin-left:3px;">&#9998;</span>':''}
       </td>
-      <td style="font-size:12px">${fmtDate(c.lastContact)}</td>
+      <td style="font-size:12px">${fmtDate(r.lastContact)}</td>
       <td><span class="badge ${SCHEME_CLASS[c.scheme]||'scheme-std'}">${c.scheme||'Standard'}</span></td>
       <td><span class="badge ${PAYMENT_CLASS[c.payment]||'pay-manual'}">${PAYMENT_LABEL[c.payment]||'Manual'}</span></td>
-      <td style="font-size:12px;color:#666;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.notes||'—'}</td>
+      <td style="font-size:12px;color:#666;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.notes||'&mdash;'}</td>
       <td style="white-space:nowrap">
-        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();quickChase(${c.id})" style="margin-right:4px">Chase</button>
-        <button class="btn btn-sm" style="background:#E6F1FB;color:#0C447C;border:1px solid #B5D4F4;" onclick="event.stopPropagation();openEmailModal(${c.id})" title="Send VAT reminder email">✉</button>
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();quickChase(${c.id},'${kind}')" style="margin-right:4px">Chase</button>
+        <button class="btn btn-sm" style="background:#E6F1FB;color:#0C447C;border:1px solid #B5D4F4;" onclick="event.stopPropagation();openEmailModal(${c.id},'${kind}')" title="Send reminder email">&#9993;</button>
       </td>
-    </tr>`).join('')
-  : '<tr class="empty-row"><td colspan="9">No clients in this period — click "+ Add client" to add one</td></tr>';
+    </tr>`;
+  };
 
+  const sectionRow = (title, n) =>
+    `<tr class="section-row"><td colspan="9">${title}<span class="sec-count">${n} ${n===1?'return':'returns'}</span></td></tr>`;
+  const sectionEmpty = msg => `<tr class="section-empty"><td colspan="9">${msg}</td></tr>`;
 
+  const tb = document.getElementById('clientTable');
+  if (isSplitView()) {
+    // Period 1 only: VAT returns on top, MTD returns underneath.
+    const vatRows = sortEntries(filtered.filter(e => e.kind==='vat'));
+    const mtdRows = sortEntries(filtered.filter(e => e.kind==='mtd'));
+    tb.innerHTML =
+      sectionRow('VAT returns', vatRows.length) +
+      (vatRows.length ? vatRows.map(rowHtml).join('') : sectionEmpty('No VAT returns here')) +
+      sectionRow('MTD returns', mtdRows.length) +
+      (mtdRows.length ? mtdRows.map(rowHtml).join('') : sectionEmpty('No MTD returns here &mdash; open a client and tick MTD return'));
+  } else {
+    const rows = sortEntries(filtered);
+    tb.innerHTML = rows.length ? rows.map(rowHtml).join('')
+      : '<tr class="empty-row"><td colspan="9">No clients in this period &mdash; click "+ Add client" to add one</td></tr>';
+  }
 
+  // Stats count returns, not clients, so a client doing both VAT and MTD counts twice
   const counts={}; STATUSES.forEach(s=>counts[s]=0);
-  periodClients.forEach(c=>{if(counts[c.status]!==undefined)counts[c.status]++;});
-  const overdue = periodClients.filter(c=>c.status!=='Filed'&&c.deadline&&(new Date(c.deadline)-new Date())<0).length;
+  allEntries.forEach(({c,kind})=>{const r=rec(c,kind); if(counts[r.status]!==undefined)counts[r.status]++;});
+  const overdue = allEntries.filter(({c,kind})=>{const r=rec(c,kind); return r.status!=='Filed'&&r.deadline&&(new Date(r.deadline)-new Date())<0;}).length;
   const af=activeStatFilter;
 
   document.getElementById('statsBar').innerHTML=`
     <div class="stat-card" onclick="clickStatCard(null)">
-      <div class="stat-label">Total clients</div><div class="stat-val">${periodClients.length}</div></div>
+      <div class="stat-label">${isSplitView() ? 'Total returns' : 'Total clients'}</div><div class="stat-val">${allEntries.length}</div></div>
     <div class="stat-card${af==='New'?' active-filter':''}" onclick="clickStatCard('New')" style="background:#F1EFE8;border-color:#B4B2A9">
       <div class="stat-label">New</div><div class="stat-val">${counts['New']}</div></div>
     <div class="stat-card${af==='Chasing info'?' active-filter':''}" onclick="clickStatCard('Chasing info')" style="background:#FAECE7;border-color:#F0997B">
@@ -879,7 +1004,15 @@ function render() {
 
 // ── MODAL ──────────────────────────────────────────────────────────────────
 
-function openModal(id) {
+// Show only the blocks for the returns this client actually does
+function updateReturnBlocks() {
+  const v = document.getElementById('f-does-vat').checked;
+  const m = document.getElementById('f-does-mtd').checked;
+  document.getElementById('block-vat').style.display = v ? 'block' : 'none';
+  document.getElementById('block-mtd').style.display = m ? 'block' : 'none';
+}
+
+function openModal(id, kind) {
   editingId=id;
   document.getElementById('f-hmrc-pass').type='password';
   document.querySelector('.pw-toggle').textContent='Show';
@@ -896,6 +1029,15 @@ function openModal(id) {
     document.getElementById('f-payment').value='Direct debit';
     document.getElementById('f-assigned').value='Me';
     document.getElementById('f-lastcontact').value='';
+    // New clients do a VAT return by default; MTD is ticked on deliberately
+    document.getElementById('f-does-vat').checked = true;
+    document.getElementById('f-does-mtd').checked = (kind==='mtd');
+    document.getElementById('f-mtd-status').value='New';
+    document.getElementById('f-mtd-deadline').value=autoD;
+    document.getElementById('f-mtd-deadline-auto').textContent='(auto)';
+    document.getElementById('f-mtd-lastcontact').value='';
+    document.getElementById('f-mtd-notes').value='';
+    updateReturnBlocks();
     document.getElementById('historySection').style.display='none';
     deleteBtn.style.display='none';
   } else {
@@ -917,6 +1059,15 @@ function openModal(id) {
     document.getElementById('f-notes').value=c.notes||'';
     document.getElementById('f-hmrc-user').value=c.hmrcUser||'';
     document.getElementById('f-hmrc-pass').value=c.hmrcPass||'';
+    document.getElementById('f-does-vat').checked = doesVat(c);
+    document.getElementById('f-does-mtd').checked = doesMtd(c);
+    const m = rec(c,'mtd');
+    document.getElementById('f-mtd-status').value = m.status || 'New';
+    document.getElementById('f-mtd-deadline').value = m.deadline || '';
+    document.getElementById('f-mtd-deadline-auto').textContent = (m.deadline && m.deadline !== autoExisting) ? '(overridden)' : '(auto)';
+    document.getElementById('f-mtd-lastcontact').value = m.lastContact || '';
+    document.getElementById('f-mtd-notes').value = m.notes || '';
+    updateReturnBlocks();
     document.getElementById('historySection').style.display='block';
     document.getElementById('historyList').innerHTML=(c.log||[]).map(l=>`<div class="log-item">${l}</div>`).join('');
     deleteBtn.style.display='block';
@@ -926,11 +1077,12 @@ function openModal(id) {
 
 function closeModal() { document.getElementById('overlay').classList.remove('open'); }
 
-function resetDeadline() {
+function resetDeadline(kind) {
   const stagger = parseInt(document.getElementById('f-stagger').value);
   const auto = calcDeadline(stagger, periodGroupState[stagger]);
-  document.getElementById('f-deadline').value = auto;
-  document.getElementById('f-deadline-auto').textContent = '(auto)';
+  const pre = kind === 'mtd' ? 'f-mtd-' : 'f-';
+  document.getElementById(pre+'deadline').value = auto;
+  document.getElementById(pre+'deadline-auto').textContent = '(auto)';
 }
 
 function togglePw() {
@@ -941,7 +1093,17 @@ function togglePw() {
 function saveClient() {
   const name=document.getElementById('f-name').value.trim();
   if(!name){alert('Client name is required');return;}
+  const wantVat=document.getElementById('f-does-vat').checked;
+  const wantMtd=document.getElementById('f-does-mtd').checked;
+  if(!wantVat && !wantMtd){alert('Tick at least one return type — VAT, MTD or both');return;}
+  const mtdData={
+    status:document.getElementById('f-mtd-status').value,
+    deadline:document.getElementById('f-mtd-deadline').value,
+    lastContact:document.getElementById('f-mtd-lastcontact').value,
+    notes:document.getElementById('f-mtd-notes').value.trim()
+  };
   const data={
+    doesVat:wantVat, doesMtd:wantMtd,
     name, vat:document.getElementById('f-vat').value.trim(),
     contact:document.getElementById('f-contact').value.trim(),
     stagger:parseInt(document.getElementById('f-stagger').value),
@@ -958,14 +1120,23 @@ function saveClient() {
   };
   if(editingId===null){
     const autoDeadline = data.deadline || calcDeadline(data.stagger, periodGroupState[data.stagger]);
-    clients.push({id:nextId++,...data, deadline:autoDeadline, log:[`${todayLabel()}: Client added`]});
+    const autoMtd = mtdData.deadline || autoDeadline;
+    clients.push({id:nextId++,...data, deadline:autoDeadline,
+      mtd:{...mtdData, deadline:autoMtd, deadlineOverridden:false},
+      log:[`${todayLabel()}: Client added`]});
   } else {
     const c=clients.find(x=>x.id===editingId);
+    const m=rec(c,'mtd');
     const changed=[];
     if(c.status!==data.status) changed.push(`${todayLabel()}: Status → ${data.status}`);
+    if(m.status!==mtdData.status) changed.push(`${todayLabel()}: MTD — Status → ${mtdData.status}`);
+    if(doesMtd(c)!==wantMtd) changed.push(`${todayLabel()}: MTD return ${wantMtd?'added':'removed'}`);
+    if(doesVat(c)!==wantVat) changed.push(`${todayLabel()}: VAT return ${wantVat?'added':'removed'}`);
     if(c.assigned!==data.assigned) changed.push(`${todayLabel()}: Assigned to ${data.assigned}`);
     if(c.stagger!==data.stagger) changed.push(`${todayLabel()}: Moved to ${STAGGERS[data.stagger].name}`);
-    Object.assign(c,data); c.log=[...changed,...(c.log||[])];
+    Object.assign(c,data);
+    Object.assign(m,mtdData);
+    c.log=[...changed,...(c.log||[])];
   }
   closeModal(); triggerSave();
   if(data.stagger!==activePeriodGroup){switchPeriodGroup(data.stagger); showToast('Saved — switched to '+STAGGERS[data.stagger].name);}
@@ -980,20 +1151,23 @@ function deleteClient() {
 
 // ── EMAIL TEMPLATE ─────────────────────────────────────────────────────────
 
-function openEmailModal(id) {
+function openEmailModal(id, kind) {
+  kind = kind || 'vat';
   const c = clients.find(x=>x.id===id);
+  const r = rec(c, kind);
+  const label = kindLabel(kind);
   const period = STAGGERS[c.stagger].periods[periodGroupState[c.stagger]].label;
-  const deadline = c.deadline ? fmtDate(c.deadline) : '7th of the following month';
+  const deadline = r.deadline ? fmtDate(r.deadline) : '7th of the following month';
   const greeting = c.contact ? c.contact : c.name;
-  document.getElementById('emailModalTitle').textContent = 'VAT reminder — ' + c.name;
+  document.getElementById('emailModalTitle').textContent = label + ' reminder — ' + c.name;
   document.getElementById('emailTo').value = c.email || '';
-  document.getElementById('emailSubject').value = `VAT Return – ${period} – Action Required`;
+  document.getElementById('emailSubject').value = `${kind==='mtd'?'MTD Return':'VAT Return'} – ${period} – Action Required`;
   document.getElementById('emailBody').value =
 `Dear ${greeting},
 
 I hope you are well.
 
-I am writing to let you know that your VAT return for the period ${period} is now due, with a filing deadline of ${deadline}.
+I am writing to let you know that your ${label} for the period ${period} is now due, with a filing deadline of ${deadline}.
 
 To enable us to prepare and submit your return on time, could you please send over the following information at your earliest convenience:
 
@@ -1025,25 +1199,26 @@ const STATUS_COLORS = {
   'Sent for signing':'#EEEDFE','Filed':'#E1F5EE'
 };
 
-function cycleStatus(e, id) {
+function cycleStatus(e, id, kind) {
   e.stopPropagation();
   const c = clients.find(x=>x.id===id);
   if (!c) return;
-  
-  const currentIndex = STATUSES.indexOf(c.status);
+  const r = rec(c, kind);
+
+  const currentIndex = STATUSES.indexOf(r.status);
   const nextIndex = (currentIndex + 1) % STATUSES.length;
   const newStatus = STATUSES[nextIndex];
-  
-  if (newStatus !== c.status) {
-    c.log = [`${todayLabel()}: Status → ${newStatus}`, ...(c.log||[])];
-    c.status = newStatus;
-    triggerSave(); 
+
+  if (newStatus !== r.status) {
+    addLog(c, kind, `Status → ${newStatus}`);
+    r.status = newStatus;
+    triggerSave();
     render();
   }
 }
 
-function openStatusDropdown(e, id) {
-  cycleStatus(e, id);
+function openStatusDropdown(e, id, kind) {
+  cycleStatus(e, id, kind);
 }
 
 
@@ -1052,10 +1227,12 @@ document.addEventListener('click', function(e) {
   // Removed dropdown closing logic - no longer needed
 });
 
-function quickChase(id) {
+function quickChase(id, kind) {
   chaseTargetId = id;
+  chaseTargetKind = kind || 'vat';
   const c = clients.find(x=>x.id===id);
-  document.getElementById('chaseModalTitle').textContent = 'Chase — ' + c.name;
+  document.getElementById('chaseModalTitle').textContent =
+    'Chase — ' + c.name + (chaseTargetKind==='mtd' ? ' (MTD)' : '');
   document.getElementById('chaseNote').value = '';
   document.getElementById('chaseOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('chaseNote').focus(), 100);
@@ -1063,21 +1240,21 @@ function quickChase(id) {
 
 function confirmChase() {
   const c = clients.find(x=>x.id===chaseTargetId);
+  const r = rec(c, chaseTargetKind);
   const note = document.getElementById('chaseNote').value.trim();
-  c.status = 'Chasing info';
-  c.lastContact = today();
-  const logEntry = note ? `${todayLabel()}: Chased — ${note}` : `${todayLabel()}: Chased for info`;
-  c.log = [logEntry, ...(c.log||[])];
-  if (note) {
-    c.notes = note;
-  }
+  r.status = 'Chasing info';
+  r.lastContact = today();
+  addLog(c, chaseTargetKind, note ? `Chased — ${note}` : 'Chased for info');
+  if (note) r.notes = note;
   document.getElementById('chaseOverlay').classList.remove('open');
-  triggerSave(); render(); showToast(c.name + ' marked as chasing');
+  triggerSave(); render();
+  showToast(c.name + (chaseTargetKind==='mtd' ? ' (MTD)' : '') + ' marked as chasing');
 }
 
 function cancelChase() {
   document.getElementById('chaseOverlay').classList.remove('open');
   chaseTargetId = null;
+  chaseTargetKind = 'vat';
 }
 
 // ── EXCEL EXPORT ───────────────────────────────────────────────────────────
@@ -1089,9 +1266,13 @@ function exportToExcel() {
     if(!sc.length) return;
     const pi=periodGroupState[si];
     const period=stag.periods[pi].label;
-    const rows=sc.map(c=>({'Client':c.name,'VAT No':c.vat||'','Period':stag.name,'Current Period':period,'Status':c.status,'Deadline':c.deadline?fmtDate(c.deadline):'','Last Contact':c.lastContact?fmtDate(c.lastContact):'','Scheme':c.scheme||'','Payment':c.payment||'','Assigned':c.assigned||'','Email':c.email||'','Notes':c.notes||''}));
+    // One row per return, so a client doing VAT and MTD exports as two lines
+    const ents=[];
+    sc.forEach(c=>{ if(doesVat(c)) ents.push({c,kind:'vat'}); });
+    sc.forEach(c=>{ if(si===SPLIT_STAGGER && doesMtd(c)) ents.push({c,kind:'mtd'}); });
+    const rows=ents.map(({c,kind})=>{const r=rec(c,kind);return {'Client':c.name,'Return':kind==='mtd'?'MTD':'VAT','VAT No':c.vat||'','Period':stag.name,'Current Period':period,'Status':r.status,'Deadline':r.deadline?fmtDate(r.deadline):'','Last Contact':r.lastContact?fmtDate(r.lastContact):'','Scheme':c.scheme||'','Payment':c.payment||'','Assigned':c.assigned||'','Email':c.email||'','Notes':r.notes||''};});
     const ws=XLSX.utils.json_to_sheet(rows);
-    ws['!cols']=[{wch:28},{wch:14},{wch:12},{wch:14},{wch:22},{wch:14},{wch:14},{wch:16},{wch:14},{wch:12},{wch:28},{wch:36}];
+    ws['!cols']=[{wch:28},{wch:8},{wch:14},{wch:12},{wch:14},{wch:22},{wch:14},{wch:14},{wch:16},{wch:14},{wch:12},{wch:28},{wch:36}];
     XLSX.utils.book_append_sheet(wb,ws,stag.name);
   });
   XLSX.writeFile(wb,`VAT_Returns_${new Date().toLocaleDateString('en-GB').replace(/\//g,'-')}.xlsx`);
