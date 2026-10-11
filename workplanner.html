@@ -248,6 +248,8 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .task-card.archived .tc-check { border-color: var(--gray-200); background: var(--gray-200); cursor: default; }
 .task-card.archived .tc-check:checked { background: var(--gray-400); border-color: var(--gray-400); }
 .tc-name { font-size: 12px; font-weight: 500; line-height: 1.35; color: var(--text); flex: 1; }
+.tc-client { font-weight: 600; }
+.tc-task { font-weight: 400; opacity: 0.8; }
 .task-card.archived .tc-name { text-decoration: line-through; color: var(--text-faint); }
 .task-card.overdue .tc-name { color: var(--red); }
  
@@ -499,7 +501,8 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
       <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
     </div>
     <input type="hidden" id="editId" />
-    <div class="field"><label>Task name</label><input type="text" id="fName" placeholder="e.g. Send VAT return" /></div>
+    <div class="field"><label>Client</label><input type="text" id="fClient" placeholder="e.g. D Williams (optional)" /></div>
+    <div class="field"><label>Task</label><input type="text" id="fName" placeholder="e.g. Amend 2025 SATR" /></div>
     <div class="field-row">
       <div class="field"><label>Assign to date</label><input type="date" id="fDate" /></div>
       <div class="field"><label>Calendar</label>
@@ -628,6 +631,22 @@ function findTaskInCal(id, cal) {
 }
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function fmtDate(s) { let d=parseD(s); return d.getDate()+' '+MONTHS[d.getMonth()].slice(0,3); }
+
+// ─── Client / task name split ────────────────
+// New tasks store the client separately from the task. Older ones were typed
+// as "Client - Task" in a single field, so fall back to splitting on the first
+// dash. Anything with no dash is treated as a task with no client.
+function nameParts(t) {
+  if (t.client) return { client: t.client, task: t.name || '' };
+  const m = (t.name || '').match(/^\s*(.+?)\s+[–—-]\s+(.+?)\s*$/);
+  if (m) return { client: m[1], task: m[2] };
+  return { client: '', task: (t.name || '').trim() };
+}
+// One-line version, for the month pills and anywhere a task is named in prose
+function fullLabel(t) {
+  const p = nameParts(t);
+  return p.client ? p.client + ' – ' + p.task : p.task;
+}
  
 // ─── Carry-forward ───────────────────────────
 function carryForward() {
@@ -730,6 +749,7 @@ function generateRecurring(extendMonths = 12) {
           date: targetDate,
           originalDate: targetDate,      // Track original scheduled date
           name: tmpl.name,
+          client: tmpl.client || '',
           type: 'active',                // Normal active task type
           recurring: false,              // ← CRITICAL: NEVER true on instances
           recurPattern: '',              // Instances don't carry pattern
@@ -817,8 +837,8 @@ function showExtendPrompt(info) {
   
   const title = type === 'annual' ? '📅 Annual Task Continuing' : '📅 Extend Recurring Task';
   const body = type === 'annual' 
-    ? `<p><strong>${esc(tmpl.name)}</strong></p><p>This annual task is approaching. Continue for next year?</p>`
-    : `<p><strong>${esc(tmpl.name)}</strong></p><p>You're approaching the end of generated instances.</p><p>Continue for another 12 months?</p>`;
+    ? `<p><strong>${esc(fullLabel(tmpl))}</strong></p><p>This annual task is approaching. Continue for next year?</p>`
+    : `<p><strong>${esc(fullLabel(tmpl))}</strong></p><p>You're approaching the end of generated instances.</p><p>Continue for another 12 months?</p>`;
   
   modal.innerHTML = `
     <div class="session-modal">
@@ -893,6 +913,7 @@ function extendAnnualForNextYear(templateId, cal) {
     date: targetDate,
     originalDate: targetDate,
     name: tmpl.name,
+    client: tmpl.client || '',
     type: 'active',
     recurring: false,
     recurPattern: '',
@@ -1712,7 +1733,7 @@ function renderMonth() {
       const _mIsRec = !!_mTmpl;
       // Add recurring class for visual indicator
       if (_mIsRec && tc === 'active') tc = 'recurring';
-      html+=`<div class="mpill ${tc}${_mIsAnnual ? ' annual' : ''}">${esc(t.name)}</div>`;
+      html+=`<div class="mpill ${tc}${_mIsAnnual ? ' annual' : ''}" title="${esc(fullLabel(t))}">${esc(fullLabel(t))}</div>`;
     });
     if (dayTasks.length>3) html+=`<div class="month-more">+${dayTasks.length-3} more</div>`;
     html+='</div>';
@@ -1797,11 +1818,16 @@ function renderCard(t) {
   
   // ← Apply blue 'recurring' class for monthly recurring instances (not annual, not overdue/mandy)
   if (_isRecurring && !_isAnnual && tc === 'active') tc = 'recurring';
-  
+
+  const _parts = nameParts(t);
+
   return `<div class="task-card ${tc}${_isAnnual ? ' annual' : ''}" id="tc-${t.id}" ${dragAttrs} ${dblClick}>
     <div class="tc-top">
       <input type="checkbox" class="tc-check" ${checked} ${checkDisabled} onchange="completeTask(${t.id},event)" title="Mark complete" />
-      <div class="tc-name">${esc(t.name)}</div>
+      <div class="tc-name">
+        ${_parts.client ? `<div class="tc-client">${esc(_parts.client)}</div>` : ''}
+        <div class="tc-task">${esc(_parts.task)}</div>
+      </div>
     </div>
     <div class="tc-badges">
       ${_isRecurring ? (_isAnnual
@@ -1840,7 +1866,8 @@ function completeTask(id, e) {
   if (!t || t.type === 'archived') return;
  
   const completedDate = dk(TODAY);
-  const taskName = t.name;
+  const _cp = nameParts(t);
+  const taskName = fullLabel(t);
   const wasMandy = (currentCal === 'mandy');
  
   // Archive the task in its own calendar
@@ -1853,7 +1880,8 @@ function completeTask(id, e) {
     tasks.principal.push({
       id: notifId,
       date: completedDate,
-      name: `! [Completed by Mandy] ${taskName}`,
+      name: `! [Completed by Mandy] ${_cp.task}`,
+      client: _cp.client,
       type: 'mandy-notify',
       recurring: false,
       recurPattern: '',
@@ -1937,7 +1965,10 @@ function editTask(id, e) {
   
   document.getElementById('modalTitle').textContent = isTemplate ? 'Edit recurring series' : 'Edit task';
   document.getElementById('editId').value = id;
-  document.getElementById('fName').value  = t.name;
+  // Existing "Client - Task" names are split so they land in the right boxes
+  const _ep = nameParts(t);
+  document.getElementById('fClient').value = _ep.client;
+  document.getElementById('fName').value   = _ep.task;
   document.getElementById('fDate').value  = isTemplate ? (t.recurOriginalDate || dk(TODAY)) : t.date;
   document.getElementById('fCal').value   = currentCal;
   document.getElementById('fInstr').value = t.instructions || '';
@@ -2077,6 +2108,7 @@ function switchCal(cal) {
 function openModal() {
   document.getElementById('modalTitle').textContent='Add task';
   document.getElementById('editId').value='';
+  document.getElementById('fClient').value='';
   document.getElementById('fName').value='';
   document.getElementById('fDate').value=dk(TODAY);
   document.getElementById('fCal').value=currentCal;
@@ -2098,15 +2130,23 @@ function openModal() {
   document.getElementById('modalOverlay').classList.add('open');
   
   // ← Add Enter key support for quick task creation
-  const fNameInput = document.getElementById('fName');
+  const fNameInput   = document.getElementById('fName');
+  const fClientInput = document.getElementById('fClient');
+  // Enter on Client moves to Task; Enter on Task saves
+  fClientInput.onkeydown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      fNameInput.focus();
+    }
+  };
   fNameInput.onkeydown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       saveTask();
     }
   };
-  
-  setTimeout(()=>fNameInput.focus(),50);
+
+  setTimeout(()=>fClientInput.focus(),50);
 }
 function openModalForDate(dkk) { openModal(); document.getElementById('fDate').value=dkk; }
 function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
@@ -2136,7 +2176,8 @@ function saveTask() {
   savingTask = true;
   
   try {
-  let name  = document.getElementById('fName').value.trim();
+  let name   = document.getElementById('fName').value.trim();
+  let client = document.getElementById('fClient').value.trim();
   let date  = document.getElementById('fDate').value;
   let cal   = document.getElementById('fCal').value;
   let instr = document.getElementById('fInstr').value.trim();
@@ -2176,7 +2217,8 @@ function saveTask() {
       
       if (wasTemplate && rec) {
         // Editing a template — update it and regenerate future instances
-        t.name = name; 
+        t.name = name;
+        t.client = client;
         t.instructions = instr;
         t.recurPattern = pat;
         t.recurOriginalDate = date;
@@ -2189,7 +2231,8 @@ function saveTask() {
       } else if (wasInstance) {
         // Editing an instance — detach from template (so future regens don't affect it)
         // Just update this single instance, no recurrence changes propagate
-        t.name = name; 
+        t.name = name;
+        t.client = client;
         t.instructions = instr;
         t.date = date;
         t.lastModified = Date.now();
@@ -2201,7 +2244,8 @@ function saveTask() {
       } else {
         // Editing a regular (non-recurring) task
         let dateChanged = t.date !== date;
-        t.name = name; 
+        t.name = name;
+        t.client = client;
         t.instructions = instr;
         t.lastModified = Date.now();
         
@@ -2224,6 +2268,7 @@ function saveTask() {
             recurPattern: pat,
             recurOriginalDate: date,
             name: name,
+            client: client,
             instructions: instr,
             cal: currentCal,
             lastModified: Date.now()
@@ -2247,6 +2292,7 @@ function saveTask() {
         recurPattern: pat,
         recurOriginalDate: date,
         name: name,
+        client: client,
         instructions: instr,
         cal: cal,
         lastModified: Date.now()
@@ -2259,6 +2305,7 @@ function saveTask() {
         id: nextId++, 
         date, 
         name,
+        client,
         type: 'active',
         recurring: false, 
         recurPattern: '',
