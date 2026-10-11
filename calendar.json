@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-11T17:25:15.266004+00:00",
+  "updated": "2026-10-11T17:30:33.854064+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -250,6 +250,13 @@
       "summary": "Ben Bater",
       "dtstart": "20260803T103000",
       "dtend": "20260803T113000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Vat change to 5% energy saving",
+      "dtstart": "20270305T180000",
+      "dtend": "20270305T190000",
       "location": "",
       "description": ""
     },
