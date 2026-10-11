@@ -2035,7 +2035,9 @@ function loadViewState() {
     if (!raw) return;
     const s = JSON.parse(raw);
     if (s.view === 'month' || s.view === 'week') view = s.view;
-    if (s.cursor) { cursor = new Date(s.cursor); cursor.setHours(0,0,0,0); }
+    // Deliberately NOT restoring s.cursor — the planner always opens on the
+    // current week/month. The stored cursor was whatever period you last
+    // navigated to, which left it stuck in the past on the next visit.
     if (s.currentCal === 'principal' || s.currentCal === 'mandy') currentCal = s.currentCal;
     if (typeof s.showArchived === 'boolean') showArchived = s.showArchived;
   } catch(e) {}
