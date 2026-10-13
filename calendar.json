@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-13T17:15:24.778791+00:00",
+  "updated": "2026-10-13T17:20:21.566054+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -103,13 +103,6 @@
       "summary": "Podiatrist",
       "dtstart": "20260806T130000",
       "dtend": "20260806T140000",
-      "location": "",
-      "description": ""
-    },
-    {
-      "summary": "BnB",
-      "dtstart": "20261014T110000",
-      "dtend": "20261014T120000",
       "location": "",
       "description": ""
     },
