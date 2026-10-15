@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-15T10:45:23.425582+00:00",
+  "updated": "2026-10-15T10:50:19.980326+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -334,6 +334,13 @@
       "summary": "Massage - R 3",
       "dtstart": "20260924T091500",
       "dtend": "20260924T094500",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Massage - R 3",
+      "dtstart": "20261119T100000",
+      "dtend": "20261119T103000",
       "location": "",
       "description": ""
     },
