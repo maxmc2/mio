@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-20T15:25:15.423352+00:00",
+  "updated": "2026-10-20T15:30:38.893529+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -397,6 +397,13 @@
       "summary": "QuickBooks",
       "dtstart": "20260910T160000",
       "dtend": "20260910T170000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Matthew Staff",
+      "dtstart": "20261102T113000",
+      "dtend": "20261102T123000",
       "location": "",
       "description": ""
     },
