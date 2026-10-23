@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-23T16:15:27.842547+00:00",
+  "updated": "2026-10-23T16:20:32.794857+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -313,6 +313,13 @@
       "summary": "CK Carpets - LP1 claim",
       "dtstart": "20260501",
       "dtend": "20260502",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Dan Jordan",
+      "dtstart": "20261027T120000",
+      "dtend": "20261027T130000",
       "location": "",
       "description": ""
     },
