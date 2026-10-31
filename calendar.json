@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-31T14:05:15.197009+00:00",
+  "updated": "2026-10-31T14:10:18.673604+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -61,6 +61,13 @@
       "summary": "The Ambient Heating Company Ltd - call",
       "dtstart": "20260925T110000",
       "dtend": "20260925T120000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Peter Jordan",
+      "dtstart": "20261104T150000",
+      "dtend": "20261104T153000",
       "location": "",
       "description": ""
     },
