@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-03T18:50:21.898375+00:00",
+  "updated": "2026-11-03T18:55:26.893666+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -68,6 +68,13 @@
       "summary": "Peter Jordan",
       "dtstart": "20261104T150000",
       "dtend": "20261104T153000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Apron",
+      "dtstart": "20261104T120000",
+      "dtend": "20261104T130000",
       "location": "",
       "description": ""
     },
