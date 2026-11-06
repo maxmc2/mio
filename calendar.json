@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-06T23:25:13.734712+00:00",
+  "updated": "2026-11-06T23:30:36.973332+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -236,6 +236,13 @@
       "summary": "Chiropractor",
       "dtstart": "20260731T132000",
       "dtend": "20260731T142000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Rian Edwards",
+      "dtstart": "20270109T090000",
+      "dtend": "20270109T093000",
       "location": "",
       "description": ""
     },
