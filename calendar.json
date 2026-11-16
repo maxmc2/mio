@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-16T12:15:24.884595+00:00",
+  "updated": "2026-11-16T12:20:20.776738+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -558,6 +558,13 @@
       "summary": "Put Gary on TWCC payroll",
       "dtstart": "20260428T190000",
       "dtend": "20260428T200000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Anthropic",
+      "dtstart": "20261117T120000",
+      "dtend": "20261117T130000",
       "location": "",
       "description": ""
     },
