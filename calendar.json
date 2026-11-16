@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-16T02:50:20.220401+00:00",
+  "updated": "2026-11-16T02:55:15.705790+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -236,6 +236,13 @@
       "summary": "Chiropractor",
       "dtstart": "20260731T132000",
       "dtend": "20260731T142000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Drew\u2019s bday",
+      "dtstart": "20261116T130000",
+      "dtend": "20261116T140000",
       "location": "",
       "description": ""
     },
