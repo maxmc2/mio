@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-17T22:15:25.396138+00:00",
+  "updated": "2026-11-17T22:20:20.325734+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -563,8 +563,8 @@
     },
     {
       "summary": "Anthropic",
-      "dtstart": "20261117T120000",
-      "dtend": "20261117T130000",
+      "dtstart": "20261118T120000",
+      "dtend": "20261118T130000",
       "location": "",
       "description": ""
     },
