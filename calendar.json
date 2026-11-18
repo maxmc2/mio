@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-18T15:25:25.507899+00:00",
+  "updated": "2026-11-18T15:30:40.443487+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -313,6 +313,13 @@
       "summary": "Xana - new client",
       "dtstart": "20260813T133000",
       "dtend": "20260813T143000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Paul Gibbs",
+      "dtstart": "20261125T150000",
+      "dtend": "20261125T160000",
       "location": "",
       "description": ""
     },
