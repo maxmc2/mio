@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-19T10:50:20.725178+00:00",
+  "updated": "2026-11-19T10:55:15.833447+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -537,6 +537,13 @@
       "summary": "Paul ATKINS",
       "dtstart": "20260617T170000",
       "dtend": "20260617T180000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Massage - R 3",
+      "dtstart": "20261221T100000",
+      "dtend": "20261221T103000",
       "location": "",
       "description": ""
     },
