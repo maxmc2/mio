@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-21T15:30:41.790041+00:00",
+  "updated": "2026-11-21T15:35:22.062423+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -467,6 +467,13 @@
       "summary": "Massage - R 3",
       "dtstart": "20260716T101500",
       "dtend": "20260716T104500",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Jobs of Oxted",
+      "dtstart": "20261203T110000",
+      "dtend": "20261203T120000",
       "location": "",
       "description": ""
     },
