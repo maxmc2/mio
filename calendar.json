@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-25T16:15:28.761146+00:00",
+  "updated": "2026-11-25T16:25:22.290594+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -75,6 +75,13 @@
       "summary": "Peter Jordan",
       "dtstart": "20261104T150000",
       "dtend": "20261104T153000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Easylife",
+      "dtstart": "20261202T120000",
+      "dtend": "20261202T130000",
       "location": "",
       "description": ""
     },
