@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-25T15:50:31.391722+00:00",
+  "updated": "2026-11-25T16:03:46.582177+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -33,6 +33,13 @@
       "summary": "Chiropractor",
       "dtstart": "20260903T090000",
       "dtend": "20260903T100000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Patricia Rouse",
+      "dtstart": "20261126T103000",
+      "dtend": "20261126T113000",
       "location": "",
       "description": ""
     },
