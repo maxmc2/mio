@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-25T17:20:27.097394+00:00",
+  "updated": "2026-11-25T17:25:25.982130+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -110,6 +110,13 @@
       "summary": "Jamie birthday",
       "dtstart": "20261027",
       "dtend": "20261028",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Sallie - Bua Thai",
+      "dtstart": "20261202T100000",
+      "dtend": "20261202T110000",
       "location": "",
       "description": ""
     },
