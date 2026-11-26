@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-26T12:01:00.314231+00:00",
+  "updated": "2026-11-26T12:05:18.819733+00:00",
   "events": [
     {
       "summary": "Mands",
@@ -446,6 +446,13 @@
       "summary": "Massage - R 3",
       "dtstart": "20260820T110000",
       "dtend": "20260820T113000",
+      "location": "",
+      "description": ""
+    },
+    {
+      "summary": "Mark Shaffer",
+      "dtstart": "20261130T110000",
+      "dtend": "20261130T120000",
       "location": "",
       "description": ""
     },
